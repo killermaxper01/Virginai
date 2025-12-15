@@ -1,6 +1,10 @@
+
+
+
 Flask
 requests
 flask-limiter
 python-dotenv
-gunicorn
 flask-cors
+flask-session
+gunicorn
