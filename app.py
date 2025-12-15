@@ -1,235 +1,92 @@
-from flask import Flask, request, jsonify, send_from_directory, session
+from flask import Flask, request, jsonify, session, Response
 from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_cors import CORS
-from flask_session import Session
 from dotenv import load_dotenv
-import requests
-import os
-import atexit 
-import shutil 
-import time
+import requests, os
 
 load_dotenv()
 
-# --- Configuration ---
-API_KEY = os.getenv("GEMINI_API_KEY")
-MODEL = "gemini-2.5-flash"
-MAX_CONTEXT_QA = 3          # Keep last 3 Q&A pairs (6 entries)
-MAX_CONTEXT_LENGTH = 1500   # Max character length for history before summarization
-MIN_REQUEST_DELAY = 0.1     # Small delay to discourage rapid-fire scripts
-
 app = Flask(__name__)
-# Enable CORS for all domains
 CORS(app)
 
-# Session config (server-side)
-SESSION_FILE_DIR = os.path.join(os.getcwd(), 'flask_session_data') 
-app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_FILE_DIR'] = SESSION_FILE_DIR
-app.config['SECRET_KEY'] = os.getenv("APP_SECRET_TOKEN", "defaultsecret123")
-Session(app)
+# ---- Security & Session ----
+app.secret_key = os.getenv("APP_SECRET_TOKEN", "change_this_secret")
+app.config["SESSION_PERMANENT"] = False  # clears when browser closes
 
-# --- Robust Rate Limiter Setup ---
-
-def get_client_ip():
-    """Tries to get the real client IP from X-Forwarded-For headers (for proxies/load balancers)."""
-    # The true client IP is usually the first address in the list
-    forwarded_for = request.headers.getlist("X-Forwarded-For")
-    if forwarded_for:
-        return forwarded_for[0]
-    # Fallback to the direct remote address
-    return request.remote_addr
-
+# ---- Rate Limiter (per IP) ----
 limiter = Limiter(
-    key_func=get_client_ip, # Use the robust IP function
+    key_func=get_remote_address,
     app=app,
-    default_limits=["10 per minute"] # Default limit for all routes
+    default_limits=["10 per minute"]
 )
 
+API_KEY = os.getenv("GEMINI_API_KEY")
+MODEL = "gemini-2.5-flash"
+MAX_CONTEXT = 4   # last 4 Q&A only
 
-# --- Utility Functions ---
-
-def summarize_context(history_list: list[str]) -> str | None:
-    """Uses the Gemini API to summarize the chat history for token saving."""
-    if not API_KEY:
-        print("API_KEY is missing for summarization.")
-        return None
-
-    full_history = "\n".join(history_list)
-    summary_prompt = (
-        "Condense the following conversation history into a brief, single-paragraph "
-        "summary of the key topic, ensuring all essential facts (like names, numbers, "
-        "or previous calculation results) are preserved. This summary must be used as the new context "
-        "to continue the conversation. Do not add any conversational text like 'The user has asked...'. "
-        f"Context to summarize: \n\n{full_history}"
-    )
-
-    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent"
-    headers = {"Content-Type": "application/json"}
-    params = {"key": API_KEY}
-    
-    payload = {"contents": [{"role": "user", "parts": [{"text": summary_prompt}]}]}
-    
-    try:
-        response = requests.post(url, headers=headers, params=params, json=payload, timeout=10)
-        response.raise_for_status()
-        ai_data = response.json()
-        
-        reply = ai_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
-        
-        return f"[Context Summary]: {reply}" if reply else None
-        
-    except requests.exceptions.RequestException as e:
-        print(f"Error during context summarization: {e}")
-        return None
-
-def cleanup_on_shutdown():
-    """Clears the file system session directory on server shutdown."""
-    print("\n\n--- Cleaning up sessions on server shutdown... ---")
-    try:
-        if os.path.exists(SESSION_FILE_DIR):
-            shutil.rmtree(SESSION_FILE_DIR)
-            print(f"Successfully removed session directory: {SESSION_FILE_DIR}")
-    except OSError as e:
-        print(f"Error during session cleanup: {e}")
-
-# Register the cleanup function to run when the server shuts down (e.g., stopping gunicorn)
-atexit.register(cleanup_on_shutdown)
-
-# --- Request Hooks ---
-
-@app.before_request
-def bot_deterrent_delay():
-    """Implements a small delay on POST requests to discourage rapid-fire scripts."""
-    if request.method == "POST":
-        time.sleep(MIN_REQUEST_DELAY)
-
-# --- Routes ---
-
+# -----------------------------
 @app.route("/")
 def home():
-    """Serves the frontend file (index.html)."""
-    return send_from_directory(".", "index.html")
+    return Response(INDEX_HTML, mimetype="text/html")
 
+# -----------------------------
 @app.route("/ask", methods=["POST"])
-@limiter.limit("10 per minute") # Enforce the limit here
+@limiter.limit("10 per minute")
 def ask():
-    """Handles the user question, manages context, and calls the Gemini API."""
     try:
-        data = request.get_json(force=True)
+        data = request.get_json()
         question = data.get("question", "").strip()
 
         if not question:
-            return jsonify({"answer": "❗ Please type a question."}), 400
-        if not API_KEY:
-            return jsonify({"answer": "⚠️ Server misconfiguration (API Key missing)."}), 500
+            return jsonify({"answer": "❗ Please enter a question."})
 
-        if 'context' not in session:
-            session['context'] = []
-            
-        history = session['context']
+        if "context" not in session:
+            session["context"] = []
 
-        # 1. Context Management and Summarization
-        full_history_length = len("\n".join(history))
-        
-        if full_history_length > MAX_CONTEXT_LENGTH and len(history) > MAX_CONTEXT_QA * 2:
-            print("History is long, attempting summarization...")
-            summary = summarize_context(history)
-            
-            if summary:
-                history = [summary] # Replace history with summary
-            else:
-                # Fall back to trimming the raw history
-                print("Summarization failed. Trimming raw history.")
-                history = history[-MAX_CONTEXT_QA * 2:]
-        elif len(history) > MAX_CONTEXT_QA * 2:
-            # If not too long, but over the max Q&A count, just trim it
-            history = history[-MAX_CONTEXT_QA * 2:]
-        
-        # Add the new user question to the history
-        history.append(f"User: {question}")
-        
-        # 2. Build Prompt and API Call
-        
-        system_instruction = (
-            "You are a helpful and concise AI assistant. You must continue the conversation "
-            "based on the provided context. Be aware of the context and remember previous "
-            "calculation results or facts provided by the user."
-        )
+        # Add user message
+        session["context"].append(f"User: {question}")
 
-        # Build the multiturn 'contents' payload
-        contents = []
-        for h in history:
-            role = None
-            text = h.split(': ', 1)[1] if ': ' in h else h
+        # Trim context
+        session["context"] = session["context"][-MAX_CONTEXT*2:]
 
-            if h.startswith("User: "):
-                role = "user"
-            elif h.startswith("AI: "):
-                role = "model"
-            elif h.startswith("[Context Summary]"):
-                # If using a summary, prepend it to the system instruction
-                system_instruction += f"\n\nPrevious Conversation Summary: {text}"
-                continue # Skip adding the summary as a turn
-
-            if role:
-                 contents.append({"role": role, "parts": [{"text": text}]})
-
-        # Final payload structure for the API
-        payload = {
-            "config": {
-                "systemInstruction": system_instruction
-            },
-            "contents": contents
-        }
+        prompt = "\n".join(session["context"]) + "\nAI:"
 
         url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent"
-        headers = {"Content-Type": "application/json"}
-        params = {"key": API_KEY}
-        
-        response = requests.post(url, headers=headers, params=params, json=payload, timeout=20)
+        payload = {
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": prompt}]
+            }]
+        }
+
+        response = requests.post(
+            url,
+            params={"key": API_KEY},
+            json=payload,
+            timeout=20
+        )
         response.raise_for_status()
-        ai_data = response.json()
 
-        candidates = ai_data.get("candidates")
-        if not candidates:
-            block_msg = ai_data.get("promptFeedback", {}).get("blockReason", "⚠️ No valid response from AI.")
-            return jsonify({"answer": f"API Error: {block_msg}"}), 500
+        reply = response.json()["candidates"][0]["content"]["parts"][0]["text"]
 
-        reply = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
-
-        # 3. Update Session Context
-        
-        # Append the new AI reply to the history
-        history.append(f"AI: {reply}") 
-        
-        # Save the updated history back to the session
-        session['context'] = history
+        session["context"].append(f"AI: {reply}")
         session.modified = True
 
         return jsonify({"answer": reply})
 
     except requests.exceptions.Timeout:
-        return jsonify({"answer": "⏳ AI took too long. Please retry."}), 504
-    except requests.exceptions.RequestException as e:
-        print(f"Request Exception: {e}")
-        return jsonify({"answer": "🌐 Network/API error. Try again later."}), 502
+        return jsonify({"answer": "⏳ AI timeout. Try again."})
     except Exception as e:
-        print(f"Internal Error: {e}")
-        return jsonify({"answer": "❌ Internal server error."}), 500
+        print("Error:", e)
+        return jsonify({"answer": "❌ Server error. Try later."})
 
+# -----------------------------
 @app.route("/clear-session", methods=["POST"])
 def clear_session():
-    """Manually clears the user's current session context."""
-    session.pop('context', None)
-    return jsonify({"status": "cleared", "message": "Chat context cleared for this session."})
+    session.clear()
+    return jsonify({"status": "cleared"})
 
+# -----------------------------
 if __name__ == "__main__":
-    # Ensure the session directory exists before starting the app
-    if not os.path.exists(SESSION_FILE_DIR):
-        os.makedirs(SESSION_FILE_DIR)
-        
-    print(f"Starting server. Session files will be stored in: {SESSION_FILE_DIR}")
-    
-    # Run the application. Note: On platforms like Render, Gunicorn will handle the execution.
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=True, use_reloader=False)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
