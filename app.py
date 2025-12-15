@@ -1,56 +1,61 @@
 from flask import Flask, request, jsonify, send_from_directory, session
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from flask_cors import CORS
 from flask_session import Session
 from dotenv import load_dotenv
 import requests
 import os
-import atexit # For server shutdown cleanup
-import shutil # For file system cleanup
+import atexit 
+import shutil 
+import time
 
 load_dotenv()
-
-app = Flask(__name__)
-# Enable CORS for all domains
-CORS(app)
 
 # --- Configuration ---
 API_KEY = os.getenv("GEMINI_API_KEY")
 MODEL = "gemini-2.5-flash"
-MAX_CONTEXT_QA = 3  # Keep last 3 Q&A pairs (6 entries: 3 User + 3 AI)
-MAX_CONTEXT_LENGTH = 1500 # Max character length for context before summarization
+MAX_CONTEXT_QA = 3          # Keep last 3 Q&A pairs (6 entries)
+MAX_CONTEXT_LENGTH = 1500   # Max character length for history before summarization
+MIN_REQUEST_DELAY = 0.1     # Small delay to discourage rapid-fire scripts
+
+app = Flask(__name__)
+CORS(app)
 
 # Session config (server-side)
-SESSION_FILE_DIR = os.path.join(os.getcwd(), 'flask_session_data') # Define session directory
+SESSION_FILE_DIR = os.path.join(os.getcwd(), 'flask_session_data') 
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_FILE_DIR'] = SESSION_FILE_DIR
 app.config['SECRET_KEY'] = os.getenv("APP_SECRET_TOKEN", "defaultsecret123")
 Session(app)
 
-# Rate limit: 10 requests per minute per IP
+# --- Rate Limiter Setup ---
+def get_client_ip():
+    """Tries to get the real client IP from X-Forwarded-For headers (for proxies/load balancers)."""
+    if request.headers.getlist("X-Forwarded-For"):
+        # The true client IP is usually the first address in the list
+        return request.headers.getlist("X-Forwarded-For")[0]
+    return request.remote_addr
+
 limiter = Limiter(
-    key_func=get_remote_address,
+    key_func=get_client_ip, # Use the robust IP function
     app=app,
-    default_limits=["10 per minute"]
+    default_limits=["10 per minute"] # Default limit for all routes
 )
+
 
 # --- Utility Functions ---
 
 def summarize_context(history_list: list[str]) -> str | None:
-    """Uses the Gemini API to summarize the chat history."""
+    """Uses the Gemini API to summarize the chat history for token saving."""
     if not API_KEY:
         print("API_KEY is missing for summarization.")
         return None
 
-    # Join the context into a single string
     full_history = "\n".join(history_list)
-    
-    # Summarization prompt
     summary_prompt = (
         "Condense the following conversation history into a brief, single-paragraph "
         "summary of the key topic, ensuring all essential facts (like names, numbers, "
-        "or previous results) are preserved. This summary must be used as the new context "
+        "or previous calculation results) are preserved. This summary must be used as the new context "
         "to continue the conversation. Do not add any conversational text like 'The user has asked...'. "
         f"Context to summarize: \n\n{full_history}"
     )
@@ -59,12 +64,7 @@ def summarize_context(history_list: list[str]) -> str | None:
     headers = {"Content-Type": "application/json"}
     params = {"key": API_KEY}
     
-    # Structured request for summarization
-    payload = {
-        "contents": [
-            {"role": "user", "parts": [{"text": summary_prompt}]}
-        ]
-    }
+    payload = {"contents": [{"role": "user", "parts": [{"text": summary_prompt}]}]}
     
     try:
         response = requests.post(url, headers=headers, params=params, json=payload, timeout=10)
@@ -73,14 +73,11 @@ def summarize_context(history_list: list[str]) -> str | None:
         
         reply = ai_data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
         
-        if reply:
-            return f"[Context Summary]: {reply}"
+        return f"[Context Summary]: {reply}" if reply else None
         
     except requests.exceptions.RequestException as e:
         print(f"Error during context summarization: {e}")
         return None
-        
-    return None
 
 def cleanup_on_shutdown():
     """Clears the file system session directory on server shutdown."""
@@ -92,16 +89,22 @@ def cleanup_on_shutdown():
     except OSError as e:
         print(f"Error during session cleanup: {e}")
 
-# Register the cleanup function to run when the interpreter exits (server shuts down)
+# Register the cleanup function to run when the server shuts down
 atexit.register(cleanup_on_shutdown)
 
+# --- Request Hooks ---
+
+@app.before_request
+def bot_deterrent_delay():
+    """Implements a small delay on POST requests to discourage rapid-fire scripts."""
+    if request.method == "POST":
+        time.sleep(MIN_REQUEST_DELAY)
 
 # --- Routes ---
 
 @app.route("/")
 def home():
     """Serves the frontend file."""
-    # Ensure index.html is in the same directory as this script
     return send_from_directory(".", "index.html")
 
 @app.route("/ask", methods=["POST"])
@@ -117,26 +120,20 @@ def ask():
         if not API_KEY:
             return jsonify({"answer": "⚠️ Server misconfiguration (API Key missing)."}), 500
 
-        # Initialize context list for the session
         if 'context' not in session:
             session['context'] = []
             
         history = session['context']
 
         # 1. Context Management and Summarization
-        
-        # Check if history is too long (using a simple character count)
         full_history_length = len("\n".join(history))
         
-        # If the history is too long (and has more than the max QA pairs), summarize it
         if full_history_length > MAX_CONTEXT_LENGTH and len(history) > MAX_CONTEXT_QA * 2:
             print("History is long, attempting summarization...")
             summary = summarize_context(history)
             
             if summary:
-                # Replace history with the summary
                 history = [summary] 
-                print("Context successfully summarized.")
             else:
                 # If summarization fails, fall back to trimming the raw history
                 print("Summarization failed. Trimming raw history.")
@@ -145,36 +142,35 @@ def ask():
             # If not too long, but over the max Q&A count, just trim it
             history = history[-MAX_CONTEXT_QA * 2:]
         
-        # Add the new user question to the (potentially trimmed/summarized) history
+        # Add the new user question to the history
         history.append(f"User: {question}")
         
         # 2. Build Prompt and API Call
         
-        # The system instruction guides the AI's behavior
         system_instruction = (
             "You are a helpful and concise AI assistant. You must continue the conversation "
-            "based on the provided context or previous turns. Be aware of the context and "
-            "remember previous calculation results or facts provided by the user."
+            "based on the provided context. Be aware of the context and remember previous "
+            "calculation results or facts provided by the user."
         )
 
-        # Build the final prompt for the API call
-        # The context (history) is used to construct the conversation turns.
-        # The last entry is the new 'User: ' question.
-        
-        # Combine the entire history for the final 'contents' payload
-        # This builds a 'multiturn' conversation for the Gemini API
-        contents = [{"role": "user" if i % 2 == 0 else "model", "parts": [{"text": h.split(': ', 1)[1]}]} 
-                    for i, h in enumerate(history) if h.startswith("User: ") or h.startswith("AI: ")]
-        
-        # If a summary was used, it becomes the first 'user' turn with the instruction
-        if history and history[0].startswith("[Context Summary]"):
-             # The summary text must be added to the *system* instruction or as a preceding user turn
-             system_instruction += f"\n\nPrevious Conversation Summary: {history[0].split(': ', 1)[1]}"
-             # Remove the summary from the list of turns
-             contents = contents[1:] 
+        # Build the multiturn 'contents' payload
+        contents = []
+        for i, h in enumerate(history):
+            role = None
+            text = h.split(': ', 1)[1] if ': ' in h else h
 
-        # The last item in contents is the current user question.
-        
+            if h.startswith("User: "):
+                role = "user"
+            elif h.startswith("AI: "):
+                role = "model"
+            elif h.startswith("[Context Summary]"):
+                # If using a summary, prepend it to the system instruction
+                system_instruction += f"\n\nPrevious Conversation Summary: {text}"
+                continue # Skip adding the summary as a turn
+
+            if role:
+                 contents.append({"role": role, "parts": [{"text": text}]})
+
         # Final payload structure for the API
         payload = {
             "config": {
@@ -193,19 +189,17 @@ def ask():
 
         candidates = ai_data.get("candidates")
         if not candidates:
-            # Check for block reasons if no candidates
-            prompt_feedback = ai_data.get("promptFeedback", {}).get("blockReason")
-            block_msg = f"Prompt blocked: {prompt_feedback}" if prompt_feedback else "⚠️ No valid response from AI."
-            return jsonify({"answer": block_msg}), 500
+            block_msg = ai_data.get("promptFeedback", {}).get("blockReason", "⚠️ No valid response from AI.")
+            return jsonify({"answer": f"API Error: {block_msg}"}), 500
 
         reply = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
 
         # 3. Update Session Context
         
-        # Append the new AI reply to the history (in memory for this request)
+        # Append the new AI reply to the history
         history.append(f"AI: {reply}") 
         
-        # Save the updated history back to the session, including the new Q&A
+        # Save the updated history back to the session
         session['context'] = history
         session.modified = True
 
@@ -214,17 +208,11 @@ def ask():
     except requests.exceptions.Timeout:
         return jsonify({"answer": "⏳ AI took too long. Please retry."}), 504
     except requests.exceptions.RequestException as e:
-        print("Request Exception:", e)
-        # Log the specific error details from the API response if available
-        try:
-            error_data = response.json()
-            print("API Error Details:", error_data)
-        except:
-            pass
+        print(f"Request Exception: {e}")
         return jsonify({"answer": "🌐 Network/API error. Try again later."}), 502
     except Exception as e:
-        print("Internal Error:", e)
-        return jsonify({"answer": f"❌ Internal server error: {e}"}), 500
+        print(f"Internal Error: {e}")
+        return jsonify({"answer": "❌ Internal server error."}), 500
 
 @app.route("/clear-session", methods=["POST"])
 def clear_session():
@@ -233,14 +221,11 @@ def clear_session():
     return jsonify({"status": "cleared", "message": "Chat context cleared for this session."})
 
 if __name__ == "__main__":
-    # Create the session directory if it doesn't exist
     if not os.path.exists(SESSION_FILE_DIR):
         os.makedirs(SESSION_FILE_DIR)
         
     print(f"Starting server. Session files will be stored in: {SESSION_FILE_DIR}")
     
-    # Note: Flask's default development server (werkzeug) often uses auto-reload,
-    # which can trigger 'atexit' multiple times. In a production environment (like Gunicorn),
-    # 'atexit' is more reliable for a single shutdown event.
+    # Use gunicorn for production, but Flask's built-in server for local testing.
+    # The `use_reloader=False` prevents atexit from being called twice during development reload.
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=True, use_reloader=False)
-
