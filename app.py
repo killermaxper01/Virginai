@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, send_from_directory
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_cors import CORS
@@ -13,15 +13,16 @@ CORS(app)
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["10 per minute"]  # prevent abuse
+    default_limits=["10 per minute"]
 )
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 MODEL = "gemini-2.5-flash"
 
+# Serve index.html directly
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return send_from_directory(".", "index.html")
 
 @app.route("/ask", methods=["POST"])
 @limiter.limit("5 per minute")
@@ -32,10 +33,7 @@ def ask():
     if not question:
         return jsonify({"answer": "Please ask a question."})
 
-    url = (
-        f"https://generativelanguage.googleapis.com/v1/"
-        f"models/{MODEL}:generateContent?key={API_KEY}"
-    )
+    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={API_KEY}"
 
     payload = {
         "contents": [
@@ -50,7 +48,6 @@ def ask():
         r = requests.post(url, json=payload, timeout=20)
         reply = r.json()["candidates"][0]["content"]["parts"][0]["text"]
         return jsonify({"answer": reply})
-
     except Exception:
         return jsonify({"answer": "Server error. Please try later."})
 
