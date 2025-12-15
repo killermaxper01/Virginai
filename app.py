@@ -2,9 +2,9 @@ from flask import Flask, request, jsonify, send_from_directory, session
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_cors import CORS
+from flask_session import Session
 from dotenv import load_dotenv
 import requests, os
-from flask_session import Session
 
 load_dotenv()
 
@@ -16,7 +16,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SECRET_KEY'] = os.getenv("APP_SECRET_TOKEN", "defaultsecret123")
 Session(app)
 
-# Rate limit: 10 per minute per IP
+# Rate limit: 10 requests per minute per IP
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
@@ -25,7 +25,7 @@ limiter = Limiter(
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 MODEL = "gemini-2.5-flash"
-MAX_CONTEXT = 3  # keep last 3 Q&A exchanges only
+MAX_CONTEXT = 3  # keep last 3 Q&A only
 
 @app.route("/")
 def home():
@@ -40,7 +40,6 @@ def ask():
 
         if not question:
             return jsonify({"answer": "❗ Please type a question."}), 400
-
         if not API_KEY:
             return jsonify({"answer": "⚠️ Server misconfiguration."}), 500
 
@@ -48,26 +47,22 @@ def ask():
         if 'context' not in session:
             session['context'] = []
 
-        # Append new question
+        # Add user question to context
         session['context'].append(f"User: {question}")
 
-        # Keep only last MAX_CONTEXT Q&A
-        # Q+A counts as 2 items
+        # Keep only last MAX_CONTEXT Q&A (2 items per Q+A)
         if len(session['context']) > MAX_CONTEXT * 2:
             session['context'] = session['context'][-MAX_CONTEXT*2:]
 
-        # Build context prompt for AI
-        context_text = "\n".join(session['context'])
-        prompt = f"{context_text}\nAI:"
+        # Build prompt for AI
+        prompt = "\n".join(session['context']) + "\nAI:"
 
         url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent"
         headers = {"Content-Type": "application/json"}
         params = {"key": API_KEY}
-        payload = {
-            "contents": [{"role": "user", "parts": [{"text": prompt}]}]
-        }
+        payload = {"contents":[{"role":"user","parts":[{"text":prompt}]}]}
 
-        response = requests.post(url, headers=headers, params=params, json=payload, timeout=15)
+        response = requests.post(url, headers=headers, params=params, json=payload, timeout=20)
         response.raise_for_status()
         ai_data = response.json()
 
@@ -85,7 +80,17 @@ def ask():
 
     except requests.exceptions.Timeout:
         return jsonify({"answer": "⏳ AI took too long. Please retry."}), 504
-
+    except requests.exceptions.RequestException as e:
+        print("Request Exception:", e)
+        return jsonify({"answer": "🌐 Network/API error. Try again later."}), 502
     except Exception as e:
-        print(e)
+        print("Internal Error:", e)
         return jsonify({"answer": "❌ Internal server error."}), 500
+
+@app.route("/clear-session", methods=["POST"])
+def clear_session():
+    session.pop('context', None)
+    return jsonify({"status": "cleared"})
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
