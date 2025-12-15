@@ -10,8 +10,9 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+# Rate limit: SAME IP → 10 per minute
 limiter = Limiter(
-    get_remote_address,
+    key_func=get_remote_address,
     app=app,
     default_limits=["10 per minute"]
 )
@@ -19,37 +20,87 @@ limiter = Limiter(
 API_KEY = os.getenv("GEMINI_API_KEY")
 MODEL = "gemini-2.5-flash"
 
-# Serve index.html directly
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
 
 @app.route("/ask", methods=["POST"])
-@limiter.limit("5 per minute")
+@limiter.limit("10 per minute")
 def ask():
-    data = request.get_json()
-    question = data.get("question", "").strip()
+    try:
+        # Force JSON parsing (prevents silent failures)
+        data = request.get_json(force=True)
+        question = data.get("question", "").strip()
 
-    if not question:
-        return jsonify({"answer": "Please ask a question."})
+        if not question:
+            return jsonify({"answer": "❗ Question cannot be empty."}), 400
 
-    url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL}:generateContent?key={API_KEY}"
+        if not API_KEY:
+            return jsonify({"answer": "⚠️ Server misconfiguration."}), 500
 
-    payload = {
-        "contents": [
-            {
+        url = (
+            f"https://generativelanguage.googleapis.com/v1/"
+            f"models/{MODEL}:generateContent"
+        )
+
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        params = {
+            "key": API_KEY
+        }
+
+        payload = {
+            "contents": [{
                 "role": "user",
                 "parts": [{"text": question}]
-            }
-        ]
-    }
+            }]
+        }
 
-    try:
-        r = requests.post(url, json=payload, timeout=20)
-        reply = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+        response = requests.post(
+            url,
+            headers=headers,
+            params=params,
+            json=payload,
+            timeout=15
+        )
+
+        # Gemini API error handling
+        if response.status_code != 200:
+            return jsonify({
+                "answer": "⚠️ AI service is busy. Try again later."
+            }), 503
+
+        data = response.json()
+
+        # Safe parsing
+        candidates = data.get("candidates")
+        if not candidates:
+            return jsonify({
+                "answer": "⚠️ No response from AI."
+            }), 500
+
+        reply = (
+            candidates[0]
+            .get("content", {})
+            .get("parts", [{}])[0]
+            .get("text", "")
+        )
+
+        if not reply:
+            return jsonify({
+                "answer": "⚠️ Empty response from AI."
+            }), 500
+
         return jsonify({"answer": reply})
-    except Exception:
-        return jsonify({"answer": "Server error. Please try later."})
 
-if __name__ == "__main__":
-    app.run()
+    except requests.exceptions.Timeout:
+        return jsonify({
+            "answer": "⏳ AI took too long. Please retry."
+        }), 504
+
+    except Exception:
+        return jsonify({
+            "answer": "❌ Internal server error."
+        }), 500
