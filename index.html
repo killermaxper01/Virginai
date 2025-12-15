@@ -7,58 +7,54 @@
 
 <style>
 body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:linear-gradient(135deg,#141E30,#243B55);
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
+ margin:0;
+ font-family:Arial, sans-serif;
+ background:linear-gradient(135deg,#141E30,#243B55);
+ color:white;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ height:100vh;
 }
 .app{
-    width:100%;
-    max-width:500px;
-    height:85vh;
-    background:rgba(255,255,255,0.05);
-    border-radius:15px;
-    display:flex;
-    flex-direction:column;
-    padding:15px;
+ width:100%;
+ max-width:520px;
+ height:85vh;
+ background:rgba(255,255,255,0.05);
+ border-radius:15px;
+ display:flex;
+ flex-direction:column;
+ padding:15px;
 }
-h2{text-align:center;color:#00c6ff;margin:5px 0;}
+h2{text-align:center;color:#00c6ff;}
 #chat{
-    flex:1;
-    overflow-y:auto;
-    padding:10px;
-    border-radius:10px;
-    background:rgba(0,0,0,0.3);
-    white-space:pre-wrap;
+ flex:1;
+ overflow-y:auto;
+ padding:10px;
+ background:rgba(0,0,0,0.3);
+ border-radius:10px;
+ white-space:pre-wrap;
 }
-.msg{
-    margin:8px 0;
-    padding:10px;
-    border-radius:10px;
-}
+.msg{margin:8px 0;padding:10px;border-radius:10px;}
 .user{background:#00c6ff55;text-align:right;}
 .ai{background:#4444ff55;}
 textarea{
-    width:100%;
-    resize:vertical;
-    min-height:60px;
-    max-height:120px;
-    padding:10px;
-    border-radius:10px;
-    border:none;
-    outline:none;
+ width:100%;
+ min-height:70px;
+ max-height:140px;
+ resize:vertical;
+ padding:10px;
+ border-radius:10px;
+ border:none;
+ outline:none;
 }
 button{
-    margin-top:8px;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    font-size:16px;
-    cursor:pointer;
+ margin-top:8px;
+ padding:12px;
+ border:none;
+ border-radius:10px;
+ font-size:16px;
+ cursor:pointer;
 }
 .ask{background:#00c6ff;color:white;}
 .clear{background:#ff5555;color:white;}
@@ -69,53 +65,48 @@ button{
 <div class="app">
 <h2>🤖 VirginAI</h2>
 <div id="chat"></div>
-<textarea id="q" placeholder="Ask anything (multi-line allowed)"></textarea>
+<textarea id="q" placeholder="Ask anything (new line allowed)"></textarea>
 <button class="ask" onclick="ask()">Ask</button>
 <button class="clear" onclick="clearChat()">Clear Chat</button>
 </div>
 
 <script>
-const chat = document.getElementById("chat");
-const q = document.getElementById("q");
+const chat=document.getElementById("chat");
+const q=document.getElementById("q");
 
-function add(text, cls){
-    const d=document.createElement("div");
-    d.className="msg "+cls;
-    d.textContent=text;
-    chat.appendChild(d);
-    chat.scrollTop=chat.scrollHeight;
+function add(text,cls){
+ const d=document.createElement("div");
+ d.className="msg "+cls;
+ d.textContent=text;
+ chat.appendChild(d);
+ chat.scrollTop=chat.scrollHeight;
 }
 
 async function ask(){
-    const text=q.value.trim();
-    if(!text) return;
+ const text=q.value.trim();
+ if(!text) return;
+ add(text,"user");
+ q.value="";
+ add("Thinking...","ai");
 
-    add(text,"user");
-    q.value="";
-
-    const loading=document.createElement("div");
-    loading.className="msg ai";
-    loading.textContent="Thinking...";
-    chat.appendChild(loading);
-
-    try{
-        const r=await fetch("/ask",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({question:text})
-        });
-        const d=await r.json();
-        loading.remove();
-        add(d.answer,"ai");
-    }catch{
-        loading.remove();
-        add("Network error","ai");
-    }
+ try{
+  const r=await fetch("/ask",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({question:text})
+  });
+  const d=await r.json();
+  chat.lastChild.remove();
+  add(d.answer,"ai");
+ }catch{
+  chat.lastChild.remove();
+  add("Network error","ai");
+ }
 }
 
 async function clearChat(){
-    chat.innerHTML="";
-    await fetch("/clear-session",{method:"POST"});
+ chat.innerHTML="";
+ await fetch("/clear-session",{method:"POST"});
 }
 </script>
 </body>
