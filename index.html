@@ -4,110 +4,267 @@
 <meta charset="UTF-8">
 <title>VirginAI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
 <style>
 body{
  margin:0;
- font-family:Arial, sans-serif;
- background:linear-gradient(135deg,#141E30,#243B55);
+ font-family:'Roboto', sans-serif;
+ background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
  color:white;
  display:flex;
  justify-content:center;
  align-items:center;
  height:100vh;
+ overflow:hidden;
+}
+body::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: radial-gradient(circle at 50% 50%, rgba(138,43,226,0.2), transparent 70%);
+  pointer-events: none;
+  animation: pulse 10s infinite alternate;
+}
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  100% { opacity: 0.8; }
 }
 .app{
- width:100%;
- max-width:520px;
- height:85vh;
- background:rgba(255,255,255,0.05);
- border-radius:15px;
+ width:90%;
+ max-width:600px;
+ height:90vh;
+ background:rgba(15,15,35,0.6);
+ backdrop-filter: blur(15px);
+ border-radius:20px;
+ box-shadow: 0 0 40px rgba(138,43,226,0.4), 0 0 80px rgba(0,198,255,0.2);
+ border:1px solid rgba(255,255,255,0.1);
  display:flex;
  flex-direction:column;
- padding:15px;
+ padding:20px;
+ position:relative;
+ overflow:hidden;
 }
-h2{text-align:center;color:#00c6ff;}
+h2{
+ text-align:center;
+ font-family:'Orbitron', sans-serif;
+ font-size:2.2em;
+ margin:10px 0 20px;
+ color:#00c6ff;
+ text-shadow: 0 0 20px #00c6ff, 0 0 40px #00c6ff;
+ animation: glow 2s infinite alternate;
+}
+@keyframes glow {
+  from { text-shadow: 0 0 10px #00c6ff; }
+  to { text-shadow: 0 0 30px #00c6ff, 0 0 50px #00c6ff; }
+}
 #chat{
  flex:1;
  overflow-y:auto;
- padding:10px;
- background:rgba(0,0,0,0.3);
- border-radius:10px;
- white-space:pre-wrap;
+ padding:20px;
+ background:rgba(0,0,0,0.2);
+ border-radius:15px;
+ margin-bottom:20px;
+ box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+ display:flex;
+ flex-direction:column;
+ gap:15px;
 }
-.msg{margin:8px 0;padding:10px;border-radius:10px;}
-.user{background:#00c6ff55;text-align:right;}
-.ai{background:#4444ff55;}
+.msg{
+ max-width:80%;
+ padding:14px 20px;
+ border-radius:18px;
+ line-height:1.5;
+ position:relative;
+ animation: fadeIn 0.5s ease;
+}
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.user{
+ align-self:flex-end;
+ background:linear-gradient(135deg,#00c6ff,#0072ff);
+ color:white;
+ border-bottom-right-radius:5px;
+ box-shadow: 0 5px 15px rgba(0,198,255,0.4);
+}
+.ai{
+ align-self:flex-start;
+ background:linear-gradient(135deg,#8a2be2,#4b0082);
+ color:white;
+ border-bottom-left-radius:5px;
+ box-shadow: 0 5px 20px rgba(138,43,226,0.5);
+ text-shadow: 0 0 10px rgba(255,255,255,0.3);
+ padding-left:30px;
+ position:relative;
+}
+.ai::before {
+  content: '🤖';
+  position: absolute;
+  left:8px;
+  top:12px;
+  font-size:1.4em;
+}
+.input-area{
+ display:flex;
+ flex-direction:column;
+}
 textarea{
  width:100%;
- min-height:70px;
- max-height:140px;
- resize:vertical;
- padding:10px;
- border-radius:10px;
+ min-height:80px;
+ max-height:160px;
+ resize:none;
+ padding:15px;
+ border-radius:15px;
  border:none;
  outline:none;
+ background:rgba(255,255,255,0.1);
+ color:white;
+ font-size:1em;
+ box-shadow: inset 0 0 10px rgba(0,0,0,0.3);
+ margin-bottom:12px;
+}
+textarea::placeholder {
+  color:rgba(255,255,255,0.6);
+}
+.buttons{
+ display:flex;
+ gap:12px;
 }
 button{
- margin-top:8px;
- padding:12px;
+ flex:1;
+ padding:14px;
  border:none;
- border-radius:10px;
- font-size:16px;
+ border-radius:15px;
+ font-size:1.1em;
+ font-weight:bold;
  cursor:pointer;
+ transition: all 0.3s;
+ box-shadow: 0 5px 15px rgba(0,0,0,0.4);
 }
-.ask{background:#00c6ff;color:white;}
-.clear{background:#ff5555;color:white;}
+.ask{
+ background:linear-gradient(135deg,#00c6ff,#0099cc);
+ color:white;
+}
+.ask:hover{
+ transform:translateY(-3px);
+ box-shadow: 0 10px 25px rgba(0,198,255,0.6);
+}
+.clear{
+ background:linear-gradient(135deg,#ff416c,#ff4757);
+ color:white;
+}
+.clear:hover{
+ transform:translateY(-3px);
+ box-shadow: 0 10px 25px rgba(255,65,108,0.6);
+}
+.typing {
+  display: inline-block;
+}
+.typing::after {
+  content: '';
+  animation: dots 1.5s infinite;
+}
+@keyframes dots {
+  0%, 20% { content: ''; }
+  40% { content: '.'; }
+  60% { content: '..'; }
+  80%, 100% { content: '...'; }
+}
 </style>
 </head>
 
 <body>
 <div class="app">
-<h2>🤖 VirginAI</h2>
+<h2>VirginAI</h2>
 <div id="chat"></div>
-<textarea id="q" placeholder="Ask anything (new line allowed)"></textarea>
+<div class="input-area">
+<textarea id="q" placeholder="Ask anything... (supports new lines)"></textarea>
+<div class="buttons">
 <button class="ask" onclick="ask()">Ask</button>
 <button class="clear" onclick="clearChat()">Clear Chat</button>
 </div>
+</div>
+</div>
 
 <script>
-const chat=document.getElementById("chat");
-const q=document.getElementById("q");
+const chat = document.getElementById("chat");
+const q = document.getElementById("q");
+let currentTypingElement = null;
 
-function add(text,cls){
- const d=document.createElement("div");
- d.className="msg "+cls;
- d.textContent=text;
- chat.appendChild(d);
- chat.scrollTop=chat.scrollHeight;
+function addMessage(text, cls) {
+  const div = document.createElement("div");
+  div.className = "msg " + cls;
+  
+  if (cls === "ai" && text !== "Thinking...") {
+    div.innerHTML = '<span class="typing"></span>';
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    currentTypingElement = div.querySelector('.typing');
+    typeWriter(text, currentTypingElement, 0);
+  } else {
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
 }
 
-async function ask(){
- const text=q.value.trim();
- if(!text) return;
- add(text,"user");
- q.value="";
- add("Thinking...","ai");
-
- try{
-  const r=await fetch("/ask",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({question:text})
-  });
-  const d=await r.json();
-  chat.lastChild.remove();
-  add(d.answer,"ai");
- }catch{
-  chat.lastChild.remove();
-  add("Network error","ai");
- }
+function typeWriter(text, element, index) {
+  if (index < text.length) {
+    element.textContent += text.charAt(index);
+    index++;
+    setTimeout(() => typeWriter(text, element, index), 30); // Adjust speed here (lower = faster)
+  } else {
+    currentTypingElement = null;
+  }
+  chat.scrollTop = chat.scrollHeight;
 }
 
-async function clearChat(){
- chat.innerHTML="";
- await fetch("/clear-session",{method:"POST"});
+async function ask() {
+  const text = q.value.trim();
+  if (!text) return;
+  
+  addMessage(text, "user");
+  q.value = "";
+  
+  addMessage("Thinking...", "ai");
+
+  try {
+    const response = await fetch("/ask", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({question: text})
+    });
+    
+    const data = await response.json();
+    
+    // Remove thinking message
+    if (chat.lastChild && chat.lastChild.textContent === "Thinking...") {
+      chat.removeChild(chat.lastChild);
+    }
+    
+    addMessage(data.answer, "ai");
+  } catch (err) {
+    if (chat.lastChild && chat.lastChild.textContent === "Thinking...") {
+      chat.removeChild(chat.lastChild);
+    }
+    addMessage("Network error. Please try again.", "ai");
+  }
 }
+
+async function clearChat() {
+  chat.innerHTML = "";
+  await fetch("/clear-session", {method: "POST"});
+}
+
+// Press Enter to send (Shift+Enter for new line)
+q.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    ask();
+  }
+});
 </script>
 </body>
 </html>
