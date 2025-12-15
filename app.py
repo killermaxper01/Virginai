@@ -1,3 +1,117 @@
+INDEX_HTML = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VirginAI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(135deg,#141E30,#243B55);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+.app{
+    width:100%;
+    max-width:500px;
+    height:85vh;
+    background:rgba(255,255,255,0.05);
+    border-radius:15px;
+    display:flex;
+    flex-direction:column;
+    padding:15px;
+}
+h2{text-align:center;color:#00c6ff;margin:5px 0;}
+#chat{
+    flex:1;
+    overflow-y:auto;
+    padding:10px;
+    border-radius:10px;
+    background:rgba(0,0,0,0.3);
+    white-space:pre-wrap;
+}
+.msg{
+    margin:8px 0;
+    padding:10px;
+    border-radius:10px;
+}
+.user{background:#00c6ff55;text-align:right;}
+.ai{background:#4444ff55;}
+textarea{
+    width:100%;
+    resize:vertical;
+    min-height:60px;
+    max-height:120px;
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    outline:none;
+}
+button{
+    margin-top:8px;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
+}
+.ask{background:#00c6ff;color:white;}
+.clear{background:#ff5555;color:white;}
+</style>
+</head>
+<body>
+<div class="app">
+<h2>🤖 VirginAI</h2>
+<div id="chat"></div>
+<textarea id="q" placeholder="Ask anything (multi-line allowed)"></textarea>
+<button class="ask" onclick="ask()">Ask</button>
+<button class="clear" onclick="clearChat()">Clear Chat</button>
+</div>
+
+<script>
+const chat=document.getElementById("chat");
+const q=document.getElementById("q");
+
+function add(text,cls){
+ const d=document.createElement("div");
+ d.className="msg "+cls;
+ d.textContent=text;
+ chat.appendChild(d);
+ chat.scrollTop=chat.scrollHeight;
+}
+
+async function ask(){
+ const text=q.value.trim();
+ if(!text) return;
+ add(text,"user");
+ q.value="";
+ add("Thinking...","ai");
+
+ const r=await fetch("/ask",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({question:text})
+ });
+ const d=await r.json();
+ chat.lastChild.remove();
+ add(d.answer,"ai");
+}
+
+async function clearChat(){
+ chat.innerHTML="";
+ await fetch("/clear-session",{method:"POST"});
+}
+</script>
+</body>
+</html>
+"""
+
+
 from flask import Flask, request, jsonify, session, Response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
