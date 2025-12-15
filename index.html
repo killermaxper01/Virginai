@@ -43,6 +43,7 @@ h1 {
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 12px;
     background: rgba(0,0,0,0.2);
+    white-space: pre-wrap; /* preserve line breaks */
 }
 
 .user-msg, .ai-msg {
@@ -50,17 +51,18 @@ h1 {
     padding: 10px;
     border-radius: 12px;
     word-wrap: break-word;
-    white-space: pre-wrap; /* multi-line support */
 }
 
 .user-msg {
     background: #00c6ff66;
     align-self: flex-end;
+    white-space: pre-wrap;
 }
 
 .ai-msg {
     background: #4444ff55;
     align-self: flex-start;
+    white-space: pre-wrap;
 }
 
 textarea {
@@ -73,6 +75,7 @@ textarea {
     border: none;
     min-height: 50px;
     max-height: 120px;
+    white-space: pre-wrap; /* preserve line breaks */
 }
 
 button {
@@ -124,7 +127,7 @@ button:hover {
 <div class="container">
     <h1>🤖 VirginAI</h1>
     <div id="chat"></div>
-    <textarea id="question" placeholder="Ask your question..." rows="2"></textarea>
+    <textarea id="question" placeholder="Ask your question..." rows="3"></textarea>
     <button onclick="askAI()">Ask</button>
     <button class="clear-btn" onclick="clearChat()">Clear Chat</button>
 </div>
@@ -138,6 +141,7 @@ function appendMessage(msg, className){
     div.className = className;
     div.textContent = msg;
     chat.appendChild(div);
+    // Scroll to bottom
     chat.scrollTop = chat.scrollHeight;
 }
 
@@ -171,7 +175,6 @@ async function askAI(){
     }
 }
 
-// Clear chat & session on server
 async function clearChat(){
     chat.innerHTML = "";
     await fetch("/clear-session", {method:"POST"});
