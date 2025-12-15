@@ -37,13 +37,14 @@ h1 {
 
 #chat {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto; /* Chat area scrolling */
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 12px;
     background: rgba(0,0,0,0.2);
-    white-space: pre-wrap;
+    /* Ensure content with newlines wraps correctly */
+    white-space: pre-wrap; 
 }
 
 .user-msg, .ai-msg {
@@ -51,23 +52,42 @@ h1 {
     padding: 10px;
     border-radius: 12px;
     word-wrap: break-word;
-    white-space: pre-wrap;
+    /* Crucial for displaying multiline messages */
+    white-space: pre-wrap; 
 }
 
-.user-msg { background: #00c6ff66; align-self: flex-end; }
-.ai-msg   { background: #4444ff55; align-self: flex-start; }
+/* User messages should be aligned right */
+.user-msg { 
+    background: #00c6ff66; 
+    align-self: flex-end; 
+    max-width: 80%;
+}
+/* AI messages should be aligned left */
+.ai-msg   { 
+    background: #4444ff55; 
+    align-self: flex-start;
+    max-width: 80%;
+}
+
+.input-area {
+    display: flex;
+    flex-direction: column;
+}
 
 textarea {
     width: 100%;
     padding: 10px;
     border-radius: 10px;
+    /* Allow vertical resizing */
     resize: vertical;
     font-size: 15px;
     outline: none;
     border: none;
     min-height: 50px;
-    max-height: 120px;
-    white-space: pre-wrap;
+    max-height: 120px; /* Limits the size of the input box */
+    /* Allows text to wrap and show new lines */
+    white-space: pre-wrap; 
+    overflow-y: auto; /* Enables scrolling for long input */
 }
 
 button {
@@ -109,19 +129,24 @@ button:hover { background: #009edc; }
 <div class="container">
     <h1>🤖 VirginAI</h1>
     <div id="chat"></div>
-    <textarea id="question" placeholder="Ask your question..." rows="3"></textarea>
-    <button onclick="askAI()">Ask</button>
+    <div class="input-area">
+        <textarea id="question" placeholder="Ask your question (Shift+Enter for new line)..." rows="3"></textarea>
+    </div>
+    <button id="ask-btn" onclick="askAI()">Ask</button>
     <button class="clear-btn" onclick="clearChat()">Clear Chat</button>
 </div>
 
 <script>
 const chat = document.getElementById("chat");
 const questionInput = document.getElementById("question");
+const askButton = document.getElementById("ask-btn");
 
 function appendMessage(msg, className){
     const div = document.createElement("div");
     div.className = className;
-    div.textContent = msg;
+    // Use innerHTML to handle potential line breaks rendered as <br> or similar if needed, 
+    // but with CSS 'white-space: pre-wrap' we can use textContent for security and simplicity.
+    div.textContent = msg; 
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
 }
@@ -132,7 +157,10 @@ async function askAI(){
 
     appendMessage(question, "user-msg");
     questionInput.value = "";
-
+    
+    // Disable the button while loading
+    askButton.disabled = true;
+    
     const loadingDiv = document.createElement("div");
     loadingDiv.className = "ai-msg loading";
     loadingDiv.textContent = "Thinking";
@@ -149,17 +177,41 @@ async function askAI(){
         const data = await res.json();
         loadingDiv.remove();
 
+        // Ensure the answer is a string and handle new lines in display
         appendMessage(data.answer, "ai-msg");
     } catch(err){
         loadingDiv.remove();
         appendMessage("🌐 Network or server error.", "ai-msg");
+    } finally {
+        // Re-enable the button
+        askButton.disabled = false;
     }
 }
 
 async function clearChat(){
     chat.innerHTML = "";
-    await fetch("/clear-session", {method:"POST"});
+    try {
+        await fetch("/clear-session", {method:"POST"});
+    } catch (err) {
+        appendMessage("Failed to clear server session.", "ai-msg");
+    }
 }
+
+// --- New Line/Submission Logic ---
+questionInput.addEventListener("keydown", function(event) {
+    // Check if the user pressed Enter
+    if (event.key === 'Enter') {
+        // If Shift or Ctrl is pressed with Enter, allow the new line
+        if (event.shiftKey || event.ctrlKey) {
+            // Allow the default behavior (insert new line)
+            return;
+        } else {
+            // Otherwise, prevent the default (new line) and submit the question
+            event.preventDefault(); 
+            askAI();
+        }
+    }
+});
 </script>
 
 </body>
