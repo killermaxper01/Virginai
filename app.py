@@ -19,6 +19,7 @@ MAX_CONTEXT_LENGTH = 1500   # Max character length for history before summarizat
 MIN_REQUEST_DELAY = 0.1     # Small delay to discourage rapid-fire scripts
 
 app = Flask(__name__)
+# Enable CORS for all domains
 CORS(app)
 
 # Session config (server-side)
@@ -28,12 +29,15 @@ app.config['SESSION_FILE_DIR'] = SESSION_FILE_DIR
 app.config['SECRET_KEY'] = os.getenv("APP_SECRET_TOKEN", "defaultsecret123")
 Session(app)
 
-# --- Rate Limiter Setup ---
+# --- Robust Rate Limiter Setup ---
+
 def get_client_ip():
     """Tries to get the real client IP from X-Forwarded-For headers (for proxies/load balancers)."""
-    if request.headers.getlist("X-Forwarded-For"):
-        # The true client IP is usually the first address in the list
-        return request.headers.getlist("X-Forwarded-For")[0]
+    # The true client IP is usually the first address in the list
+    forwarded_for = request.headers.getlist("X-Forwarded-For")
+    if forwarded_for:
+        return forwarded_for[0]
+    # Fallback to the direct remote address
     return request.remote_addr
 
 limiter = Limiter(
@@ -89,7 +93,7 @@ def cleanup_on_shutdown():
     except OSError as e:
         print(f"Error during session cleanup: {e}")
 
-# Register the cleanup function to run when the server shuts down
+# Register the cleanup function to run when the server shuts down (e.g., stopping gunicorn)
 atexit.register(cleanup_on_shutdown)
 
 # --- Request Hooks ---
@@ -104,11 +108,11 @@ def bot_deterrent_delay():
 
 @app.route("/")
 def home():
-    """Serves the frontend file."""
+    """Serves the frontend file (index.html)."""
     return send_from_directory(".", "index.html")
 
 @app.route("/ask", methods=["POST"])
-@limiter.limit("10 per minute")
+@limiter.limit("10 per minute") # Enforce the limit here
 def ask():
     """Handles the user question, manages context, and calls the Gemini API."""
     try:
@@ -133,9 +137,9 @@ def ask():
             summary = summarize_context(history)
             
             if summary:
-                history = [summary] 
+                history = [summary] # Replace history with summary
             else:
-                # If summarization fails, fall back to trimming the raw history
+                # Fall back to trimming the raw history
                 print("Summarization failed. Trimming raw history.")
                 history = history[-MAX_CONTEXT_QA * 2:]
         elif len(history) > MAX_CONTEXT_QA * 2:
@@ -155,7 +159,7 @@ def ask():
 
         # Build the multiturn 'contents' payload
         contents = []
-        for i, h in enumerate(history):
+        for h in history:
             role = None
             text = h.split(': ', 1)[1] if ': ' in h else h
 
@@ -221,11 +225,11 @@ def clear_session():
     return jsonify({"status": "cleared", "message": "Chat context cleared for this session."})
 
 if __name__ == "__main__":
+    # Ensure the session directory exists before starting the app
     if not os.path.exists(SESSION_FILE_DIR):
         os.makedirs(SESSION_FILE_DIR)
         
     print(f"Starting server. Session files will be stored in: {SESSION_FILE_DIR}")
     
-    # Use gunicorn for production, but Flask's built-in server for local testing.
-    # The `use_reloader=False` prevents atexit from being called twice during development reload.
+    # Run the application. Note: On platforms like Render, Gunicorn will handle the execution.
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=True, use_reloader=False)
