@@ -2,217 +2,121 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<title>VirginAI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VirginAI - AI Student Assistant</title>
 
 <style>
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #141E30, #243B55);
-    color: white;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(135deg,#141E30,#243B55);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
 }
-
-.container {
-    width: 100%;
-    max-width: 500px;
-    background: rgba(255,255,255,0.05);
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 0 25px rgba(0,0,0,0.4);
-    display: flex;
-    flex-direction: column;
-    height: 80vh;
+.app{
+    width:100%;
+    max-width:500px;
+    height:85vh;
+    background:rgba(255,255,255,0.05);
+    border-radius:15px;
+    display:flex;
+    flex-direction:column;
+    padding:15px;
 }
-
-h1 {
-    text-align: center;
-    color: #00c6ff;
-    margin-bottom: 10px;
+h2{text-align:center;color:#00c6ff;margin:5px 0;}
+#chat{
+    flex:1;
+    overflow-y:auto;
+    padding:10px;
+    border-radius:10px;
+    background:rgba(0,0,0,0.3);
+    white-space:pre-wrap;
 }
-
-#chat {
-    flex: 1;
-    overflow-y: auto; /* Chat area scrolling */
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 12px;
-    background: rgba(0,0,0,0.2);
-    /* Ensure content with newlines wraps correctly */
-    white-space: pre-wrap; 
+.msg{
+    margin:8px 0;
+    padding:10px;
+    border-radius:10px;
 }
-
-.user-msg, .ai-msg {
-    margin: 8px 0;
-    padding: 10px;
-    border-radius: 12px;
-    word-wrap: break-word;
-    /* Crucial for displaying multiline messages */
-    white-space: pre-wrap; 
+.user{background:#00c6ff55;text-align:right;}
+.ai{background:#4444ff55;}
+textarea{
+    width:100%;
+    resize:vertical;
+    min-height:60px;
+    max-height:120px;
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    outline:none;
 }
-
-/* User messages should be aligned right */
-.user-msg { 
-    background: #00c6ff66; 
-    align-self: flex-end; 
-    max-width: 80%;
+button{
+    margin-top:8px;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    font-size:16px;
+    cursor:pointer;
 }
-/* AI messages should be aligned left */
-.ai-msg   { 
-    background: #4444ff55; 
-    align-self: flex-start;
-    max-width: 80%;
-}
-
-.input-area {
-    display: flex;
-    flex-direction: column;
-}
-
-textarea {
-    width: 100%;
-    padding: 10px;
-    border-radius: 10px;
-    /* Allow vertical resizing */
-    resize: vertical;
-    font-size: 15px;
-    outline: none;
-    border: none;
-    min-height: 50px;
-    max-height: 120px; /* Limits the size of the input box */
-    /* Allows text to wrap and show new lines */
-    white-space: pre-wrap; 
-    overflow-y: auto; /* Enables scrolling for long input */
-}
-
-button {
-    margin-top: 10px;
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    background: #00c6ff;
-    color: white;
-    font-size: 16px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-button:hover { background: #009edc; }
-
-.loading { display: inline-block; }
-.loading::after {
-    content: '.';
-    animation: dots 1s steps(5,end) infinite;
-}
-@keyframes dots { 0%,20%{content:'.';} 40%{content:'..';} 60%{content:'...';} 80%,100%{content:'.';} }
-
-.clear-btn {
-    margin-top: 5px;
-    padding: 8px;
-    border-radius: 8px;
-    border: none;
-    background: #ff5555;
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
-}
-.clear-btn:hover { background: #dd0000; }
+.ask{background:#00c6ff;color:white;}
+.clear{background:#ff5555;color:white;}
 </style>
 </head>
 
 <body>
-
-<div class="container">
-    <h1>🤖 VirginAI</h1>
-    <div id="chat"></div>
-    <div class="input-area">
-        <textarea id="question" placeholder="Ask your question (Shift+Enter for new line)..." rows="3"></textarea>
-    </div>
-    <button id="ask-btn" onclick="askAI()">Ask</button>
-    <button class="clear-btn" onclick="clearChat()">Clear Chat</button>
+<div class="app">
+<h2>🤖 VirginAI</h2>
+<div id="chat"></div>
+<textarea id="q" placeholder="Ask anything (multi-line allowed)"></textarea>
+<button class="ask" onclick="ask()">Ask</button>
+<button class="clear" onclick="clearChat()">Clear Chat</button>
 </div>
 
 <script>
 const chat = document.getElementById("chat");
-const questionInput = document.getElementById("question");
-const askButton = document.getElementById("ask-btn");
+const q = document.getElementById("q");
 
-function appendMessage(msg, className){
-    const div = document.createElement("div");
-    div.className = className;
-    // Use innerHTML to handle potential line breaks rendered as <br> or similar if needed, 
-    // but with CSS 'white-space: pre-wrap' we can use textContent for security and simplicity.
-    div.textContent = msg; 
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
+function add(text, cls){
+    const d=document.createElement("div");
+    d.className="msg "+cls;
+    d.textContent=text;
+    chat.appendChild(d);
+    chat.scrollTop=chat.scrollHeight;
 }
 
-async function askAI(){
-    const question = questionInput.value.trim();
-    if(!question) return;
+async function ask(){
+    const text=q.value.trim();
+    if(!text) return;
 
-    appendMessage(question, "user-msg");
-    questionInput.value = "";
-    
-    // Disable the button while loading
-    askButton.disabled = true;
-    
-    const loadingDiv = document.createElement("div");
-    loadingDiv.className = "ai-msg loading";
-    loadingDiv.textContent = "Thinking";
-    chat.appendChild(loadingDiv);
-    chat.scrollTop = chat.scrollHeight;
+    add(text,"user");
+    q.value="";
+
+    const loading=document.createElement("div");
+    loading.className="msg ai";
+    loading.textContent="Thinking...";
+    chat.appendChild(loading);
 
     try{
-        const res = await fetch("/ask", {
+        const r=await fetch("/ask",{
             method:"POST",
             headers:{"Content-Type":"application/json"},
-            body: JSON.stringify({question})
+            body:JSON.stringify({question:text})
         });
-
-        const data = await res.json();
-        loadingDiv.remove();
-
-        // Ensure the answer is a string and handle new lines in display
-        appendMessage(data.answer, "ai-msg");
-    } catch(err){
-        loadingDiv.remove();
-        appendMessage("🌐 Network or server error.", "ai-msg");
-    } finally {
-        // Re-enable the button
-        askButton.disabled = false;
+        const d=await r.json();
+        loading.remove();
+        add(d.answer,"ai");
+    }catch{
+        loading.remove();
+        add("Network error","ai");
     }
 }
 
 async function clearChat(){
-    chat.innerHTML = "";
-    try {
-        await fetch("/clear-session", {method:"POST"});
-    } catch (err) {
-        appendMessage("Failed to clear server session.", "ai-msg");
-    }
+    chat.innerHTML="";
+    await fetch("/clear-session",{method:"POST"});
 }
-
-// --- New Line/Submission Logic ---
-questionInput.addEventListener("keydown", function(event) {
-    // Check if the user pressed Enter
-    if (event.key === 'Enter') {
-        // If Shift or Ctrl is pressed with Enter, allow the new line
-        if (event.shiftKey || event.ctrlKey) {
-            // Allow the default behavior (insert new line)
-            return;
-        } else {
-            // Otherwise, prevent the default (new line) and submit the question
-            event.preventDefault(); 
-            askAI();
-        }
-    }
-});
 </script>
-
 </body>
 </html>
