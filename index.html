@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VirginAI</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.box {
+    width: 420px;
+    background: rgba(0,0,0,0.4);
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    margin-top: 10px;
+}
+
+button {
+    margin-top: 12px;
+    padding: 10px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    background: #00d2ff;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #00a6cc;
+}
+
+#answer {
+    margin-top: 15px;
+    min-height: 60px;
+    text-align: left;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h2>🤖 VirginAI</h2>
+    <input id="question" placeholder="Ask anything..." />
+    <button onclick="askAI()">Ask</button>
+    <div id="answer"></div>
+</div>
+
+<script>
+async function askAI() {
+    const q = document.getElementById("question").value;
+    const answerBox = document.getElementById("answer");
+
+    if (!q) {
+        answerBox.innerText = "Please type a question.";
+        return;
+    }
+
+    answerBox.innerText = "Thinking... ⏳";
+
+    try {
+        const res = await fetch("/ask", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({ question: q })
+        });
+
+        const data = await res.json();
+        answerBox.innerText = data.answer;
+    } catch {
+        answerBox.innerText = "Server error. Try later.";
+    }
+}
+</script>
+
+</body>
+</html>
