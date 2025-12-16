@@ -1,47 +1,49 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, session, send_from_directory
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_cors import CORS
 from dotenv import load_dotenv
-import requests, os, time
+import requests, os, random
 
+# -------------------- SETUP --------------------
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# -------------------- Rate limit
+app.secret_key = os.getenv("APP_SECRET_TOKEN", "change_this_secret")
+app.config["SESSION_PERMANENT"] = False
+
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
     default_limits=["10 per minute"]
 )
 
-# -------------------- API KEYS
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-GROQ_API_KEY   = os.getenv("GROQ_API_KEY")
+# -------------------- API KEYS --------------------
+GEMINI_KEY = os.getenv("GEMINI_API_KEY")
+GROQ_KEY   = os.getenv("GROQ_API_KEY")
 
 GEMINI_MODEL = "gemini-2.5-flash"
 GROQ_MODEL   = "llama-3.1-8b-instant"
 
-# -------------------- Context (safe)
-USER_CONTEXT = {}
-MAX_CONTEXT = 4
-TTL = 900  # 15 min
+MAX_CONTEXT = 4   # last 3–5 messages total
 
-# --------------------
+# -------------------- HOME --------------------
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
 
-# --------------------
-def cleanup():
-    now = time.time()
-    for ip in list(USER_CONTEXT.keys()):
-        if now - USER_CONTEXT[ip]["ts"] > TTL:
-            del USER_CONTEXT[ip]
+# -------------------- HELPERS --------------------
+def get_context():
+    if "context" not in session:
+        session["context"] = []
+    return session["context"]
 
-# --------------------
+def trim_context(ctx):
+    return ctx[-MAX_CONTEXT*2:]
+
+# -------------------- GEMINI --------------------
 def call_gemini(prompt):
     url = f"https://generativelanguage.googleapis.com/v1/models/{GEMINI_MODEL}:generateContent"
     payload = {
@@ -50,100 +52,103 @@ def call_gemini(prompt):
             "parts": [{"text": prompt}]
         }]
     }
+
     r = requests.post(
         url,
-        params={"key": GEMINI_API_KEY},
+        params={"key": GEMINI_KEY},
         json=payload,
         timeout=15
     )
 
-    if r.status_code != 200:
-        raise Exception("Gemini failed")
+    r.raise_for_status()
 
-    data = r.json()
-    return (
-        data.get("candidates", [{}])[0]
-        .get("content", {})
-        .get("parts", [{}])[0]
-        .get("text", "")
-    )
+    return r.json()["candidates"][0]["content"]["parts"][0]["text"]
 
-# --------------------
+# -------------------- GROQ --------------------
 def call_groq(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
+
     payload = {
         "model": GROQ_MODEL,
         "messages": [
             {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.7
+        ]
     }
 
-    r = requests.post(url, headers=headers, json=payload, timeout=15)
+    r = requests.post(
+        url,
+        headers={
+            "Authorization": f"Bearer {GROQ_KEY}",
+            "Content-Type": "application/json"
+        },
+        json=payload,
+        timeout=15
+    )
 
-    if r.status_code != 200:
-        raise Exception("Groq failed")
+    r.raise_for_status()
 
-    data = r.json()
-    return data["choices"][0]["message"]["content"]
+    return r.json()["choices"][0]["message"]["content"]
 
-# --------------------
+# -------------------- ASK --------------------
 @app.route("/ask", methods=["POST"])
 @limiter.limit("10 per minute")
 def ask():
     try:
-        cleanup()
-
         data = request.get_json(force=True)
         question = data.get("question", "").strip()
+
         if not question:
-            return jsonify({"answer": "Please ask something."}), 400
+            return jsonify({"answer": "❗ Please ask a question."}), 400
 
-        ip = get_remote_address()
-        now = time.time()
+        ctx = get_context()
+        ctx.append(f"User: {question}")
+        ctx = trim_context(ctx)
+        session["context"] = ctx
 
-        if ip not in USER_CONTEXT:
-            USER_CONTEXT[ip] = {"messages": [], "ts": now}
+        prompt = "\n".join(ctx) + "\nAI:"
 
-        USER_CONTEXT[ip]["ts"] = now
-        USER_CONTEXT[ip]["messages"].append(f"User: {question}")
-        USER_CONTEXT[ip]["messages"] = USER_CONTEXT[ip]["messages"][-MAX_CONTEXT:]
+        # RANDOM provider order
+        providers = ["gemini", "groq"]
+        random.shuffle(providers)
 
-        prompt = "\n".join(USER_CONTEXT[ip]["messages"]) + "\nAI:"
+        reply = None
+        last_error = None
 
-        # -------- Try Gemini first
-        try:
-            reply = call_gemini(prompt)
-            source = "gemini"
-        except Exception:
-            # -------- Fallback to Groq
-            reply = call_groq(prompt)
-            source = "groq"
+        for p in providers:
+            try:
+                if p == "gemini" and GEMINI_KEY:
+                    reply = call_gemini(prompt)
+                    break
+                if p == "groq" and GROQ_KEY:
+                    reply = call_groq(prompt)
+                    break
+            except Exception as e:
+                last_error = str(e)
 
-        USER_CONTEXT[ip]["messages"].append(f"AI: {reply}")
-        USER_CONTEXT[ip]["messages"] = USER_CONTEXT[ip]["messages"][-MAX_CONTEXT:]
+        if not reply:
+            return jsonify({
+                "answer": "⚠️ AI services are busy. Please try again shortly."
+            }), 503
 
-        return jsonify({
-            "answer": reply,
-            "source": source
-        })
+        ctx.append(f"AI: {reply}")
+        session["context"] = trim_context(ctx)
+        session.modified = True
+
+        return jsonify({"answer": reply})
+
+    except requests.exceptions.Timeout:
+        return jsonify({"answer": "⏳ AI timeout. Try again."}), 504
 
     except Exception as e:
         print("SERVER ERROR:", e)
-        return jsonify({
-            "answer": "AI service unavailable. Please retry."
-        }), 503
+        return jsonify({"answer": "❌ Server error. Please retry."}), 500
 
-# --------------------
-@app.route("/clear-context", methods=["POST"])
-def clear_context():
-    USER_CONTEXT.pop(get_remote_address(), None)
+# -------------------- CLEAR SESSION --------------------
+@app.route("/clear-session", methods=["POST"])
+def clear_session():
+    session.clear()
     return jsonify({"status": "cleared"})
 
-# --------------------
+# -------------------- RUN --------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
