@@ -1,16 +1,16 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_from_directory
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_cors import CORS
 from dotenv import load_dotenv
-import requests, os, traceback
+import requests, os
 
-# ------------------ Setup ------------------
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
+# Rate limit: SAME IP → 10 per minute
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
@@ -20,78 +20,87 @@ limiter = Limiter(
 API_KEY = os.getenv("GEMINI_API_KEY")
 MODEL = "gemini-2.5-flash"
 
-# ------------------ Routes ------------------
 @app.route("/")
 def home():
-    return send_file("index.html")
-
+    return send_from_directory(".", "index.html")
 
 @app.route("/ask", methods=["POST"])
 @limiter.limit("10 per minute")
 def ask():
     try:
-        data = request.get_json(silent=True)
-        if not data:
-            return jsonify({"answer": "Invalid request."})
-
+        # Force JSON parsing (prevents silent failures)
+        data = request.get_json(force=True)
         question = data.get("question", "").strip()
+
         if not question:
-            return jsonify({"answer": "Please enter a question."})
+            return jsonify({"answer": "❗ Question cannot be empty."}), 400
+
+        if not API_KEY:
+            return jsonify({"answer": "⚠️ Server misconfiguration."}), 500
 
         url = (
             f"https://generativelanguage.googleapis.com/v1/"
             f"models/{MODEL}:generateContent"
         )
 
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        params = {
+            "key": API_KEY
+        }
+
         payload = {
-            "contents": [
-                {
-                    "role": "user",
-                    "parts": [{"text": question}]
-                }
-            ]
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": question}]
+            }]
         }
 
         response = requests.post(
             url,
-            params={"key": API_KEY},
+            headers=headers,
+            params=params,
             json=payload,
-            timeout=25
+            timeout=15
         )
 
-        response.raise_for_status()
+        # Gemini API error handling
+        if response.status_code != 200:
+            return jsonify({
+                "answer": "⚠️ AI service is busy. Try again later."
+            }), 503
+
         data = response.json()
 
-        # ---- Safe extraction ----
-        answer = (
-            data.get("candidates", [{}])[0]
+        # Safe parsing
+        candidates = data.get("candidates")
+        if not candidates:
+            return jsonify({
+                "answer": "⚠️ No response from AI."
+            }), 500
+
+        reply = (
+            candidates[0]
             .get("content", {})
             .get("parts", [{}])[0]
             .get("text", "")
         )
 
-        if not answer:
-            return jsonify({"answer": "No response from AI. Try again."})
+        if not reply:
+            return jsonify({
+                "answer": "⚠️ Empty response from AI."
+            }), 500
 
-        return jsonify({"answer": answer})
+        return jsonify({"answer": reply})
 
     except requests.exceptions.Timeout:
-        return jsonify({"answer": "AI timeout. Try again."})
-
-    except requests.exceptions.HTTPError as e:
-        print("HTTP ERROR:", e)
-        return jsonify({"answer": "AI service error. Try later."})
+        return jsonify({
+            "answer": "⏳ AI took too long. Please retry."
+        }), 504
 
     except Exception:
-        print("SERVER ERROR:")
-        traceback.print_exc()
-        return jsonify({"answer": "Server busy. Try again shortly."})
-
-
-# ------------------ Run ------------------
-if __name__ == "__main__":
-    app.run(
-        host="0.0.0.0",
-        port=int(os.getenv("PORT", 5000)),
-        debug=False
-    )
+        return jsonify({
+            "answer": "❌ Internal server error."
+        }), 500
