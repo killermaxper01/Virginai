@@ -2,89 +2,278 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>VirginAI</title>
+<title>VirginAI – Intelligent AI Chat Assistant</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="description" content="VirginAI – Intelligent AI chatbot using Gemini and Groq.">
+<!-- ===== SEO META ===== -->
+<meta name="description" content="VirginAI is a premium AI chat assistant powered by Gemini and Groq. Ask questions, learn faster, and get intelligent answers instantly.">
+<meta name="keywords" content="VirginAI, AI chatbot, Gemini AI, Groq AI, ChatGPT alternative, AI assistant">
+<meta name="author" content="VirginAI Developer">
+<meta name="robots" content="index, follow">
+
+<!-- ===== OPEN GRAPH ===== -->
+<meta property="og:title" content="VirginAI – Intelligent AI Chat Assistant">
+<meta property="og:description" content="Ask anything with VirginAI. Fast, secure, and intelligent AI chat experience.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://virginai.in">
+
+<!-- ===== STRUCTURED DATA ===== -->
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "WebApplication",
+ "name": "VirginAI",
+ "description": "VirginAI is an AI-powered chat assistant using Gemini and Groq models for fast and accurate answers.",
+ "applicationCategory": "AI Chatbot",
+ "operatingSystem": "Web",
+ "creator": {
+   "@type": "Organization",
+   "name": "VirginAI"
+ }
+}
+</script>
 
 <style>
-body{margin:0;height:100vh;background:#050505;color:#eaeaea;font-family:sans-serif}
-.app{display:flex;flex-direction:column;height:100vh;padding:12px}
-header{text-align:center;color:#c9a44a;font-size:22px}
-#chat{flex:1;overflow-y:auto;border:1px solid #222;padding:10px}
-.msg{margin:8px;padding:10px;border-radius:12px;white-space:pre-wrap}
-.user{background:#111;margin-left:auto}
-.ai{background:#050505;border:1px solid #00ffd544;font-family:monospace}
-.input-bar{display:flex;gap:8px;margin-top:8px}
-textarea{flex:1;resize:vertical;max-height:150px;background:#020202;color:#fff;border:1px solid #222}
-button{width:50px;background:#c9a44a;border:none}
-footer{text-align:center;font-size:11px;color:#777}
-footer a{color:#c9a44a;text-decoration:none;margin:0 4px}
+:root{
+ --bg:#050505;
+ --panel:#0c0c0c;
+ --border:#1e1e1e;
+ --gold:#c9a44a;
+ --gold-soft:#9f8740;
+ --text:#eaeaea;
+ --muted:#888;
+ --accent:#00ffd5;
+}
+
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ height:100vh;
+ background:var(--bg);
+ font-family:Inter,Segoe UI,sans-serif;
+ color:var(--text);
+ display:flex;
+ justify-content:center;
+}
+
+.app{
+ width:100%;
+ max-width:720px;
+ height:100vh;
+ display:flex;
+ flex-direction:column;
+ padding:16px;
+}
+
+/* ===== HEADER ===== */
+header{
+ text-align:center;
+ margin-bottom:10px;
+}
+
+header h1{
+ margin:0;
+ font-size:1.8rem;
+ letter-spacing:2px;
+ color:var(--gold);
+}
+
+header p{
+ margin:4px 0 0;
+ font-size:13px;
+ color:var(--muted);
+}
+
+/* ===== CHAT AREA ===== */
+#chat{
+ flex:1;
+ overflow-y:auto;
+ padding:14px;
+ background:var(--panel);
+ border:1px solid var(--border);
+ border-radius:16px;
+}
+
+/* ===== MESSAGE ===== */
+.msg{
+ max-width:78%;
+ margin:10px 0;
+ padding:12px 14px;
+ border-radius:14px;
+ line-height:1.5;
+ white-space:pre-wrap;
+ word-break:break-word;
+}
+
+.user{
+ margin-left:auto;
+ background:#121212;
+ border:1px solid #2a2a2a;
+}
+
+.ai{
+ background:#050505;
+ border:1px solid rgba(0,255,213,.25);
+ color:#dffff8;
+ font-family:Consolas,monospace;
+}
+
+/* ===== INPUT BAR ===== */
+.input-bar{
+ margin-top:12px;
+ padding:10px;
+ background:var(--panel);
+ border:1px solid var(--border);
+ border-radius:16px;
+ display:flex;
+ gap:10px;
+ align-items:flex-end;
+}
+
+textarea{
+ flex:1;
+ min-height:44px;
+ max-height:160px;
+ resize:none;
+ overflow-y:auto;
+ padding:12px 14px;
+ border-radius:12px;
+ border:1px solid var(--border);
+ background:#020202;
+ color:var(--text);
+ font-size:15px;
+ line-height:1.5;
+ outline:none;
+}
+
+textarea::placeholder{
+ color:var(--muted);
+}
+
+button{
+ width:52px;
+ height:52px;
+ border:none;
+ border-radius:14px;
+ background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+ color:#000;
+ font-size:18px;
+ font-weight:700;
+ cursor:pointer;
+}
+
+/* ===== FOOTER ===== */
+footer{
+ margin-top:10px;
+ text-align:center;
+ font-size:12px;
+ color:var(--muted);
+}
+
+footer a{
+ color:var(--gold);
+ text-decoration:none;
+ margin:0 6px;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:480px){
+ .app{padding:10px}
+ header h1{font-size:1.5rem}
+}
 </style>
 </head>
 
 <body>
 <div class="app">
-<header>VIRGINAI</header>
+
+<header>
+ <h1>VIRGINAI</h1>
+ <p>Intelligent AI Chat Assistant</p>
+</header>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-<textarea id="q" placeholder="Ask anything… (Shift+Enter = new line)"></textarea>
-<button onclick="ask()">➤</button>
+ <textarea id="q" placeholder="Ask anything… (Enter = new line · Ctrl+Enter = send)"></textarea>
+ <button id="send">➤</button>
 </div>
 
 <footer>
-<a href="/about.html">About</a> ·
-<a href="/help.html">Help</a> ·
-<a href="/developer.html">Developer</a> ·
-<a href="/privacy.html">Privacy</a>
+ <a href="/about.html">About</a> ·
+ <a href="/help.html">Help</a> ·
+ <a href="/developer.html">Developer</a> ·
+ <a href="/privacy.html">Privacy</a>
+ <br>
+ © 2025 VirginAI
 </footer>
+
 </div>
 
 <script>
 const chat=document.getElementById("chat");
 const q=document.getElementById("q");
+const send=document.getElementById("send");
 
-function add(t,c){
- let d=document.createElement("div");
- d.className="msg "+c;
- d.textContent=t;
+/* ADD MESSAGE */
+function add(text,cls){
+ const d=document.createElement("div");
+ d.className="msg "+cls;
+ d.textContent=text;
  chat.appendChild(d);
  chat.scrollTop=chat.scrollHeight;
  return d;
 }
 
-function type(el,t){
- let i=0;el.textContent="";
- let s=setInterval(()=>{
-  el.textContent+=t[i++]||"";
+/* MATRIX TYPING */
+function typeMatrix(el,text){
+ let i=0;
+ el.textContent="";
+ const speed=14;
+ const timer=setInterval(()=>{
+  el.textContent+=text[i++]||"";
   chat.scrollTop=chat.scrollHeight;
-  if(i>=t.length) clearInterval(s);
- },14);
+  if(i>=text.length) clearInterval(timer);
+ },speed);
 }
 
+/* SEND */
 async function ask(){
- let t=q.value;
- if(!t.trim()) return;
- add(t,"user"); q.value="";
- let ai=add("Thinking…","ai");
+ const text=q.value;
+ if(!text.trim()) return;
+
+ add(text,"user");
+ q.value="";
+
+ const ai=add("Thinking…","ai");
+
  try{
-  let r=await fetch("/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:t})});
-  let d=await r.json();
-  type(ai,d.answer||"No response");
+  const r=await fetch("/ask",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({question:text})
+  });
+  const d=await r.json();
+  typeMatrix(ai,d.answer || "No response.");
  }catch{
-  type(ai,"Service unavailable.");
+  typeMatrix(ai,"⚠️ Service temporarily unavailable.");
  }
 }
 
+/* KEY HANDLING (ChatGPT STYLE) */
 q.addEventListener("keydown",e=>{
- if(e.key==="Enter" && !e.shiftKey){
-  e.preventDefault(); ask();
+ if(e.key==="Enter" && e.ctrlKey){
+  e.preventDefault();
+  ask();
  }
 });
 
-// Mobile back protection
+/* SEND BUTTON */
+send.onclick=ask;
+
+/* MOBILE BACK PROTECTION */
 let backOnce=false;
 history.pushState(null,"",location.href);
 window.onpopstate=()=>{
@@ -96,5 +285,6 @@ window.onpopstate=()=>{
  }
 };
 </script>
+
 </body>
 </html>
