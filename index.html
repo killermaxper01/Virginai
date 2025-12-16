@@ -4,126 +4,216 @@
 <meta charset="UTF-8">
 <title>VirginAI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+:root{
+ --bg:#050505;
+ --panel:#0b0b0b;
+ --border:#1c1c1c;
+ --gold:#c9a44a;
+ --text:#eaeaea;
+ --muted:#777;
+ --accent:#00ffd5;
+}
+
+*{box-sizing:border-box}
+
 body{
-  background:#0b0f14;
-  color:#e5e7eb;
-  font-family:Segoe UI,Arial;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
+ margin:0;
+ height:100vh;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:var(--bg);
+ font-family:"Inter","Segoe UI",sans-serif;
+ color:var(--text);
 }
+
+/* ===== APP ===== */
 .app{
-  width:100%;
-  max-width:520px;
-  height:90vh;
-  background:#111827;
-  border-radius:16px;
-  display:flex;
-  flex-direction:column;
+ width:100%;
+ max-width:520px;
+ height:88vh;
+ background:linear-gradient(180deg,#070707,#0e0e0e);
+ border-radius:20px;
+ border:1px solid var(--border);
+ display:flex;
+ flex-direction:column;
+ padding:14px;
+ box-shadow:0 0 40px rgba(201,164,74,.08);
 }
+
+/* ===== HEADER ===== */
 header{
-  padding:16px;
-  text-align:center;
-  font-weight:600;
-  color:#38bdf8;
-  border-bottom:1px solid #1f2937;
+ text-align:center;
+ font-size:1.5rem;
+ letter-spacing:2px;
+ font-weight:600;
+ color:var(--gold);
+ margin-bottom:12px;
 }
+
+/* ===== CHAT ===== */
 #chat{
-  flex:1;
-  padding:16px;
-  overflow-y:auto;
-  white-space:pre-wrap;
+ flex:1;
+ overflow-y:auto;
+ padding:12px;
+ background:#060606;
+ border-radius:14px;
+ border:1px solid var(--border);
+ white-space:pre-wrap;
 }
+
+/* ===== MESSAGE ===== */
 .msg{
-  margin-bottom:12px;
-  padding:12px;
-  border-radius:12px;
-  max-width:85%;
+ max-width:82%;
+ margin:10px 0;
+ padding:12px 14px;
+ border-radius:14px;
+ line-height:1.5;
+ word-wrap:break-word;
 }
-.user{background:#2563eb;margin-left:auto}
-.ai{background:#1f2937}
-.input{
-  display:flex;
-  gap:10px;
-  padding:14px;
-  border-top:1px solid #1f2937;
+
+.user{
+ margin-left:auto;
+ background:#111;
+ border:1px solid #2a2a2a;
 }
+
+.ai{
+ background:#050505;
+ border:1px solid rgba(0,255,213,.25);
+ color:#dffff8;
+ font-family:"Courier New",monospace;
+}
+
+/* ===== INPUT ===== */
+.input-bar{
+ display:flex;
+ gap:10px;
+ margin-top:12px;
+}
+
 textarea{
-  flex:1;
-  resize:none;
-  min-height:44px;
-  max-height:120px;
-  background:#020617;
-  color:white;
-  border:none;
-  border-radius:12px;
-  padding:10px;
+ flex:1;
+ min-height:52px;
+ max-height:130px;
+ resize:none;               /* 🔥 MOBILE FIX */
+ padding:14px 16px;
+ border-radius:14px;
+ border:1px solid var(--border);
+ outline:none;
+ background:#020202;
+ color:var(--text);
+ font-size:15px;
+ line-height:1.5;
 }
+
+textarea::placeholder{color:var(--muted)}
+
 button{
-  width:56px;
-  border:none;
-  border-radius:12px;
-  background:#38bdf8;
-  font-size:18px;
-  cursor:pointer;
+ width:54px;
+ height:54px;
+ border:none;
+ border-radius:14px;
+ background:linear-gradient(135deg,#d6b55c,#a98c3a);
+ font-size:18px;
+ font-weight:700;
+ cursor:pointer;
+}
+
+/* Mobile full fit */
+@media(max-width:480px){
+ .app{
+  height:100vh;
+  border-radius:0;
+ }
 }
 </style>
 </head>
-<body>
 
+<body>
 <div class="app">
-<header>🤖 VirginAI</header>
+
+<header>VIRGINAI</header>
+
 <div id="chat"></div>
 
-<div class="input">
-<textarea id="q" placeholder="Ask anything… (Shift+Enter new line)"></textarea>
-<button onclick="ask()">➤</button>
+<div class="input-bar">
+ <textarea id="q" placeholder="Ask anything… (Shift + Enter = new line)"></textarea>
+ <button id="send">➤</button>
 </div>
+
 </div>
 
 <script>
 const chat=document.getElementById("chat");
 const q=document.getElementById("q");
+const sendBtn=document.getElementById("send");
 
-function add(t,c){
-  const d=document.createElement("div");
-  d.className="msg "+c;
-  d.textContent=t;
-  chat.appendChild(d);
+/* ===== ADD MESSAGE ===== */
+function add(text,cls){
+ const d=document.createElement("div");
+ d.className="msg "+cls;
+ d.textContent=text;
+ chat.appendChild(d);
+ chat.scrollTop=chat.scrollHeight;
+ return d;
+}
+
+/* ===== MATRIX TYPING ===== */
+function typeMatrix(el,text){
+ let i=0;
+ el.textContent="";
+ const speed=14;
+ const timer=setInterval(()=>{
+  el.textContent+=text[i];
   chat.scrollTop=chat.scrollHeight;
+  i++;
+  if(i>=text.length) clearInterval(timer);
+ },speed);
 }
 
+/* ===== SEND ===== */
 async function ask(){
-  const t=q.value.trim();
-  if(!t) return;
-  add(t,"user");
-  q.value="";
-  add("Thinking...","ai");
+ const text=q.value;     // ❌ NO TRIM (important)
+ if(!text.replace(/\s/g,"")) return;
 
-  try{
-    const r=await fetch("/ask",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({question:t})
-    });
-    const d=await r.json();
-    chat.lastChild.remove();
-    add(d.answer,"ai");
-  }catch{
-    chat.lastChild.remove();
-    add("Network error.","ai");
-  }
+ add(text,"user");
+ q.value="";
+
+ const ai=add("Thinking…","ai");
+
+ try{
+  const r=await fetch("/ask",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({question:text})
+  });
+  const d=await r.json();
+  typeMatrix(ai,d.answer || "No response.");
+ }catch{
+  typeMatrix(ai,"Server error. Please try later.");
+ }
 }
 
+/* ===== KEY HANDLING (DESKTOP + MOBILE) ===== */
 q.addEventListener("keydown",e=>{
-  if(e.key==="Enter"&&!e.shiftKey){
-    e.preventDefault();
-    ask();
-  }
+ if(e.key==="Enter" && !e.shiftKey){
+  e.preventDefault();
+  ask();
+ }
 });
+
+/* Mobile keyboards fix */
+q.addEventListener("beforeinput",e=>{
+ if(e.inputType==="insertLineBreak" && !e.shiftKey){
+  e.preventDefault();
+  ask();
+ }
+});
+
+sendBtn.onclick=ask;
 </script>
 
 </body>
