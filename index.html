@@ -2,8 +2,43 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>VirginAI</title>
+<title>VirginAI – Intelligent AI Chatbot</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ===== SEO META ===== -->
+<meta name="description" content="VirginAI is a powerful AI chatbot that helps users get intelligent answers using advanced AI models like Gemini and Groq. Built for learning, productivity, and assistance.">
+<meta name="keywords" content="VirginAI, AI chatbot, Gemini AI, Groq AI, intelligent assistant, ask AI">
+<meta name="author" content="VirginAI Developer">
+<meta name="robots" content="index, follow">
+
+<!-- ===== OPEN GRAPH (SOCIAL / SEARCH) ===== -->
+<meta property="og:title" content="VirginAI – Intelligent AI Chatbot">
+<meta property="og:description" content="Ask anything with VirginAI. Fast, secure, and intelligent AI-powered chat assistant.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://virginai.in">
+
+<!-- ===== STRUCTURED DATA (RICH RESULTS) ===== -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "VirginAI",
+  "url": "https://virginai.in",
+  "description": "VirginAI is an AI-powered chatbot that provides intelligent answers using modern AI models such as Gemini and Groq.",
+  "applicationCategory": "AI Chatbot",
+  "operatingSystem": "Web",
+  "creator": {
+    "@type": "Organization",
+    "name": "VirginAI",
+    "url": "https://virginai.in"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "VirginAI Developer"
+  }
+}
+</script>
 
 <style>
 :root{
@@ -50,7 +85,14 @@ header{
  letter-spacing:2px;
  font-weight:600;
  color:var(--gold);
- margin-bottom:12px;
+ margin-bottom:6px;
+}
+
+.sub{
+ text-align:center;
+ font-size:12px;
+ color:var(--muted);
+ margin-bottom:10px;
 }
 
 /* ===== CHAT ===== */
@@ -98,7 +140,7 @@ textarea{
  flex:1;
  min-height:52px;
  max-height:130px;
- resize:none;               /* 🔥 MOBILE FIX */
+ resize:none;
  padding:14px 16px;
  border-radius:14px;
  border:1px solid var(--border);
@@ -122,6 +164,15 @@ button{
  cursor:pointer;
 }
 
+/* ===== FOOTER ===== */
+footer{
+ margin-top:8px;
+ font-size:11px;
+ color:var(--muted);
+ text-align:center;
+ line-height:1.4;
+}
+
 /* Mobile full fit */
 @media(max-width:480px){
  .app{
@@ -136,6 +187,7 @@ button{
 <div class="app">
 
 <header>VIRGINAI</header>
+<div class="sub">Intelligent AI Chat Assistant</div>
 
 <div id="chat"></div>
 
@@ -143,6 +195,18 @@ button{
  <textarea id="q" placeholder="Ask anything… (Shift + Enter = new line)"></textarea>
  <button id="send">➤</button>
 </div>
+
+
+  
+<footer>
+ <a href="/about.html">About</a> ·
+ <a href="/help.html">Help</a> ·
+ <a href="/developer.html">Developer</a> ·
+ <a href="/privacy.html">Privacy</a> ·
+ <a href="/contact.html">Contact</a>
+ <br>
+ VirginAI is an AI-powered chatbot built to help users learn and solve problems.
+</footer>
 
 </div>
 
@@ -167,7 +231,7 @@ function typeMatrix(el,text){
  el.textContent="";
  const speed=14;
  const timer=setInterval(()=>{
-  el.textContent+=text[i];
+  el.textContent+=text[i] || "";
   chat.scrollTop=chat.scrollHeight;
   i++;
   if(i>=text.length) clearInterval(timer);
@@ -176,7 +240,7 @@ function typeMatrix(el,text){
 
 /* ===== SEND ===== */
 async function ask(){
- const text=q.value;     // ❌ NO TRIM (important)
+ const text=q.value;
  if(!text.replace(/\s/g,"")) return;
 
  add(text,"user");
@@ -190,14 +254,21 @@ async function ask(){
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify({question:text})
   });
+
+  if(!r.ok){
+   throw new Error("Network response not OK");
+  }
+
   const d=await r.json();
-  typeMatrix(ai,d.answer || "No response.");
- }catch{
-  typeMatrix(ai,"Server error. Please try later.");
+  typeMatrix(ai,d.answer || "No response received.");
+
+ }catch(err){
+  console.error("CLIENT ERROR:",err);
+  typeMatrix(ai,"⚠️ Service temporarily unavailable. Please try again.");
  }
 }
 
-/* ===== KEY HANDLING (DESKTOP + MOBILE) ===== */
+/* ===== KEY HANDLING ===== */
 q.addEventListener("keydown",e=>{
  if(e.key==="Enter" && !e.shiftKey){
   e.preventDefault();
@@ -205,7 +276,6 @@ q.addEventListener("keydown",e=>{
  }
 });
 
-/* Mobile keyboards fix */
 q.addEventListener("beforeinput",e=>{
  if(e.inputType==="insertLineBreak" && !e.shiftKey){
   e.preventDefault();
