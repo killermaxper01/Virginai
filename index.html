@@ -2,167 +2,36 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>VirginAI – Intelligent AI Chatbot</title>
-
+<title>VirginAI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- SEO -->
-<meta name="description" content="VirginAI is a powerful AI chatbot using Gemini and Groq for fast, intelligent answers.">
-<meta name="keywords" content="VirginAI, AI chatbot, Gemini AI, Groq AI">
-<meta name="author" content="VirginAI Developer">
-<meta name="robots" content="index, follow">
-
-<!-- Open Graph -->
-<meta property="og:title" content="VirginAI – Intelligent AI Chatbot">
-<meta property="og:description" content="Ask anything with VirginAI. Fast, secure AI assistant.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://virginai.in">
-
-<!-- Schema -->
-<script type="application/ld+json">
-{
- "@context":"https://schema.org",
- "@type":"WebApplication",
- "name":"VirginAI",
- "applicationCategory":"AI Chatbot",
- "operatingSystem":"Web",
- "creator":{"@type":"Organization","name":"VirginAI"}
-}
-</script>
+<meta name="description" content="VirginAI – Intelligent AI chatbot using Gemini and Groq.">
 
 <style>
-:root{
- --bg:#050505;
- --panel:#0b0b0b;
- --border:#1c1c1c;
- --gold:#c9a44a;
- --text:#eaeaea;
- --muted:#777;
- --accent:#00ffd5;
-}
-
-*{box-sizing:border-box}
-
-body{
- margin:0;
- height:100vh;
- display:flex;
- justify-content:center;
- align-items:center;
- background:var(--bg);
- font-family:Inter,Segoe UI,sans-serif;
- color:var(--text);
-}
-
-.app{
- width:100%;
- max-width:520px;
- height:100vh;
- background:linear-gradient(180deg,#070707,#0e0e0e);
- border:1px solid var(--border);
- display:flex;
- flex-direction:column;
- padding:14px;
-}
-
-header{
- text-align:center;
- font-size:1.5rem;
- letter-spacing:2px;
- color:var(--gold);
-}
-
-.sub{
- text-align:center;
- font-size:12px;
- color:var(--muted);
- margin-bottom:8px;
-}
-
-#chat{
- flex:1;
- overflow-y:auto;
- padding:12px;
- background:#060606;
- border-radius:12px;
- border:1px solid var(--border);
-}
-
-.msg{
- max-width:82%;
- margin:10px 0;
- padding:12px 14px;
- border-radius:14px;
- white-space:pre-wrap;
-}
-
-.user{
- margin-left:auto;
- background:#111;
- border:1px solid #2a2a2a;
-}
-
-.ai{
- background:#050505;
- border:1px solid rgba(0,255,213,.25);
- font-family:monospace;
- color:#dffff8;
-}
-
-.input-bar{
- display:flex;
- gap:8px;
- margin-top:10px;
-}
-
-textarea{
- flex:1;
- min-height:48px;
- max-height:160px;
- resize:vertical;
- overflow-y:auto;
- padding:12px;
- border-radius:12px;
- border:1px solid var(--border);
- background:#020202;
- color:var(--text);
- font-size:14px;
-}
-
-button{
- width:52px;
- border:none;
- border-radius:12px;
- background:linear-gradient(135deg,#d6b55c,#a98c3a);
- font-size:18px;
- cursor:pointer;
-}
-
-footer{
- margin-top:6px;
- font-size:11px;
- text-align:center;
- color:var(--muted);
-}
-
-footer a{
- color:var(--gold);
- text-decoration:none;
- margin:0 4px;
-}
+body{margin:0;height:100vh;background:#050505;color:#eaeaea;font-family:sans-serif}
+.app{display:flex;flex-direction:column;height:100vh;padding:12px}
+header{text-align:center;color:#c9a44a;font-size:22px}
+#chat{flex:1;overflow-y:auto;border:1px solid #222;padding:10px}
+.msg{margin:8px;padding:10px;border-radius:12px;white-space:pre-wrap}
+.user{background:#111;margin-left:auto}
+.ai{background:#050505;border:1px solid #00ffd544;font-family:monospace}
+.input-bar{display:flex;gap:8px;margin-top:8px}
+textarea{flex:1;resize:vertical;max-height:150px;background:#020202;color:#fff;border:1px solid #222}
+button{width:50px;background:#c9a44a;border:none}
+footer{text-align:center;font-size:11px;color:#777}
+footer a{color:#c9a44a;text-decoration:none;margin:0 4px}
 </style>
 </head>
 
 <body>
 <div class="app">
 <header>VIRGINAI</header>
-<div class="sub">Intelligent AI Chat Assistant</div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
-<textarea id="q" placeholder="Ask anything… (Shift + Enter = new line)"></textarea>
-<button id="send">➤</button>
+<textarea id="q" placeholder="Ask anything… (Shift+Enter = new line)"></textarea>
+<button onclick="ask()">➤</button>
 </div>
 
 <footer>
@@ -170,57 +39,62 @@ footer a{
 <a href="/help.html">Help</a> ·
 <a href="/developer.html">Developer</a> ·
 <a href="/privacy.html">Privacy</a>
-<br>© 2025 VirginAI
 </footer>
 </div>
 
 <script>
 const chat=document.getElementById("chat");
 const q=document.getElementById("q");
-const send=document.getElementById("send");
 
-function add(text,cls){
- const d=document.createElement("div");
- d.className="msg "+cls;
- d.textContent=text;
+function add(t,c){
+ let d=document.createElement("div");
+ d.className="msg "+c;
+ d.textContent=t;
  chat.appendChild(d);
  chat.scrollTop=chat.scrollHeight;
  return d;
 }
 
-function typeMatrix(el,text){
- let i=0;
- el.textContent="";
- const t=setInterval(()=>{
-  el.textContent+=text[i++]||"";
+function type(el,t){
+ let i=0;el.textContent="";
+ let s=setInterval(()=>{
+  el.textContent+=t[i++]||"";
   chat.scrollTop=chat.scrollHeight;
-  if(i>=text.length) clearInterval(t);
+  if(i>=t.length) clearInterval(s);
  },14);
 }
 
 async function ask(){
- const text=q.value;
- if(!text.trim()) return;
- add(text,"user");
- q.value="";
- const ai=add("Thinking…","ai");
+ let t=q.value;
+ if(!t.trim()) return;
+ add(t,"user"); q.value="";
+ let ai=add("Thinking…","ai");
  try{
-  const r=await fetch("/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:text})});
-  const d=await r.json();
-  typeMatrix(ai,d.answer||"No response.");
+  let r=await fetch("/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:t})});
+  let d=await r.json();
+  type(ai,d.answer||"No response");
  }catch{
-  typeMatrix(ai,"⚠️ Service unavailable. Try again.");
+  type(ai,"Service unavailable.");
  }
 }
 
 q.addEventListener("keydown",e=>{
  if(e.key==="Enter" && !e.shiftKey){
-  e.preventDefault();
-  ask();
+  e.preventDefault(); ask();
  }
 });
 
-send.onclick=ask;
+// Mobile back protection
+let backOnce=false;
+history.pushState(null,"",location.href);
+window.onpopstate=()=>{
+ if(!backOnce){
+  backOnce=true;
+  alert("Press back again to exit VirginAI");
+  history.pushState(null,"",location.href);
+  setTimeout(()=>backOnce=false,2000);
+ }
+};
 </script>
 </body>
 </html>
