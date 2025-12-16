@@ -30,9 +30,14 @@ GROQ_MODEL   = "llama-3.1-8b-instant"
 MAX_CONTEXT = 4   # last 3–5 messages total
 
 # -------------------- HOME --------------------
-@app.route("/")
-def home():
-    return send_from_directory(".", "index.html")
+
+
+# -------------------- STATIC PAGES --------------------
+@app.route("/<path:page>")
+def pages(page):
+    if os.path.exists(page):
+        return send_from_directory(".", page)
+    return jsonify({"error": "Page not found"}), 404
 
 # -------------------- HELPERS --------------------
 def get_context():
