@@ -6,9 +6,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-*{
- box-sizing:border-box;
+:root{
+ --bg:#050505;
+ --panel:#0b0b0b;
+ --border:#1c1c1c;
+ --gold:#c9a44a;
+ --gold-soft:#9f8740;
+ --text:#eaeaea;
+ --muted:#888;
+ --accent:#00ffd5;
 }
+
+*{box-sizing:border-box}
 
 body{
  margin:0;
@@ -16,111 +25,158 @@ body{
  display:flex;
  justify-content:center;
  align-items:center;
- background:#050505;
- font-family: "Segoe UI", Arial, sans-serif;
- color:#eaeaea;
+ background:var(--bg);
+ font-family: "Inter","Segoe UI",sans-serif;
+ color:var(--text);
 }
 
 .app{
  width:100%;
  max-width:520px;
  height:88vh;
+ background:linear-gradient(180deg,#070707,#0e0e0e);
+ border-radius:20px;
+ border:1px solid var(--border);
  display:flex;
  flex-direction:column;
- background:linear-gradient(180deg,#0b0b0b,#111);
- border-radius:18px;
  padding:14px;
- box-shadow:0 0 40px rgba(0,255,200,0.08);
+ box-shadow:
+  0 0 40px rgba(201,164,74,.08),
+  inset 0 0 30px rgba(255,255,255,.02);
 }
 
-h2{
+header{
  text-align:center;
- margin:8px 0 12px;
- color:#00ffd5;
+ font-size:1.5rem;
+ letter-spacing:2px;
  font-weight:600;
- letter-spacing:1px;
+ color:var(--gold);
+ margin:6px 0 12px;
+}
+
+header::after{
+ content:"";
+ display:block;
+ width:60px;
+ height:1px;
+ margin:10px auto 0;
+ background:linear-gradient(to right,transparent,var(--gold),transparent);
 }
 
 #chat{
  flex:1;
  overflow-y:auto;
- padding:10px;
- background:#070707;
- border-radius:12px;
- box-shadow:inset 0 0 10px rgba(0,0,0,0.8);
+ padding:12px;
+ background:#060606;
+ border-radius:14px;
+ border:1px solid var(--border);
  white-space:pre-wrap;
  scroll-behavior:smooth;
 }
 
 .msg{
+ max-width:82%;
  margin:10px 0;
- padding:10px 12px;
- border-radius:12px;
- max-width:85%;
- line-height:1.45;
+ padding:12px 14px;
+ border-radius:14px;
+ line-height:1.5;
  word-wrap:break-word;
+ animation:fade .25s ease;
 }
 
 .user{
- background:rgba(0,255,213,0.15);
  margin-left:auto;
- text-align:right;
+ background:#111;
+ border:1px solid #2a2a2a;
  border-bottom-right-radius:4px;
 }
 
 .ai{
- background:rgba(255,255,255,0.08);
  margin-right:auto;
+ background:#050505;
+ border:1px solid #2b2412;
+ font-family:"Courier New",monospace;
+ color:#fff;
  border-bottom-left-radius:4px;
 }
 
+@keyframes fade{
+ from{opacity:0;transform:translateY(4px)}
+ to{opacity:1}
+}
+
+/* ---------- INPUT BAR ---------- */
+
+.input-bar{
+ display:flex;
+ gap:10px;
+ margin-top:12px;
+}
+
 textarea{
- width:100%;
- min-height:70px;
- max-height:140px;
+ flex:1;
+ min-height:52px;
+ max-height:120px;
  resize:vertical;
- padding:12px;
- border-radius:12px;
- border:none;
+ padding:14px 16px;
+ border-radius:14px;
+ border:1px solid var(--border);
  outline:none;
- margin-top:10px;
+ background:#020202;
+ color:var(--text);
  font-size:15px;
- background:#0d0d0d;
- color:#eaeaea;
 }
 
 textarea::placeholder{
- color:#777;
+ color:var(--muted);
 }
 
 button{
- margin-top:8px;
- padding:12px;
+ width:54px;
+ height:54px;
  border:none;
- border-radius:12px;
- font-size:16px;
- font-weight:600;
- cursor:pointer;
- background:linear-gradient(135deg,#00ffd5,#00bfa5);
+ border-radius:14px;
+ background:linear-gradient(135deg,#d6b55c,#a98c3a);
  color:#000;
- transition:0.2s;
+ font-size:18px;
+ font-weight:700;
+ cursor:pointer;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ transition:.2s;
 }
 
 button:hover{
- opacity:0.9;
- transform:translateY(-1px);
+ opacity:.9;
+}
+
+button:active{
+ transform:scale(.95);
+}
+
+/* Mobile full fit */
+@media(max-width:480px){
+ .app{
+  height:100vh;
+  border-radius:0;
+ }
 }
 </style>
 </head>
 
 <body>
 <div class="app">
-<h2>VirginAI</h2>
+
+<header>VIRGINAI</header>
 
 <div id="chat"></div>
 
-<textarea id="q" placeholder="Ask anything… (new line supported)"></textarea>
-<button onclick="ask()">Ask</button>
+<div class="input-bar">
+ <textarea id="q" placeholder="Ask anything… (Shift + Enter for new line)"></textarea>
+ <button onclick="ask()">➤</button>
+</div>
+
 </div>
 
 <script>
@@ -139,31 +195,40 @@ async function ask(){
  const text = q.value.trim();
  if(!text) return;
 
- add(text, "user");
- q.value = "";
+ add(text,"user");
+ q.value="";
 
- const thinking = document.createElement("div");
- thinking.className = "msg ai";
- thinking.textContent = "Thinking…";
- chat.appendChild(thinking);
- chat.scrollTop = chat.scrollHeight;
+ const loading=document.createElement("div");
+ loading.className="msg ai";
+ loading.textContent="Thinking…";
+ chat.appendChild(loading);
+ chat.scrollTop=chat.scrollHeight;
 
  try{
-  const r = await fetch("/ask", {
+  const r = await fetch("/ask",{
    method:"POST",
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify({question:text})
   });
 
   const d = await r.json();
-  thinking.remove();
-  add(d.answer || "No response.", "ai");
+  loading.remove();
+  add(d.answer || "No response.","ai");
 
- }catch(e){
-  thinking.remove();
-  add("Server error. Please try again.", "ai");
+ }catch{
+  loading.remove();
+  add("Server error. Please try later.","ai");
  }
 }
+
+/* Enter = send | Shift+Enter = newline */
+q.addEventListener("keydown",e=>{
+ if(e.key==="Enter" && !e.shiftKey){
+  e.preventDefault();
+  ask();
+ }
+});
 </script>
+
 </body>
 </html>
