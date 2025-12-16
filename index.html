@@ -6,37 +6,27 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ===== SEO META ===== -->
-<meta name="description" content="VirginAI is a powerful AI chatbot that helps users get intelligent answers using advanced AI models like Gemini and Groq. Built for learning, productivity, and assistance.">
-<meta name="keywords" content="VirginAI, AI chatbot, Gemini AI, Groq AI, intelligent assistant, ask AI">
+<!-- SEO -->
+<meta name="description" content="VirginAI is a powerful AI chatbot using Gemini and Groq for fast, intelligent answers.">
+<meta name="keywords" content="VirginAI, AI chatbot, Gemini AI, Groq AI">
 <meta name="author" content="VirginAI Developer">
 <meta name="robots" content="index, follow">
 
-<!-- ===== OPEN GRAPH (SOCIAL / SEARCH) ===== -->
+<!-- Open Graph -->
 <meta property="og:title" content="VirginAI – Intelligent AI Chatbot">
-<meta property="og:description" content="Ask anything with VirginAI. Fast, secure, and intelligent AI-powered chat assistant.">
+<meta property="og:description" content="Ask anything with VirginAI. Fast, secure AI assistant.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://virginai.in">
 
-<!-- ===== STRUCTURED DATA (RICH RESULTS) ===== -->
+<!-- Schema -->
 <script type="application/ld+json">
 {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "VirginAI",
-  "url": "https://virginai.in",
-  "description": "VirginAI is an AI-powered chatbot that provides intelligent answers using modern AI models such as Gemini and Groq.",
-  "applicationCategory": "AI Chatbot",
-  "operatingSystem": "Web",
-  "creator": {
-    "@type": "Organization",
-    "name": "VirginAI",
-    "url": "https://virginai.in"
-  },
-  "author": {
-    "@type": "Person",
-    "name": "VirginAI Developer"
-  }
+ "@context":"https://schema.org",
+ "@type":"WebApplication",
+ "name":"VirginAI",
+ "applicationCategory":"AI Chatbot",
+ "operatingSystem":"Web",
+ "creator":{"@type":"Organization","name":"VirginAI"}
 }
 </script>
 
@@ -60,60 +50,50 @@ body{
  justify-content:center;
  align-items:center;
  background:var(--bg);
- font-family:"Inter","Segoe UI",sans-serif;
+ font-family:Inter,Segoe UI,sans-serif;
  color:var(--text);
 }
 
-/* ===== APP ===== */
 .app{
  width:100%;
  max-width:520px;
- height:88vh;
+ height:100vh;
  background:linear-gradient(180deg,#070707,#0e0e0e);
- border-radius:20px;
  border:1px solid var(--border);
  display:flex;
  flex-direction:column;
  padding:14px;
- box-shadow:0 0 40px rgba(201,164,74,.08);
 }
 
-/* ===== HEADER ===== */
 header{
  text-align:center;
  font-size:1.5rem;
  letter-spacing:2px;
- font-weight:600;
  color:var(--gold);
- margin-bottom:6px;
 }
 
 .sub{
  text-align:center;
  font-size:12px;
  color:var(--muted);
- margin-bottom:10px;
+ margin-bottom:8px;
 }
 
-/* ===== CHAT ===== */
 #chat{
  flex:1;
  overflow-y:auto;
  padding:12px;
  background:#060606;
- border-radius:14px;
+ border-radius:12px;
  border:1px solid var(--border);
- white-space:pre-wrap;
 }
 
-/* ===== MESSAGE ===== */
 .msg{
  max-width:82%;
  margin:10px 0;
  padding:12px 14px;
  border-radius:14px;
- line-height:1.5;
- word-wrap:break-word;
+ white-space:pre-wrap;
 }
 
 .user{
@@ -125,97 +105,80 @@ header{
 .ai{
  background:#050505;
  border:1px solid rgba(0,255,213,.25);
+ font-family:monospace;
  color:#dffff8;
- font-family:"Courier New",monospace;
 }
 
-/* ===== INPUT ===== */
 .input-bar{
  display:flex;
- gap:10px;
- margin-top:12px;
+ gap:8px;
+ margin-top:10px;
 }
 
 textarea{
  flex:1;
- min-height:52px;
- max-height:130px;
- resize:none;
- padding:14px 16px;
- border-radius:14px;
+ min-height:48px;
+ max-height:160px;
+ resize:vertical;
+ overflow-y:auto;
+ padding:12px;
+ border-radius:12px;
  border:1px solid var(--border);
- outline:none;
  background:#020202;
  color:var(--text);
- font-size:15px;
- line-height:1.5;
+ font-size:14px;
 }
 
-textarea::placeholder{color:var(--muted)}
-
 button{
- width:54px;
- height:54px;
+ width:52px;
  border:none;
- border-radius:14px;
+ border-radius:12px;
  background:linear-gradient(135deg,#d6b55c,#a98c3a);
  font-size:18px;
- font-weight:700;
  cursor:pointer;
 }
 
-/* ===== FOOTER ===== */
 footer{
- margin-top:8px;
+ margin-top:6px;
  font-size:11px;
- color:var(--muted);
  text-align:center;
- line-height:1.4;
+ color:var(--muted);
 }
 
-/* Mobile full fit */
-@media(max-width:480px){
- .app{
-  height:100vh;
-  border-radius:0;
- }
+footer a{
+ color:var(--gold);
+ text-decoration:none;
+ margin:0 4px;
 }
 </style>
 </head>
 
 <body>
 <div class="app">
-
 <header>VIRGINAI</header>
 <div class="sub">Intelligent AI Chat Assistant</div>
 
 <div id="chat"></div>
 
 <div class="input-bar">
- <textarea id="q" placeholder="Ask anything… (Shift + Enter = new line)"></textarea>
- <button id="send">➤</button>
+<textarea id="q" placeholder="Ask anything… (Shift + Enter = new line)"></textarea>
+<button id="send">➤</button>
 </div>
 
-
-  
 <footer>
- <a href="/about.html">About</a> ·
- <a href="/help.html">Help</a> ·
- <a href="/developer.html">Developer</a> ·
- <a href="/privacy.html">Privacy</a> ·
- <a href="/contact.html">Contact</a>
- <br>
- VirginAI is an AI-powered chatbot built to help users learn and solve problems.
+<a href="/about.html">About</a> ·
+<a href="/help.html">Help</a> ·
+<a href="/developer.html">Developer</a> ·
+<a href="/privacy.html">Privacy</a>
+<br>© 2025 VirginAI
 </footer>
-
 </div>
 
 <script>
 const chat=document.getElementById("chat");
 const q=document.getElementById("q");
-const sendBtn=document.getElementById("send");
+const send=document.getElementById("send");
 
-/* ===== ADD MESSAGE ===== */
 function add(text,cls){
  const d=document.createElement("div");
  d.className="msg "+cls;
@@ -225,50 +188,31 @@ function add(text,cls){
  return d;
 }
 
-/* ===== MATRIX TYPING ===== */
 function typeMatrix(el,text){
  let i=0;
  el.textContent="";
- const speed=14;
- const timer=setInterval(()=>{
-  el.textContent+=text[i] || "";
+ const t=setInterval(()=>{
+  el.textContent+=text[i++]||"";
   chat.scrollTop=chat.scrollHeight;
-  i++;
-  if(i>=text.length) clearInterval(timer);
- },speed);
+  if(i>=text.length) clearInterval(t);
+ },14);
 }
 
-/* ===== SEND ===== */
 async function ask(){
  const text=q.value;
- if(!text.replace(/\s/g,"")) return;
-
+ if(!text.trim()) return;
  add(text,"user");
  q.value="";
-
  const ai=add("Thinking…","ai");
-
  try{
-  const r=await fetch("/ask",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({question:text})
-  });
-
-  if(!r.ok){
-   throw new Error("Network response not OK");
-  }
-
+  const r=await fetch("/ask",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:text})});
   const d=await r.json();
-  typeMatrix(ai,d.answer || "No response received.");
-
- }catch(err){
-  console.error("CLIENT ERROR:",err);
-  typeMatrix(ai,"⚠️ Service temporarily unavailable. Please try again.");
+  typeMatrix(ai,d.answer||"No response.");
+ }catch{
+  typeMatrix(ai,"⚠️ Service unavailable. Try again.");
  }
 }
 
-/* ===== KEY HANDLING ===== */
 q.addEventListener("keydown",e=>{
  if(e.key==="Enter" && !e.shiftKey){
   e.preventDefault();
@@ -276,15 +220,7 @@ q.addEventListener("keydown",e=>{
  }
 });
 
-q.addEventListener("beforeinput",e=>{
- if(e.inputType==="insertLineBreak" && !e.shiftKey){
-  e.preventDefault();
-  ask();
- }
-});
-
-sendBtn.onclick=ask;
+send.onclick=ask;
 </script>
-
 </body>
 </html>
