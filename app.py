@@ -5,6 +5,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import requests, os, random
 
+# -------------------- SETUP --------------------
 load_dotenv()
 
 app = Flask(__name__)
@@ -14,12 +15,32 @@ app.secret_key = os.getenv("APP_SECRET_TOKEN", "change_this_secret")
 app.config["SESSION_PERMANENT"] = False
 
 limiter = Limiter(
-    app=app,
     key_func=get_remote_address,
+    app=app,
     default_limits=["10 per minute"]
 )
 
-# ---------- AI CONFIG ----------
+# -------------------- STATIC SEO FILES --------------------
+
+@app.route("/sitemap.xml")
+def sitemap():
+    return send_from_directory(".", "sitemap.xml")
+
+@app.route("/robots.txt")
+def robots():
+    return send_from_directory(".", "robots.txt")
+
+# -------------------- PAGES --------------------
+
+@app.route("/")
+def home():
+    return send_from_directory(".", "index.html")
+
+@app.route("/<path:page>")
+def pages(page):
+    return send_from_directory(".", page)
+
+# -------------------- API KEYS --------------------
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 GROQ_KEY   = os.getenv("GROQ_API_KEY")
 
@@ -28,28 +49,16 @@ GROQ_MODEL   = "llama-3.1-8b-instant"
 
 MAX_CONTEXT = 4
 
-# ---------- HOME ----------
-@app.route("/")
-def home():
-    return send_from_directory(".", "index.html")
-
-# ---------- STATIC PAGES ----------
-@app.route("/<path:page>")
-def pages(page):
-    if os.path.exists(page):
-        return send_from_directory(".", page)
-    return jsonify({"error": "Page not found"}), 404
-
-# ---------- SESSION HELPERS ----------
+# -------------------- HELPERS --------------------
 def get_context():
     if "context" not in session:
         session["context"] = []
     return session["context"]
 
 def trim_context(ctx):
-    return ctx[-MAX_CONTEXT * 2:]
+    return ctx[-MAX_CONTEXT*2:]
 
-# ---------- GEMINI ----------
+# -------------------- GEMINI --------------------
 def call_gemini(prompt):
     url = f"https://generativelanguage.googleapis.com/v1/models/{GEMINI_MODEL}:generateContent"
     payload = {
@@ -62,7 +71,7 @@ def call_gemini(prompt):
     r.raise_for_status()
     return r.json()["candidates"][0]["content"]["parts"][0]["text"]
 
-# ---------- GROQ ----------
+# -------------------- GROQ --------------------
 def call_groq(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
     payload = {
@@ -81,7 +90,7 @@ def call_groq(prompt):
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
-# ---------- ASK ----------
+# -------------------- ASK --------------------
 @app.route("/ask", methods=["POST"])
 @limiter.limit("10 per minute")
 def ask():
@@ -90,7 +99,7 @@ def ask():
         question = data.get("question", "").strip()
 
         if not question:
-            return jsonify({"answer": "Please ask a question."}), 400
+            return jsonify({"answer": "❗ Please ask a question."}), 400
 
         ctx = get_context()
         ctx.append(f"User: {question}")
@@ -103,7 +112,6 @@ def ask():
         random.shuffle(providers)
 
         reply = None
-
         for p in providers:
             try:
                 if p == "gemini" and GEMINI_KEY:
@@ -116,7 +124,7 @@ def ask():
                 pass
 
         if not reply:
-            return jsonify({"answer": "AI services busy. Try again."}), 503
+            return jsonify({"answer": "⚠️ AI services are busy. Try again later."}), 503
 
         ctx.append(f"AI: {reply}")
         session["context"] = trim_context(ctx)
@@ -124,9 +132,19 @@ def ask():
 
         return jsonify({"answer": reply})
 
-    except:
-        return jsonify({"answer": "Server error. Try again."}), 500
+    except requests.exceptions.Timeout:
+        return jsonify({"answer": "⏳ AI timeout. Try again."}), 504
 
-# ---------- RUN ----------
+    except Exception as e:
+        print("SERVER ERROR:", e)
+        return jsonify({"answer": "❌ Server error. Please retry."}), 500
+
+# -------------------- CLEAR SESSION --------------------
+@app.route("/clear-session", methods=["POST"])
+def clear_session():
+    session.clear()
+    return jsonify({"status": "cleared"})
+
+# -------------------- RUN --------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
