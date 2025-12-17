@@ -2,67 +2,155 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Developer – VirginAI</title>
+<title>Developer | VirginAI</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Meet the developer behind VirginAI.">
+
+<!-- SEO -->
+<meta name="description" content="Learn about the developer behind VirginAI — an AI-powered chat assistant built with modern AI models, security, and performance in mind.">
+<meta name="author" content="VirginAI Developer">
+<meta name="robots" content="index, follow">
+
+<!-- Open Graph -->
+<meta property="og:title" content="Developer | VirginAI">
+<meta property="og:description" content="Meet the developer behind VirginAI and explore the technology stack powering this intelligent AI chat assistant.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://virginai.in/developer.html">
 
 <style>
+:root{
+ --bg:#050505;
+ --panel:#0c0c0c;
+ --border:#1e1e1e;
+ --gold:#c9a44a;
+ --text:#eaeaea;
+ --muted:#9a9a9a;
+}
+
+*{box-sizing:border-box}
+
 body{
- background:#050505;
- color:#eaeaea;
- font-family:Inter,Segoe UI,sans-serif;
  margin:0;
+ background:var(--bg);
+ color:var(--text);
+ font-family:Inter,Segoe UI,sans-serif;
 }
+
 .container{
- max-width:760px;
+ max-width:900px;
  margin:auto;
- padding:40px 20px;
+ padding:50px 22px;
 }
-h1{color:#c9a44a}
-p{color:#ccc;line-height:1.8}
+
+header{
+ text-align:center;
+ margin-bottom:40px;
+}
+
+header h1{
+ color:var(--gold);
+ letter-spacing:1.5px;
+ margin-bottom:8px;
+}
+
+header p{
+ color:var(--muted);
+ font-size:14px;
+}
+
 .card{
- background:#0c0c0c;
- border:1px solid #1e1e1e;
- padding:20px;
- border-radius:14px;
+ background:linear-gradient(180deg,#0a0a0a,#0e0e0e);
+ border:1px solid var(--border);
+ border-radius:18px;
+ padding:28px;
+ box-shadow:0 0 35px rgba(201,164,74,.08);
 }
-a{color:#c9a44a;text-decoration:none}
+
+h2{
+ color:var(--gold);
+ margin-top:0;
+}
+
+p{
+ color:#d0d0d0;
+ line-height:1.8;
+ font-size:15px;
+}
+
+ul{
+ margin:15px 0 0;
+ padding-left:20px;
+ color:#cfcfcf;
+}
+
+li{
+ margin:8px 0;
+}
+
+.footer{
+ text-align:center;
+ margin-top:40px;
+ font-size:12px;
+ color:var(--muted);
+}
+
+a{
+ color:var(--gold);
+ text-decoration:none;
+}
+a:hover{opacity:.85}
+
+/* Mobile */
+@media(max-width:600px){
+ .container{padding:35px 16px}
+}
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-
-
+<header>
 <h1>Developer</h1>
+<p>The mind and technology behind VirginAI</p>
+</header>
 
 <div class="card">
+
+<h2>About the Developer</h2>
 <p>
-VirginAI is developed by an independent developer passionate about artificial intelligence,
-education, and modern web technologies.
+VirginAI is developed by an independent developer focused on building
+<strong>secure, fast, and reliable AI-powered applications</strong>.
+The project is designed with a strong emphasis on privacy, performance,
+and clean user experience.
 </p>
 
-<p>
-Technologies used:
+<h2>Technology Stack</h2>
+<p>VirginAI is powered by a modern, scalable, and carefully selected technology stack:</p>
+
 <ul>
-<li>Python & Flask</li>
-<li>llama-3.3-70b-versatile</li>
-<li>Google Gemini 2.5B </li>
-<li>openai/gpt-oss-20b</li>
-<li>qwen/qwen3-32b</li>
-<li>llama-3.1-8b-instant</li>
-<li>HTML, CSS, JavaScript</li>
-<li>Render Cloud Hosting</li>
- <li>moonshotai/kimi-k2-instruct-0905</li>
+<li><strong>Backend:</strong> Python, Flask</li>
+<li><strong>AI Models:</strong> Google Gemini, Groq LLaMA (8B / 70B variants)</li>
+<li><strong>Frontend:</strong> HTML5, CSS3, JavaScript (Vanilla)</li>
+<li><strong>Security:</strong> Rate limiting, session isolation, CORS protection</li>
+<li><strong>Infrastructure:</strong> Render Cloud Hosting</li>
 </ul>
-</p>
 
+<h2>Mission</h2>
 <p>
-Mission: Build secure, fast, and user-friendly AI tools for everyone.
+The mission of VirginAI is to provide a clean, intelligent, and trustworthy AI assistant
+that helps users learn, explore ideas, and solve problems — without unnecessary complexity
+or invasive data practices.
 </p>
+
+</div>
+
+<div class="footer">
+© 2025 VirginAI. All rights reserved.
 </div>
 
 </div>
+
 </body>
 </html>
