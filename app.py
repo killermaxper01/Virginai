@@ -17,22 +17,24 @@ app.config["SESSION_PERMANENT"] = False
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
-    default_limits=["30 per minute"]
+    default_limits=["10 per minute"]
 )
 
-# -------------------- SECURITY + CACHE HEADERS (NO CSP) --------------------
+# -------------------- SECURITY + CACHE HEADERS --------------------
 @app.after_request
 def add_headers(response):
-    # Basic security (SAFE)
+    # ---- Security headers (lightweight, safe) ----
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
 
-    # Cache logic (ETag friendly)
-    if request.path in ("/ask", "/clear-session"):
+    # ---- Cache logic (ETag based, no forced caching) ----
+    if request.path.startswith("/ask") or request.path.startswith("/clear-session"):
+        # API → never cache
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
     else:
+        # Static / pages → browser may store BUT must revalidate using ETag
         response.headers["Cache-Control"] = "no-cache, must-revalidate"
 
     return response
@@ -46,18 +48,18 @@ def sitemap():
 def robots():
     return send_from_directory(".", "robots.txt")
 
-@app.route("/site.webmanifest")
-def manifest():
-    return send_from_directory(".", "site.webmanifest")
-
-# -------------------- PAGES --------------------
+# -------------------- HOME --------------------
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
 
-@app.route("/<path:page>")
-def pages(page):
-    return send_from_directory(".", page)
+# -------------------- FALLBACK (IMPORTANT) --------------------
+# Any shared / unknown URL → HOME page
+@app.route("/<path:path>")
+def fallback(path):
+    if os.path.exists(path):
+        return send_from_directory(".", path)
+    return send_from_directory(".", "index.html")
 
 # -------------------- API KEYS --------------------
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
@@ -109,7 +111,7 @@ def call_groq(prompt):
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
-# -------------------- ASK --------------------
+# -------------------- ASK API --------------------
 @app.route("/ask", methods=["POST"])
 @limiter.limit("10 per minute")
 def ask():
@@ -122,9 +124,10 @@ def ask():
 
         ctx = get_context()
         ctx.append(f"User: {question}")
-        session["context"] = trim_context(ctx)
+        ctx = trim_context(ctx)
+        session["context"] = ctx
 
-        prompt = "\n".join(session["context"]) + "\nAI:"
+        prompt = "\n".join(ctx) + "\nAI:"
 
         providers = ["gemini", "groq"]
         random.shuffle(providers)
@@ -146,6 +149,7 @@ def ask():
 
         ctx.append(f"AI: {reply}")
         session["context"] = trim_context(ctx)
+        session.modified = True
 
         return jsonify({"answer": reply})
 
