@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>VirginAI – Intelligent AI Chat Assistant</title>
 
+<!-- ===== ICONS ===== -->
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -13,68 +14,44 @@
 
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#050505">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ===== SEO META ===== -->
+<!-- ===== SEO ===== -->
 <meta name="description" content="VirginAI is a premium AI chat assistant powered by Gemini and Groq. Ask questions, learn faster, and get intelligent answers instantly.">
-<meta name="keywords" content="VirginAI, Virgin AI, VirginAI chatbot, VirginAI AI assistant, AI chatbot, AI chat assistant, artificial intelligence chatbot, AI for students, AI study assistant, AI learning assistant, Gemini AI chatbot, Groq AI, LLaMA AI chatbot, secure AI chatbot, privacy friendly AI assistant, free AI chatbot online, AI question answering, AI productivity tool">
+<meta name="keywords" content="VirginAI, AI chatbot, AI assistant, Gemini AI, Groq AI, LLaMA chatbot">
 <meta name="author" content="VirginAI Developer">
 <meta name="robots" content="index, follow">
 
-
-
-
-
-
-<!-- Open Graph (Facebook, WhatsApp, Instagram) -->
-<meta property="og:title" content="VirginAI - Intelligent AI Chat Assistant">
+<!-- ===== OPEN GRAPH (WhatsApp, Facebook, Instagram, Telegram) ===== -->
+<meta property="og:title" content="VirginAI – Intelligent AI Chat Assistant">
 <meta property="og:description" content="Ask questions, get smart AI answers instantly. Powered by VirginAI.">
 <meta property="og:image" content="https://virginai.in/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:url" content="https://virginai.in">
 <meta property="og:type" content="website">
+<meta property="og:site_name" content="VirginAI">
 
-<!-- Twitter Card (Twitter/X only) -->
+<!-- ===== TWITTER / X ===== -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="VirginAI - Intelligent AI Chat Assistant">
+<meta name="twitter:title" content="VirginAI – Intelligent AI Chat Assistant">
 <meta name="twitter:description" content="Ask questions, get smart AI answers instantly.">
 <meta name="twitter:image" content="https://virginai.in/og-image.png">
 
-
-
 <!-- ===== STRUCTURED DATA ===== -->
-
-
-<!-- ===== ORGANIZATION IDENTITY ===== -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "VirginAI",
   "url": "https://virginai.in",
-  "description": "VirginAI is an independently developed AI-powered chat assistant focused on learning, productivity, and research.",
-  "creator": [
-    {
-      "@type": "Person",
-      "name": "Raj Verma"
-    },
-    {
-      "@type": "Person",
-      "name": "Kalash Verma"
-    }
-  ],
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "contactType": "Customer Support",
-    "url": "https://instagram.com/virginai.in"
-  },
+  "description": "VirginAI is an independently developed AI-powered chat assistant.",
   "sameAs": [
     "https://instagram.com/virginai.in",
     "https://github.com/killermaxper01/Virginai"
   ]
 }
 </script>
-
 
 <style>
 :root{
@@ -85,7 +62,6 @@
  --gold-soft:#9f8740;
  --text:#eaeaea;
  --muted:#888;
- --accent:#00ffd5;
 }
 
 *{box-sizing:border-box}
@@ -109,10 +85,16 @@ body{
  padding:16px;
 }
 
-/* ===== HEADER ===== */
 header{
  text-align:center;
  margin-bottom:10px;
+}
+
+header img{
+ width:72px;
+ height:72px;
+ border-radius:16px;
+ margin-bottom:6px;
 }
 
 header h1{
@@ -128,7 +110,6 @@ header p{
  color:var(--muted);
 }
 
-/* ===== CHAT AREA ===== */
 #chat{
  flex:1;
  overflow-y:auto;
@@ -138,7 +119,6 @@ header p{
  border-radius:16px;
 }
 
-/* ===== MESSAGE ===== */
 .msg{
  max-width:78%;
  margin:10px 0;
@@ -156,13 +136,12 @@ header p{
 }
 
 .ai{
- background:#050505; 
+ background:#050505;
  border:1px solid rgba(0,255,213,.25);
  color:#dffff8;
  font-family:Consolas,monospace;
 }
 
-/* ===== INPUT BAR ===== */
 .input-bar{
  margin-top:12px;
  padding:10px;
@@ -171,27 +150,18 @@ header p{
  border-radius:16px;
  display:flex;
  gap:10px;
- align-items:flex-end;
 }
 
 textarea{
  flex:1;
  min-height:44px;
- max-height:160px;
  resize:none;
- overflow-y:auto;
- padding:12px 14px;
+ padding:12px;
  border-radius:12px;
  border:1px solid var(--border);
  background:#020202;
  color:var(--text);
- font-size:15px;
- line-height:1.5;
  outline:none;
-}
-
-textarea::placeholder{
- color:var(--muted);
 }
 
 button{
@@ -200,13 +170,10 @@ button{
  border:none;
  border-radius:14px;
  background:linear-gradient(135deg,var(--gold),var(--gold-soft));
- color:#000;
  font-size:18px;
- font-weight:700;
  cursor:pointer;
 }
 
-/* ===== FOOTER ===== */
 footer{
  margin-top:10px;
  text-align:center;
@@ -219,64 +186,30 @@ footer a{
  text-decoration:none;
  margin:0 6px;
 }
-
-/* ===== MOBILE ===== */
-@media(max-width:480px){
- .app{padding:10px}
- header h1{font-size:1.5rem}
-}
 </style>
 </head>
 
 <body>
 <div class="app">
-<section style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;">
-<h1>VirginAI – Intelligent AI Chat Assistant</h1>
-
-<p>
-VirginAI is an AI-powered chatbot platform built to help users ask questions,
-solve problems, and learn using advanced artificial intelligence models.
-</p>
-
-<p>
-VirginAI integrates Google Gemini and Groq LLaMA models to deliver fast,
-secure, and accurate responses for education, productivity, and research.
-</p>
-
-<p>
-The platform is developed as a web-based AI assistant and is hosted securely
-with rate limiting, privacy protection, and modern AI infrastructure.
-</p>
-
-<p>
-Official website: https://virginai.in
-</p>
-</section>  
 
 <header>
- <h1>VirginAi</h1>
- <p>end-to-end-encryption</p>
+  <img src="/android-chrome-192x192.png" alt="VirginAI Logo">
+  <h1>VirginAI</h1>
+  <p>end-to-end-encryption</p>
 </header>
 
 <div id="chat"></div>
 
 <div class="input-bar">
- <textarea id="q" placeholder="Ask anything...."></textarea>
+ <textarea id="q" placeholder="Ask anything..."></textarea>
  <button id="send">➤</button>
 </div>
 
 <footer>
  <a href="/about.html">About</a> ·
- <a href="/developer.html">Developer</a> ·
- <a href="/help.html">Help</a> ·
- <a href="/faq.html">FAQ</a> ·
- <a href="/contact.html">Contact</a> ·
  <a href="/privacy.html">Privacy</a> ·
- <a href="/terms.html">Terms</a> ·
-
- 
- <br>
-  <br>
+ <a href="/terms.html">Terms</a>
+ <br><br>
  © 2025 VirginAI. All rights reserved.
 </footer>
 
@@ -287,7 +220,6 @@ const chat=document.getElementById("chat");
 const q=document.getElementById("q");
 const send=document.getElementById("send");
 
-/* ADD MESSAGE */
 function add(text,cls){
  const d=document.createElement("div");
  d.className="msg "+cls;
@@ -297,26 +229,12 @@ function add(text,cls){
  return d;
 }
 
-/* MATRIX TYPING */
-function typeMatrix(el,text){
- let i=0;
- el.textContent="";
- const speed=14;
- const timer=setInterval(()=>{
-  el.textContent+=text[i++]||"";
-  chat.scrollTop=chat.scrollHeight;
-  if(i>=text.length) clearInterval(timer);
- },speed);
-}
-
-/* SEND */
 async function ask(){
- const text=q.value;
- if(!text.trim()) return;
+ const text=q.value.trim();
+ if(!text) return;
 
  add(text,"user");
  q.value="";
-
  const ai=add("Thinking…","ai");
 
  try{
@@ -326,34 +244,16 @@ async function ask(){
    body:JSON.stringify({question:text})
   });
   const d=await r.json();
-  typeMatrix(ai,d.answer || "No response.");
+  ai.textContent=d.answer || "No response.";
  }catch{
-  typeMatrix(ai,"⚠️ Service temporarily unavailable.");
+  ai.textContent="⚠️ Service unavailable.";
  }
 }
 
-/* KEY HANDLING (ChatGPT STYLE) */
-q.addEventListener("keydown",e=>{
- if(e.key==="Enter" && e.ctrlKey){
-  e.preventDefault();
-  ask();
- }
-});
-
-/* SEND BUTTON */
 send.onclick=ask;
-
-/* MOBILE BACK PROTECTION */
-let backOnce=false;
-history.pushState(null,"",location.href);
-window.onpopstate=()=>{
- if(!backOnce){
-  backOnce=true;
-  alert("Press back again to exit VirginAI");
-  history.pushState(null,"",location.href);
-  setTimeout(()=>backOnce=false,2000);
- }
-};
+q.addEventListener("keydown",e=>{
+ if(e.key==="Enter" && e.ctrlKey) ask();
+});
 </script>
 
 </body>
