@@ -14,46 +14,14 @@ CORS(app)
 app.secret_key = os.getenv("APP_SECRET_TOKEN", "change_this_secret")
 app.config["SESSION_PERMANENT"] = False
 
-# -------------------- RATE LIMITING --------------------
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
     default_limits=["10 per minute"]
 )
 
-# -------------------- SECURITY + CACHE HEADERS --------------------
-@app.after_request
-def add_headers(response):
-    # ---- Security Headers ----
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
-
-    # ---- Strict CSP (safe + practical) ----
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'self'; "
-        "script-src 'self'; "
-        "style-src 'self' 'unsafe-inline'; "
-        "img-src 'self' data: https:; "
-        "connect-src 'self' https:; "
-        "font-src 'self'; "
-        "frame-ancestors 'none'; "
-        "base-uri 'self'; "
-        "form-action 'self'"
-    )
-
-    # ---- Cache Logic ----
-    if request.path in ("/ask", "/clear-session"):
-        # Never cache API responses
-        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
-    else:
-        # Allow browser/Cloudflare to store but always revalidate via ETag
-        response.headers["Cache-Control"] = "no-cache, must-revalidate"
-
-    return response
-
 # -------------------- STATIC SEO FILES --------------------
+
 @app.route("/sitemap.xml")
 def sitemap():
     return send_from_directory(".", "sitemap.xml")
@@ -62,11 +30,8 @@ def sitemap():
 def robots():
     return send_from_directory(".", "robots.txt")
 
-@app.route("/site.webmanifest")
-def manifest():
-    return send_from_directory(".", "site.webmanifest")
+# -------------------- PAGES --------------------
 
-# -------------------- PAGES & ASSETS --------------------
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
@@ -91,7 +56,7 @@ def get_context():
     return session["context"]
 
 def trim_context(ctx):
-    return ctx[-MAX_CONTEXT * 2:]
+    return ctx[-MAX_CONTEXT*2:]
 
 # -------------------- GEMINI --------------------
 def call_gemini(prompt):
@@ -125,7 +90,7 @@ def call_groq(prompt):
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
-# -------------------- ASK API --------------------
+# -------------------- ASK --------------------
 @app.route("/ask", methods=["POST"])
 @limiter.limit("10 per minute")
 def ask():
@@ -138,9 +103,10 @@ def ask():
 
         ctx = get_context()
         ctx.append(f"User: {question}")
-        session["context"] = trim_context(ctx)
+        ctx = trim_context(ctx)
+        session["context"] = ctx
 
-        prompt = "\n".join(session["context"]) + "\nAI:"
+        prompt = "\n".join(ctx) + "\nAI:"
 
         providers = ["gemini", "groq"]
         random.shuffle(providers)
@@ -162,11 +128,13 @@ def ask():
 
         ctx.append(f"AI: {reply}")
         session["context"] = trim_context(ctx)
+        session.modified = True
 
         return jsonify({"answer": reply})
 
     except requests.exceptions.Timeout:
         return jsonify({"answer": "⏳ AI timeout. Try again."}), 504
+
     except Exception as e:
         print("SERVER ERROR:", e)
         return jsonify({"answer": "❌ Server error. Please retry."}), 500
