@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, session, send_from_directory
+from flask import Flask, request, jsonify, session, send_from_directory, make_response
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_cors import CORS
@@ -20,28 +20,34 @@ limiter = Limiter(
     default_limits=["10 per minute"]
 )
 
-# -------------------- STATIC SEO FILES (ETag ENABLED) --------------------
-# Flask automatically adds:
-# ✔ ETag
-# ✔ If-None-Match
-# ✔ 304 Not Modified
+# -------------------- HELPER: STATIC RESPONSE WITH ETAG --------------------
+def static_file(filename, cache_seconds=3600):
+    """
+    ✔ Enables ETag
+    ✔ Enables conditional requests (If-None-Match → 304)
+    ✔ Soft cache (not 1 year)
+    """
+    response = make_response(send_from_directory(".", filename))
+    response.headers["Cache-Control"] = f"public, max-age={cache_seconds}"
+    return response
 
+# -------------------- STATIC SEO FILES --------------------
 @app.route("/sitemap.xml")
 def sitemap():
-    return send_from_directory(".", "sitemap.xml")
+    return static_file("sitemap.xml", cache_seconds=3600)
 
 @app.route("/robots.txt")
 def robots():
-    return send_from_directory(".", "robots.txt")
+    return static_file("robots.txt", cache_seconds=3600)
 
 # -------------------- PAGES & ASSETS --------------------
 @app.route("/")
 def home():
-    return send_from_directory(".", "index.html")
+    return static_file("index.html", cache_seconds=600)
 
 @app.route("/<path:page>")
 def pages(page):
-    return send_from_directory(".", page)
+    return static_file(page, cache_seconds=3600)
 
 # -------------------- API KEYS --------------------
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
@@ -93,7 +99,7 @@ def call_groq(prompt):
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
-# -------------------- ASK (NO CACHE) --------------------
+# -------------------- ASK (NO CACHE AT ALL) --------------------
 @app.route("/ask", methods=["POST"])
 @limiter.limit("10 per minute")
 def ask():
@@ -131,7 +137,9 @@ def ask():
         ctx.append(f"AI: {reply}")
         session["context"] = trim_context(ctx)
 
-        return jsonify({"answer": reply})
+        response = jsonify({"answer": reply})
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        return response
 
     except requests.exceptions.Timeout:
         return jsonify({"answer": "⏳ AI timeout. Try again."}), 504
