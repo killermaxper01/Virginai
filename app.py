@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, session, send_from_directory, make_response
+from flask import Flask, request, jsonify, session, send_from_directory
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_cors import CORS
@@ -8,36 +8,31 @@ import requests, os, random
 
 # -------------------- SETUP --------------------
 load_dotenv()
-
 app = Flask(__name__)
 
-# CORS (frontend safe)
-CORS(app)
+# CORS
+CORS(app, supports_credentials=True)
 
 # Compression (Gzip + Brotli)
 Compress(app)
 
-app.secret_key = os.getenv("APP_SECRET_TOKEN", "change_this_secret")
+# Session
+app.secret_key = os.getenv("APP_SECRET_TOKEN", "change_me")
 app.config["SESSION_PERMANENT"] = False
 
-# Rate limiting
-limiter = Limiter(
-    key_func=get_remote_address,
-    app=app,
-    default_limits=["10 per minute"]
-)
+# Rate limit
+limiter = Limiter(get_remote_address, app=app, default_limits=["10 per minute"])
 
-# -------------------- SECURITY HEADERS (STRICT CSP) --------------------
+# -------------------- SECURITY HEADERS --------------------
 @app.after_request
-def add_security_headers(response):
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "DENY"
-    response.headers["X-XSS-Protection"] = "1; mode=block"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+def security_headers(res):
+    res.headers["X-Content-Type-Options"] = "nosniff"
+    res.headers["X-Frame-Options"] = "DENY"
+    res.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    res.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
 
-    # 🔐 STRICT CSP (Safe for your app)
-    response.headers["Content-Security-Policy"] = (
+    # STRICT CSP (frontend + API safe)
+    res.headers["Content-Security-Policy"] = (
         "default-src 'self'; "
         "script-src 'self'; "
         "style-src 'self' 'unsafe-inline'; "
@@ -49,139 +44,90 @@ def add_security_headers(response):
         "form-action 'self'"
     )
 
-    return response
+    # ❌ NO CACHE ANYWHERE
+    res.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    res.headers["Pragma"] = "no-cache"
+    res.headers["Expires"] = "0"
 
-# -------------------- STATIC SEO FILES (ETag ENABLED) --------------------
-# Flask automatically handles:
-# ✔ ETag
-# ✔ If-None-Match
-# ✔ 304 Not Modified
+    return res
 
-@app.route("/sitemap.xml")
-def sitemap():
-    return send_from_directory(".", "sitemap.xml")
-
-@app.route("/robots.txt")
-def robots():
-    return send_from_directory(".", "robots.txt")
-
-@app.route("/site.webmanifest")
-def manifest():
-    return send_from_directory(".", "site.webmanifest")
-
-# -------------------- PAGES & ASSETS --------------------
+# -------------------- STATIC FILES (ETag ON) --------------------
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
 
-@app.route("/<path:page>")
-def pages(page):
-    return send_from_directory(".", page)
+@app.route("/<path:path>")
+def assets(path):
+    return send_from_directory(".", path)
 
-# -------------------- API KEYS --------------------
+# -------------------- AI CONFIG --------------------
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
-GROQ_KEY   = os.getenv("GROQ_API_KEY")
+GROQ_KEY = os.getenv("GROQ_API_KEY")
 
 GEMINI_MODEL = "gemini-2.5-flash"
-GROQ_MODEL   = "llama-3.1-8b-instant"
-
+GROQ_MODEL = "llama-3.1-8b-instant"
 MAX_CONTEXT = 4
 
-# -------------------- HELPERS --------------------
-def get_context():
-    if "context" not in session:
-        session["context"] = []
-    return session["context"]
+def get_ctx():
+    return session.setdefault("ctx", [])
 
-def trim_context(ctx):
+def trim(ctx):
     return ctx[-MAX_CONTEXT * 2:]
 
-# -------------------- GEMINI --------------------
+# -------------------- AI CALLS --------------------
 def call_gemini(prompt):
-    url = f"https://generativelanguage.googleapis.com/v1/models/{GEMINI_MODEL}:generateContent"
-    payload = {
-        "contents": [{
-            "role": "user",
-            "parts": [{"text": prompt}]
-        }]
-    }
-    r = requests.post(url, params={"key": GEMINI_KEY}, json=payload, timeout=15)
+    r = requests.post(
+        f"https://generativelanguage.googleapis.com/v1/models/{GEMINI_MODEL}:generateContent",
+        params={"key": GEMINI_KEY},
+        json={"contents":[{"role":"user","parts":[{"text":prompt}]}]},
+        timeout=15
+    )
     r.raise_for_status()
     return r.json()["candidates"][0]["content"]["parts"][0]["text"]
 
-# -------------------- GROQ --------------------
 def call_groq(prompt):
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    payload = {
-        "model": GROQ_MODEL,
-        "messages": [{"role": "user", "content": prompt}]
-    }
     r = requests.post(
-        url,
-        headers={
-            "Authorization": f"Bearer {GROQ_KEY}",
-            "Content-Type": "application/json"
-        },
-        json=payload,
+        "https://api.groq.com/openai/v1/chat/completions",
+        headers={"Authorization": f"Bearer {GROQ_KEY}"},
+        json={"model": GROQ_MODEL, "messages":[{"role":"user","content":prompt}]},
         timeout=15
     )
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
-# -------------------- ASK (NO CACHE) --------------------
+# -------------------- ASK --------------------
 @app.route("/ask", methods=["POST"])
-@limiter.limit("10 per minute")
+@limiter.limit("10/minute")
 def ask():
-    try:
-        data = request.get_json(force=True)
-        question = data.get("question", "").strip()
+    data = request.get_json(silent=True) or {}
+    q = data.get("question", "").strip()
+    if not q:
+        return jsonify(answer="Please ask something."), 400
 
-        if not question:
-            return jsonify({"answer": "❗ Please ask a question."}), 400
+    ctx = get_ctx()
+    ctx.append(f"User: {q}")
+    session["ctx"] = trim(ctx)
 
-        ctx = get_context()
-        ctx.append(f"User: {question}")
-        session["context"] = trim_context(ctx)
+    prompt = "\n".join(session["ctx"]) + "\nAI:"
+    providers = ["gemini", "groq"]
+    random.shuffle(providers)
 
-        prompt = "\n".join(session["context"]) + "\nAI:"
+    for p in providers:
+        try:
+            if p == "gemini" and GEMINI_KEY:
+                ans = call_gemini(prompt)
+                break
+            if p == "groq" and GROQ_KEY:
+                ans = call_groq(prompt)
+                break
+        except:
+            continue
+    else:
+        return jsonify(answer="AI busy. Try again."), 503
 
-        providers = ["gemini", "groq"]
-        random.shuffle(providers)
-
-        reply = None
-        for p in providers:
-            try:
-                if p == "gemini" and GEMINI_KEY:
-                    reply = call_gemini(prompt)
-                    break
-                if p == "groq" and GROQ_KEY:
-                    reply = call_groq(prompt)
-                    break
-            except:
-                pass
-
-        if not reply:
-            return jsonify({"answer": "⚠️ AI services are busy. Try again later."}), 503
-
-        ctx.append(f"AI: {reply}")
-        session["context"] = trim_context(ctx)
-
-        response = jsonify({"answer": reply})
-        response.headers["Cache-Control"] = "no-store"
-        return response
-
-    except requests.exceptions.Timeout:
-        return jsonify({"answer": "⏳ AI timeout. Try again."}), 504
-
-    except Exception as e:
-        print("SERVER ERROR:", e)
-        return jsonify({"answer": "❌ Server error. Please retry."}), 500
-
-# -------------------- CLEAR SESSION --------------------
-@app.route("/clear-session", methods=["POST"])
-def clear_session():
-    session.clear()
-    return jsonify({"status": "cleared"})
+    ctx.append(f"AI: {ans}")
+    session["ctx"] = trim(ctx)
+    return jsonify(answer=ans)
 
 # -------------------- RUN --------------------
 if __name__ == "__main__":
