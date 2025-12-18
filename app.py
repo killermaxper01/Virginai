@@ -20,7 +20,11 @@ limiter = Limiter(
     default_limits=["10 per minute"]
 )
 
-# -------------------- STATIC SEO FILES --------------------
+# -------------------- STATIC SEO FILES (ETag ENABLED) --------------------
+# Flask automatically adds:
+# ✔ ETag
+# ✔ If-None-Match
+# ✔ 304 Not Modified
 
 @app.route("/sitemap.xml")
 def sitemap():
@@ -30,8 +34,7 @@ def sitemap():
 def robots():
     return send_from_directory(".", "robots.txt")
 
-# -------------------- PAGES --------------------
-
+# -------------------- PAGES & ASSETS --------------------
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
@@ -56,7 +59,7 @@ def get_context():
     return session["context"]
 
 def trim_context(ctx):
-    return ctx[-MAX_CONTEXT*2:]
+    return ctx[-MAX_CONTEXT * 2:]
 
 # -------------------- GEMINI --------------------
 def call_gemini(prompt):
@@ -90,7 +93,7 @@ def call_groq(prompt):
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
-# -------------------- ASK --------------------
+# -------------------- ASK (NO CACHE) --------------------
 @app.route("/ask", methods=["POST"])
 @limiter.limit("10 per minute")
 def ask():
@@ -103,10 +106,9 @@ def ask():
 
         ctx = get_context()
         ctx.append(f"User: {question}")
-        ctx = trim_context(ctx)
-        session["context"] = ctx
+        session["context"] = trim_context(ctx)
 
-        prompt = "\n".join(ctx) + "\nAI:"
+        prompt = "\n".join(session["context"]) + "\nAI:"
 
         providers = ["gemini", "groq"]
         random.shuffle(providers)
@@ -128,7 +130,6 @@ def ask():
 
         ctx.append(f"AI: {reply}")
         session["context"] = trim_context(ctx)
-        session.modified = True
 
         return jsonify({"answer": reply})
 
