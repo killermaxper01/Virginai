@@ -6,5 +6,5 @@ requests
 flask-limiter
 python-dotenv
 flask-cors
-flask-session
+flask-compress
 gunicorn
