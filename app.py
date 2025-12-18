@@ -5,7 +5,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import requests, os, random
 
-# ==================== SETUP ====================
+# -------------------- SETUP --------------------
 load_dotenv()
 
 app = Flask(__name__)
@@ -20,17 +20,8 @@ limiter = Limiter(
     default_limits=["10 per minute"]
 )
 
-# ==================== CACHE STATIC FILES ====================
-@app.after_request
-def add_cache_headers(response):
-    if request.path.endswith((
-        ".png", ".jpg", ".jpeg", ".svg",
-        ".ico", ".webp", ".css", ".js"
-    )):
-        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
-    return response
+# -------------------- STATIC SEO FILES --------------------
 
-# ==================== STATIC SEO FILES ====================
 @app.route("/sitemap.xml")
 def sitemap():
     return send_from_directory(".", "sitemap.xml")
@@ -39,11 +30,8 @@ def sitemap():
 def robots():
     return send_from_directory(".", "robots.txt")
 
-@app.route("/site.webmanifest")
-def manifest():
-    return send_from_directory(".", "site.webmanifest")
+# -------------------- PAGES --------------------
 
-# ==================== PAGES ====================
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
@@ -52,7 +40,7 @@ def home():
 def pages(page):
     return send_from_directory(".", page)
 
-# ==================== API KEYS ====================
+# -------------------- API KEYS --------------------
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
 GROQ_KEY   = os.getenv("GROQ_API_KEY")
 
@@ -61,16 +49,16 @@ GROQ_MODEL   = "llama-3.1-8b-instant"
 
 MAX_CONTEXT = 4
 
-# ==================== HELPERS ====================
+# -------------------- HELPERS --------------------
 def get_context():
     if "context" not in session:
         session["context"] = []
     return session["context"]
 
 def trim_context(ctx):
-    return ctx[-MAX_CONTEXT * 2:]
+    return ctx[-MAX_CONTEXT*2:]
 
-# ==================== GEMINI ====================
+# -------------------- GEMINI --------------------
 def call_gemini(prompt):
     url = f"https://generativelanguage.googleapis.com/v1/models/{GEMINI_MODEL}:generateContent"
     payload = {
@@ -79,16 +67,11 @@ def call_gemini(prompt):
             "parts": [{"text": prompt}]
         }]
     }
-    r = requests.post(
-        url,
-        params={"key": GEMINI_KEY},
-        json=payload,
-        timeout=15
-    )
+    r = requests.post(url, params={"key": GEMINI_KEY}, json=payload, timeout=15)
     r.raise_for_status()
     return r.json()["candidates"][0]["content"]["parts"][0]["text"]
 
-# ==================== GROQ ====================
+# -------------------- GROQ --------------------
 def call_groq(prompt):
     url = "https://api.groq.com/openai/v1/chat/completions"
     payload = {
@@ -107,7 +90,7 @@ def call_groq(prompt):
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
 
-# ==================== ASK API ====================
+# -------------------- ASK --------------------
 @app.route("/ask", methods=["POST"])
 @limiter.limit("10 per minute")
 def ask():
@@ -156,12 +139,12 @@ def ask():
         print("SERVER ERROR:", e)
         return jsonify({"answer": "❌ Server error. Please retry."}), 500
 
-# ==================== CLEAR SESSION ====================
+# -------------------- CLEAR SESSION --------------------
 @app.route("/clear-session", methods=["POST"])
 def clear_session():
     session.clear()
     return jsonify({"status": "cleared"})
 
-# ==================== RUN ====================
+# -------------------- RUN --------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
