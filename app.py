@@ -17,11 +17,27 @@ app.config["SESSION_PERMANENT"] = False
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
-    default_limits=["10 per minute"]
+    default_limits=["30 per minute"]
 )
 
-# -------------------- STATIC SEO FILES --------------------
+# -------------------- SECURITY + CACHE HEADERS (NO CSP) --------------------
+@app.after_request
+def add_headers(response):
+    # Basic security (SAFE)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
 
+    # Cache logic (ETag friendly)
+    if request.path in ("/ask", "/clear-session"):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+    else:
+        response.headers["Cache-Control"] = "no-cache, must-revalidate"
+
+    return response
+
+# -------------------- STATIC SEO FILES --------------------
 @app.route("/sitemap.xml")
 def sitemap():
     return send_from_directory(".", "sitemap.xml")
@@ -30,8 +46,11 @@ def sitemap():
 def robots():
     return send_from_directory(".", "robots.txt")
 
-# -------------------- PAGES --------------------
+@app.route("/site.webmanifest")
+def manifest():
+    return send_from_directory(".", "site.webmanifest")
 
+# -------------------- PAGES --------------------
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
@@ -56,7 +75,7 @@ def get_context():
     return session["context"]
 
 def trim_context(ctx):
-    return ctx[-MAX_CONTEXT*2:]
+    return ctx[-MAX_CONTEXT * 2:]
 
 # -------------------- GEMINI --------------------
 def call_gemini(prompt):
@@ -103,10 +122,9 @@ def ask():
 
         ctx = get_context()
         ctx.append(f"User: {question}")
-        ctx = trim_context(ctx)
-        session["context"] = ctx
+        session["context"] = trim_context(ctx)
 
-        prompt = "\n".join(ctx) + "\nAI:"
+        prompt = "\n".join(session["context"]) + "\nAI:"
 
         providers = ["gemini", "groq"]
         random.shuffle(providers)
@@ -128,7 +146,6 @@ def ask():
 
         ctx.append(f"AI: {reply}")
         session["context"] = trim_context(ctx)
-        session.modified = True
 
         return jsonify({"answer": reply})
 
