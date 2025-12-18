@@ -4,64 +4,79 @@ from flask_limiter.util import get_remote_address
 from flask_cors import CORS
 from flask_compress import Compress
 from dotenv import load_dotenv
-import requests, os, random, hashlib
+import requests, os, random
 
 # -------------------- SETUP --------------------
 load_dotenv()
 
 app = Flask(__name__)
+
+# CORS (frontend safe)
 CORS(app)
-Compress(app)  # Gzip / Brotli
+
+# Compression (Gzip + Brotli)
+Compress(app)
 
 app.secret_key = os.getenv("APP_SECRET_TOKEN", "change_this_secret")
 app.config["SESSION_PERMANENT"] = False
 
+# Rate limiting
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
     default_limits=["10 per minute"]
 )
 
-# -------------------- SECURITY HEADERS --------------------
+# -------------------- SECURITY HEADERS (STRICT CSP) --------------------
 @app.after_request
-def security_headers(response):
+def add_security_headers(response):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
+
+    # 🔐 STRICT CSP (Safe for your app)
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data: https:; "
+        "connect-src 'self'; "
+        "font-src 'self'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self'"
+    )
+
     return response
 
-# -------------------- ETag HELPER --------------------
-def add_etag(response):
-    body = response.get_data()
-    etag = hashlib.md5(body).hexdigest()
-    response.set_etag(etag)
-    response.headers["Cache-Control"] = "no-cache"
-    return response
+# -------------------- STATIC SEO FILES (ETag ENABLED) --------------------
+# Flask automatically handles:
+# ✔ ETag
+# ✔ If-None-Match
+# ✔ 304 Not Modified
 
-# -------------------- STATIC FILES --------------------
 @app.route("/sitemap.xml")
 def sitemap():
-    resp = make_response(send_from_directory(".", "sitemap.xml"))
-    return add_etag(resp)
+    return send_from_directory(".", "sitemap.xml")
 
 @app.route("/robots.txt")
 def robots():
-    resp = make_response(send_from_directory(".", "robots.txt"))
-    return add_etag(resp)
+    return send_from_directory(".", "robots.txt")
+
+@app.route("/site.webmanifest")
+def manifest():
+    return send_from_directory(".", "site.webmanifest")
 
 # -------------------- PAGES & ASSETS --------------------
 @app.route("/")
 def home():
-    resp = make_response(send_from_directory(".", "index.html"))
-    return add_etag(resp)
+    return send_from_directory(".", "index.html")
 
 @app.route("/<path:page>")
 def pages(page):
-    resp = make_response(send_from_directory(".", page))
-    return add_etag(resp)
+    return send_from_directory(".", page)
 
 # -------------------- API KEYS --------------------
 GEMINI_KEY = os.getenv("GEMINI_API_KEY")
@@ -151,9 +166,9 @@ def ask():
         ctx.append(f"AI: {reply}")
         session["context"] = trim_context(ctx)
 
-        resp = jsonify({"answer": reply})
-        resp.headers["Cache-Control"] = "no-store"
-        return resp
+        response = jsonify({"answer": reply})
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
     except requests.exceptions.Timeout:
         return jsonify({"answer": "⏳ AI timeout. Try again."}), 504
