@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Other AI Models - VirginAI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{
+ --bg:#050505;
+ --panel:#0c0c0c;
+ --border:#1e1e1e;
+ --gold:#c9a44a;
+ --gold-soft:#9f8740;
+ --text:#eaeaea;
+ --muted:#888;
+ --accent:#00ffd5;
+}
+
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ min-height:100vh;
+ background:var(--bg);
+ font-family:Inter,Segoe UI,sans-serif;
+ color:var(--text);
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ padding:20px;
+}
+
+.container{
+ width:100%;
+ max-width:720px;
+ background:var(--panel);
+ border:1px solid var(--border);
+ border-radius:20px;
+ padding:30px;
+ box-shadow:0 10px 40px rgba(0,0,0,0.5);
+}
+
+.back-btn{
+ display:inline-flex;
+ align-items:center;
+ gap:8px;
+ padding:10px 20px;
+ background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+ color:#000;
+ text-decoration:none;
+ border-radius:12px;
+ font-weight:bold;
+ font-size:14px;
+ margin-bottom:30px;
+ transition:all 0.3s;
+}
+
+.back-btn:hover{
+ transform:translateY(-2px);
+ box-shadow:0 5px 20px rgba(201,164,74,0.3);
+}
+
+.header{
+ text-align:center;
+ margin-bottom:40px;
+}
+
+.header h1{
+ font-size:2.2rem;
+ color:var(--gold);
+ margin-bottom:10px;
+ letter-spacing:1px;
+}
+
+.header p{
+ color:var(--muted);
+ font-size:15px;
+ max-width:600px;
+ margin:0 auto;
+}
+
+.model-grid{
+ display:grid;
+ grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));
+ gap:25px;
+ margin-bottom:30px;
+}
+
+.model-card{
+ background:#000;
+ border:1px solid var(--border);
+ border-radius:16px;
+ padding:25px;
+ transition:all 0.3s;
+}
+
+.model-card:hover{
+ transform:translateY(-3px);
+ border-color:var(--accent);
+}
+
+.model-header{
+ display:flex;
+ align-items:center;
+ gap:15px;
+ margin-bottom:15px;
+}
+
+.model-icon{
+ width:50px;
+ height:50px;
+ border-radius:12px;
+ background:linear-gradient(45deg,var(--gold),var(--gold-soft));
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-size:24px;
+ font-weight:bold;
+ color:#000;
+}
+
+.model-card:nth-child(2) .model-icon{
+ background:linear-gradient(45deg,#4285f4,#34a853);
+}
+
+.model-card:nth-child(3) .model-icon{
+ background:linear-gradient(45deg,#ff6b6b,#ffd93d);
+}
+
+.model-card:nth-child(4) .model-icon{
+ background:linear-gradient(45deg,#6c5ce7,#a29bfe);
+}
+
+.model-name{
+ color:var(--gold);
+ margin:0;
+ font-size:1.3rem;
+}
+
+.model-desc{
+ color:#ddd;
+ line-height:1.6;
+ margin-bottom:20px;
+ font-size:14px;
+}
+
+.model-stats{
+ display:flex;
+ justify-content:space-between;
+ margin-top:15px;
+ padding-top:15px;
+ border-top:1px solid rgba(255,255,255,0.1);
+}
+
+.stat{
+ text-align:center;
+}
+
+.stat-value{
+ color:var(--gold);
+ font-size:1.2rem;
+ font-weight:bold;
+ display:block;
+}
+
+.stat-label{
+ color:var(--muted);
+ font-size:12px;
+}
+
+.select-model{
+ display:inline-block;
+ padding:10px 20px;
+ background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+ color:#000;
+ text-decoration:none;
+ border-radius:10px;
+ font-weight:bold;
+ font-size:14px;
+ transition:all 0.3s;
+ border:none;
+ cursor:pointer;
+}
+
+.select-model:hover{
+ transform:translateY(-2px);
+ box-shadow:0 5px 15px rgba(201,164,74,0.3);
+}
+
+.content-card{
+ background:#000;
+ border:1px solid var(--border);
+ border-radius:16px;
+ padding:25px;
+ margin-bottom:20px;
+}
+
+.content-card h2{
+ color:var(--gold);
+ font-size:1.4rem;
+ margin-top:0;
+ margin-bottom:15px;
+ border-bottom:1px solid rgba(201,164,74,0.2);
+ padding-bottom:10px;
+}
+
+.content-card p{
+ line-height:1.7;
+ margin-bottom:15px;
+ color:#ddd;
+}
+
+.comparison-table{
+ width:100%;
+ border-collapse:collapse;
+ margin:20px 0;
+}
+
+.comparison-table th,
+.comparison-table td{
+ padding:12px 15px;
+ text-align:left;
+ border-bottom:1px solid var(--border);
+}
+
+.comparison-table th{
+ color:var(--gold);
+ font-weight:bold;
+ background:rgba(0,0,0,0.3);
+}
+
+.comparison-table tr:hover{
+ background:rgba(201,164,74,0.05);
+}
+
+.footer{
+ text-align:center;
+ margin-top:40px;
+ color:var(--muted);
+ font-size:13px;
+ border-top:1px solid var(--border);
+ padding-top:20px;
+}
+
+@media(max-width:480px){
+ .container{padding:20px}
+ .header h1{font-size:1.8rem}
+ .model-grid{grid-template-columns:1fr}
+ .model-card{padding:20px}
+ .model-stats{flex-wrap:wrap; gap:10px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+ <a href="index.html" class="back-btn">← Back to VirginAI</a>
+ 
+ <div class="header">
+  <h1>Available AI Models</h1>
+  <p>Choose from multiple advanced AI models optimized for different tasks</p>
+ </div>
+ 
+ <div class="model-grid">
+  <div class="model-card">
+   <div class="model-header">
+    <div class="model-icon">VA</div>
+    <div>
+     <h3 class="model-name">VirginAI Default</h3>
+     <p class="model-desc">Our optimized blend of Gemini and LLaMA models for balanced performance</p>
+    </div>
+   </div>
+   <div class="model-stats">
+    <div class="stat">
+     <span class="stat-value">128K</span>
+     <span class="stat-label">Context</span>
+    </div>
+    <div class="stat">
+     <span class="stat-value">Fast</span>
+     <span class="stat-label">Speed</span>
+    </div>
+    <div class="stat">
+     <span class="stat-value">All</span>
+     <span class="stat-label">Tasks</span>
+    </div>
+   </div>
+   <button class="select-model" style="margin-top:15px; width:100%">Select Model</button>
+  </div>
+  
+  <div class="model-card">
+   <div class="model-header">
+    <div class="model-icon">G</div>
+    <div>
+     <h3 class="model-name">Gemini 2.0 Flash</h3>
+     <p class="model-desc">Google's fastest model for quick responses and general conversation</p>
+    </div>
+   </div>
+   <div class="model-stats">
+    <div class="stat">
+     <span class="stat-value">1M</span>
+     <span class="stat-label">Context</span>
+    </div>
+    <div class="stat">
+     <span class="stat-value">Very Fast</span>
+     <span class="stat-label">Speed</span>
+    </div>
+    <div class="stat">
+     <span class="stat-value">General</span>
+     <span class="stat-label">Tasks</span>
+    </div>
+   </div>
+   <button class="select-model" style="margin-top:15px; width:100%">Select Model</button>
+  </div>
+  
+  <div class="model-card">
+   <div class="model-header">
+    <div class="model-icon">L</div>
+    <div>
+     <h3 class="model-name">LLaMA 3.1 70B</h3>
+     <p class="model-desc">Meta's powerful open-source model for complex reasoning and analysis</p>
+    </div>
+   </div>
+   <div class="model-stats">
+    <div class="stat">
+     <span class="stat-value">128K</span>
+     <span class="stat-label">Context</span>
+    </div>
+    <div class="stat">
+     <span class="stat-value">Balanced</span>
+     <span class="stat-label">Speed</span>
+    </div>
+    <div class="stat">
+     <span class="stat-value">Reasoning</span>
+     <span class="stat-label">Tasks</span>
+    </div>
+   </div>
+   <button class="select-model" style="margin-top:15px; width:100%">Select Model</button>
+  </div>
+  
+  <div class="model-card">
+   <div class="model-header">
+    <div class="model-icon">C</div>
+    <div>
+     <h3 class="model-name">Claude 3.5 Sonnet</h3>
+     <p class="model-desc">Anthropic's model for creative writing and detailed analysis</p>
+    </div>
+   </div>
+   <div class="model-stats">
+    <div class="stat">
+     <span class="stat-value">200K</span>
+     <span class="stat-label">Context</span>
+    </div>
+    <div class="stat">
+     <span class="stat-value">Standard</span>
+     <span class="stat-label">Speed</span>
+    </div>
+    <div class="stat">
+     <span class="stat-value">Creative</span>
+     <span class="stat-label">Tasks</span>
+    </div>
+   </div>
+   <button class="select-model" style="margin-top:15px; width:100%">Select Model</button>
+  </div>
+ </div>
+ 
+ <div class="content-card">
+  <h2>Model Comparison</h2>
+  <table class="comparison-table">
+   <thead>
+    <tr>
+     <th>Model</th>
+     <th>Best For</th>
+     <th>Speed</th>
+     <th>Context</th>
+    </tr>
+   </thead>
+   <tbody>
+    <tr>
+     <td>VirginAI Default</td>
+     <td>General use, balanced tasks</td>
+     <td>Fast</td>
+     <td>128K tokens</td>
+    </tr>
+    <tr>
+     <td>Gemini 2.0 Flash</td>
+     <td>Quick answers, general Q&A</td>
+     <td>Very Fast</td>
+     <td>1M tokens</td>
+    </tr>
+    <tr>
+     <td>LLaMA 3.1 70B</td>
+     <td>Complex reasoning, analysis</td>
+     <td>Balanced</td>
+     <td>128K tokens</td>
+    </tr>
+    <tr>
+     <td>Claude 3.5 Sonnet</td>
+     <td>Creative writing, detailed work</td>
+     <td>Standard</td>
+     <td>200K tokens</td>
+    </tr>
+   </tbody>
+  </table>
+ </div>
+ 
+ <div class="content-card">
+  <h2>How to Switch Models</h2>
+  <p>To switch between different AI models:</p>
+  <ol style="color:#ddd; line-height:1.7; padding-left:20px;">
+   <li>Open the VirginAI chat interface</li>
+   <li>Click on the model selector in the top right corner</li>
+   <li>Choose your preferred AI model from the dropdown</li>
+   <li>Start chatting - the model switch happens instantly</li>
+  </ol>
+  <p><strong>Note:</strong> Switching models may start a new conversation context. Some models are only available in Pro and Team plans.</p>
+ </div>
+ 
+ <div class="footer">
+  <p>Models may have varying availability. Response times and accuracy can differ between models.</p>
+ </div>
+</div>
+</body>
+</html>
