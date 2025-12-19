@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,9 +15,16 @@
 <!-- Open Graph -->
 <meta property="og:title" content="About VirginAI">
 <meta property="og:description" content="Learn about VirginAI — a fast, secure, and intelligent AI chat assistant built for everyone.">
-<meta property="og:type" content="website">
+<meta property="og:image" content="https://virginai.in/og-image.png">
 <meta property="og:url" content="https://virginai.in/about.html">
-<meta property="og:image" content="https://virginai.in/og-image.png"> <!-- ✅ ADDED -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VirginAI">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="About VirginAI">
+<meta name="twitter:description" content="Fast, secure, and intelligent AI chat assistant.">
+<meta name="twitter:image" content="https://virginai.in/og-image.png">
 
 <!-- Structured Data -->
 <script type="application/ld+json">
@@ -62,6 +67,17 @@ body{
 header{
  text-align:center;
  margin-bottom:42px;
+}
+
+.brand-logo{
+ width:96px;
+ height:96px;
+ border-radius:22px;
+ border:1.5px solid rgba(201,164,74,.4);
+ box-shadow:0 0 40px rgba(201,164,74,.25);
+ object-fit:cover;
+ background:#000;
+ margin-bottom:16px;
 }
 
 header h1{
@@ -115,6 +131,7 @@ li{
 /* Mobile */
 @media(max-width:600px){
  .container{padding:36px 16px}
+ .brand-logo{width:78px;height:78px}
 }
 </style>
 </head>
@@ -124,9 +141,9 @@ li{
 <div class="container">
 
 <header>
-  <img src="/og-image.png" alt="VirginAI banner">
-<h1>About VirginAI</h1>
-<p>An intelligent AI assistant designed for clarity, speed, and trust</p>
+  <img src="/og-image.png" alt="VirginAI Logo" class="brand-logo">
+  <h1>About VirginAI</h1>
+  <p>An intelligent AI assistant designed for clarity, speed, and trust</p>
 </header>
 
 <div class="section">
@@ -162,8 +179,8 @@ controlled API access to ensure stable and responsible usage.
 </p>
 
 <p>
-The platform integrates multiple AI models to maintain availability and
-performance even under high demand.
+Multiple AI models are integrated to maintain availability and performance even
+under high demand.
 </p>
 </div>
 
@@ -182,7 +199,7 @@ accuracy, or user trust.
 
 </div>
 
-<!-- ✅ BACK NAVIGATION REDIRECT -->
+<!-- Back navigation → Home -->
 <script>
 history.pushState(null, "", location.href);
 window.onpopstate = function () {
