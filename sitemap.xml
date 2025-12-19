@@ -57,4 +57,20 @@
     <priority>0.6</priority>
   </url>
 
+  <!-- NEW PAGES ADDED -->
+
+  <url>
+    <loc>https://virginai.in/offer.html</loc>
+    <lastmod>2025-12-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <url>
+    <loc>https://virginai.in/upcomingmodel.html</loc>
+    <lastmod>2025-12-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
 </urlset>
