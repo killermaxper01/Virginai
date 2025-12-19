@@ -38,6 +38,20 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "VirginAI",
+  "url": "https://virginai.in",
+  "description": "VirginAI is an independently developed AI-powered chat assistant focused on learning, productivity, and research.",
+  "creator": [{ "@type": "Person", "name": "Raj Verma" }, { "@type": "Person", "name": "Kalash Verma" }],
+  "contactPoint": { "@type": "ContactPoint", "contactType": "Customer Support", "url": "https://instagram.com/virginai.in" },
+  "sameAs": ["https://instagram.com/virginai.in", "https://github.com/killermaxper01/Virginai"]
+}
+</script>  
+  
+  
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "VirginAI",
   "description": "AI-powered chat assistant for learning, productivity, and research",
@@ -49,18 +63,7 @@
 }
 </script>
 
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "VirginAI",
-  "url": "https://virginai.in",
-  "description": "VirginAI is an independently developed AI-powered chat assistant focused on learning, productivity, and research.",
-  "creator": [{ "@type": "Person", "name": "Raj Verma" }, { "@type": "Person", "name": "Kalash Verma" }],
-  "contactPoint": { "@type": "ContactPoint", "contactType": "Customer Support", "url": "https://instagram.com/virginai.in" },
-  "sameAs": ["https://instagram.com/virginai.in", "https://github.com/killermaxper01/Virginai"]
-}
-</script>
+
 
 <style>
 :root{
@@ -296,7 +299,7 @@ function typeMatrix(el, text) {
   const speed = 14;
   const timer = setInterval(() => {
     contentEl.textContent += text[i++] || "";
-    
+
     // ✨ Auto-pull keywords down as they generate
     chat.scrollTop = chat.scrollHeight;
 
