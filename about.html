@@ -59,16 +59,16 @@ header{
  margin-bottom:42px;
 }
 
-/* Banner Styling */
+/* Banner Styling Added */
 header img {
   width: 100%;
   height: auto;
-  aspect-ratio: 16 / 9; 
-  object-fit: cover; 
-  border-radius: 18px; 
+  aspect-ratio: 16 / 9; /* Standard wide rectangle ratio */
+  object-fit: cover; /* Ensures the image fills the space without stretching */
+  border-radius: 18px; /* Matches your section styling */
   border: 1px solid var(--border);
   margin-bottom: 24px;
-  display: block;
+  display: block; /* Removes bottom whitespace gap */
 }
 
 header h1{
@@ -123,6 +123,9 @@ li{
 /* Mobile Adjustments */
 @media(max-width:600px){
  .container{padding:36px 16px}
+ header img {
+   aspect-ratio: 16 / 9; /* Maintains ratio on small screens */
+ }
 }
 </style>
 </head>
@@ -168,6 +171,11 @@ li{
   technologies. The system implements rate limiting, session isolation, and
   controlled API access to ensure stable and responsible usage.
   </p>
+
+  <p>
+  The platform integrates multiple AI models to maintain availability and
+  performance even under high demand.
+  </p>
 </div>
 
 <div class="section">
@@ -186,14 +194,10 @@ li{
 </div>
 
 <script>
-  // Prevents the user from staying on this page via back/forward buttons
-  (function() {
-    window.history.pushState(null, "", window.location.href);
-    window.onpopstate = function() {
-      // Force navigation to index.html on any history change
-      window.location.replace("index.html");
-    };
-  })();
+history.pushState(null, "", location.href);
+window.onpopstate = function () {
+  window.location.href = "/";
+};
 </script>
 
 </body>
