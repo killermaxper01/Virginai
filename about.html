@@ -6,27 +6,17 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- SEO -->
 <meta name="description" content="VirginAI is an intelligent AI-powered chat assistant designed for learning, productivity, and problem-solving using advanced AI models.">
 <meta name="keywords" content="VirginAI, AI chatbot, intelligent assistant, Gemini AI, Groq AI">
 <meta name="author" content="VirginAI">
 <meta name="robots" content="index, follow">
 
-<!-- Open Graph -->
 <meta property="og:title" content="About VirginAI">
 <meta property="og:description" content="Learn about VirginAI — a fast, secure, and intelligent AI chat assistant built for everyone.">
-<meta property="og:image" content="https://virginai.in/og-image.png">
-<meta property="og:url" content="https://virginai.in/about.html">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="VirginAI">
+<meta property="og:url" content="https://virginai.in/about.html">
+<meta property="og:image" content="https://virginai.in/og-image.png">
 
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="About VirginAI">
-<meta name="twitter:description" content="Fast, secure, and intelligent AI chat assistant.">
-<meta name="twitter:image" content="https://virginai.in/og-image.png">
-
-<!-- Structured Data -->
 <script type="application/ld+json">
 {
  "@context": "https://schema.org",
@@ -55,7 +45,7 @@ body{
  margin:0;
  background:var(--bg);
  color:var(--text);
- font-family:Inter,Segoe UI,sans-serif;
+ font-family:Inter, Segoe UI, sans-serif;
 }
 
 .container{
@@ -69,21 +59,23 @@ header{
  margin-bottom:42px;
 }
 
-.brand-logo{
- width:96px;
- height:96px;
- border-radius:22px;
- border:1.5px solid rgba(201,164,74,.4);
- box-shadow:0 0 40px rgba(201,164,74,.25);
- object-fit:cover;
- background:#000;
- margin-bottom:16px;
+/* Banner Styling */
+header img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9; 
+  object-fit: cover; 
+  border-radius: 18px; 
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+  display: block;
 }
 
 header h1{
  color:var(--gold);
  letter-spacing:1.5px;
  margin-bottom:10px;
+ margin-top: 0;
 }
 
 header p{
@@ -128,10 +120,9 @@ li{
  color:var(--muted);
 }
 
-/* Mobile */
+/* Mobile Adjustments */
 @media(max-width:600px){
  .container{padding:36px 16px}
- .brand-logo{width:78px;height:78px}
 }
 </style>
 </head>
@@ -141,56 +132,51 @@ li{
 <div class="container">
 
 <header>
-  <img src="/og-image.png" alt="VirginAI Logo" class="brand-logo">
+  <img src="/og-image.png" alt="VirginAI Brand Banner">
   <h1>About VirginAI</h1>
   <p>An intelligent AI assistant designed for clarity, speed, and trust</p>
 </header>
 
 <div class="section">
-<h2>What is VirginAI?</h2>
-<p>
-VirginAI is a web-based artificial intelligence chat assistant built to provide
-clear, accurate, and fast responses to user questions. It is designed for
-students, professionals, and curious minds seeking reliable AI-powered help.
-</p>
+  <h2>What is VirginAI?</h2>
+  <p>
+  VirginAI is a web-based artificial intelligence chat assistant built to provide
+  clear, accurate, and fast responses to user questions. It is designed for
+  students, professionals, and curious minds seeking reliable AI-powered help.
+  </p>
 
-<p>
-The platform focuses on simplicity, security, and performance — allowing users
-to interact naturally with advanced AI models without unnecessary complexity.
-</p>
+  <p>
+  The platform focuses on simplicity, security, and performance — allowing users
+  to interact naturally with advanced AI models without unnecessary complexity.
+  </p>
 </div>
 
 <div class="section">
-<h2>What VirginAI Does</h2>
-<ul>
-<li>Answers questions across education, technology, and general knowledge</li>
-<li>Assists with learning, explanations, and problem-solving</li>
-<li>Provides fast AI-generated responses with minimal latency</li>
-<li>Maintains user privacy and responsible AI usage</li>
-</ul>
+  <h2>What VirginAI Does</h2>
+  <ul>
+  <li>Answers questions across education, technology, and general knowledge</li>
+  <li>Assists with learning, explanations, and problem-solving</li>
+  <li>Provides fast AI-generated responses with minimal latency</li>
+  <li>Maintains user privacy and responsible AI usage</li>
+  </ul>
 </div>
 
 <div class="section">
-<h2>Technology & Security</h2>
-<p>
-VirginAI is powered by modern AI infrastructure and built using secure web
-technologies. The system implements rate limiting, session isolation, and
-controlled API access to ensure stable and responsible usage.
-</p>
-
-<p>
-Multiple AI models are integrated to maintain availability and performance even
-under high demand.
-</p>
+  <h2>Technology & Security</h2>
+  <p>
+  VirginAI is powered by modern AI infrastructure and built using secure web
+  technologies. The system implements rate limiting, session isolation, and
+  controlled API access to ensure stable and responsible usage.
+  </p>
 </div>
 
 <div class="section">
-<h2>Vision</h2>
-<p>
-The vision of VirginAI is to make artificial intelligence accessible,
-understandable, and useful for everyone — without compromising privacy,
-accuracy, or user trust.
-</p>
+  <h2>Vision</h2>
+  <p>
+  The vision of VirginAI is to make artificial intelligence accessible,
+  understandable, and useful for everyone — without compromising privacy,
+  accuracy, or user trust.
+  </p>
 </div>
 
 <div class="footer">
@@ -199,12 +185,15 @@ accuracy, or user trust.
 
 </div>
 
-<!-- Back navigation → Home -->
 <script>
-history.pushState(null, "", location.href);
-window.onpopstate = function () {
-  window.location.href = "/";
-};
+  // Prevents the user from staying on this page via back/forward buttons
+  (function() {
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function() {
+      // Force navigation to index.html on any history change
+      window.location.replace("index.html");
+    };
+  })();
 </script>
 
 </body>
