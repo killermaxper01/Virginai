@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Beta Version - VirginAI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root{
+ --bg:#050505;
+ --panel:#0c0c0c;
+ --border:#1e1e1e;
+ --gold:#c9a44a;
+ --gold-soft:#9f8740;
+ --text:#eaeaea;
+ --muted:#888;
+ --accent:#00ffd5;
+}
+
+*{box-sizing:border-box}
+
+body{
+ margin:0;
+ min-height:100vh;
+ background:var(--bg);
+ font-family:Inter,Segoe UI,sans-serif;
+ color:var(--text);
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ padding:20px;
+}
+
+.container{
+ width:100%;
+ max-width:720px;
+ background:var(--panel);
+ border:1px solid var(--border);
+ border-radius:20px;
+ padding:30px;
+ box-shadow:0 10px 40px rgba(0,0,0,0.5);
+}
+
+.back-btn{
+ display:inline-flex;
+ align-items:center;
+ gap:8px;
+ padding:10px 20px;
+ background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+ color:#000;
+ text-decoration:none;
+ border-radius:12px;
+ font-weight:bold;
+ font-size:14px;
+ margin-bottom:30px;
+ transition:all 0.3s;
+}
+
+.back-btn:hover{
+ transform:translateY(-2px);
+ box-shadow:0 5px 20px rgba(201,164,74,0.3);
+}
+
+.header{
+ text-align:center;
+ margin-bottom:40px;
+}
+
+.header h1{
+ font-size:2.2rem;
+ color:var(--gold);
+ margin-bottom:10px;
+ letter-spacing:1px;
+}
+
+.header p{
+ color:var(--muted);
+ font-size:15px;
+ max-width:600px;
+ margin:0 auto;
+}
+
+.content-card{
+ background:#000;
+ border:1px solid var(--border);
+ border-radius:16px;
+ padding:25px;
+ margin-bottom:20px;
+}
+
+.content-card h2{
+ color:var(--gold);
+ font-size:1.4rem;
+ margin-top:0;
+ margin-bottom:15px;
+ border-bottom:1px solid rgba(201,164,74,0.2);
+ padding-bottom:10px;
+}
+
+.content-card p{
+ line-height:1.7;
+ margin-bottom:15px;
+ color:#ddd;
+}
+
+.feature-list{
+ list-style:none;
+ padding:0;
+ margin:20px 0;
+}
+
+.feature-list li{
+ padding:12px 15px;
+ margin-bottom:10px;
+ background:rgba(12,12,12,0.8);
+ border-left:4px solid var(--gold);
+ border-radius:8px;
+ display:flex;
+ align-items:center;
+ gap:12px;
+}
+
+.feature-list li:before{
+ content:"✓";
+ color:var(--gold);
+ font-weight:bold;
+}
+
+.cta-button{
+ display:inline-block;
+ padding:15px 30px;
+ background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+ color:#000;
+ text-decoration:none;
+ border-radius:14px;
+ font-weight:bold;
+ font-size:16px;
+ text-align:center;
+ margin-top:20px;
+ transition:all 0.3s;
+ border:none;
+ cursor:pointer;
+}
+
+.cta-button:hover{
+ transform:translateY(-2px);
+ box-shadow:0 8px 25px rgba(201,164,74,0.4);
+}
+
+.footer{
+ text-align:center;
+ margin-top:40px;
+ color:var(--muted);
+ font-size:13px;
+ border-top:1px solid var(--border);
+ padding-top:20px;
+}
+
+@media(max-width:480px){
+ .container{padding:20px}
+ .header h1{font-size:1.8rem}
+ .content-card{padding:20px}
+ .feature-list li{padding:10px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+ <a href="index.html" class="back-btn">← Back to VirginAI</a>
+ 
+ <div class="header">
+  <h1>Try Beta Version</h1>
+  <p>Experience the next generation of AI chat with our beta features</p>
+ </div>
+ 
+ <div class="content-card">
+  <h2>What's New in Beta?</h2>
+  <p>Our beta version includes cutting-edge features and improvements that push the boundaries of AI conversation. Be among the first to experience enhanced capabilities.</p>
+  
+  <ul class="feature-list">
+   <li>Advanced context understanding with 32K token support</li>
+   <li>Real-time collaborative editing features</li>
+   <li>Multi-format response generation (text, code, markdown)</li>
+   <li>Enhanced privacy controls and data management</li>
+   <li>Faster response times with optimized infrastructure</li>
+   <li>Experimental AI models not yet available in stable release</li>
+  </ul>
+ </div>
+ 
+ <div class="content-card">
+  <h2>Beta Access Program</h2>
+  <p>Join our exclusive beta program to get early access to new features and help shape the future of VirginAI. Beta testers receive priority support and direct access to our development team.</p>
+  
+  <p><strong>Requirements:</strong></p>
+  <ul class="feature-list">
+   <li>Active VirginAI account</li>
+   <li>Willingness to provide feedback</li>
+   <li>Acceptance of beta program terms</li>
+  </ul>
+  
+  <button class="cta-button">Join Beta Program</button>
+ </div>
+ 
+ <div class="content-card">
+  <h2>Report Issues</h2>
+  <p>Found a bug or have suggestions? Our beta team actively monitors feedback to improve the platform.</p>
+  <button class="cta-button" style="background:linear-gradient(135deg,var(--accent),#00cca3);color:#000">Report Bug</button>
+ </div>
+ 
+ <div class="footer">
+  <p>Beta Version v2.5.1 | Updated: December 2024 | © 2025 VirginAI</p>
+ </div>
+</div>
+</body>
+</html>
