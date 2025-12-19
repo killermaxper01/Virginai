@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Special Offers - VirginAI</title>
+<title>Plans & Offers | VirginAI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="description" content="VirginAI pricing plans. Free plan available now. Pro and Team plans coming soon.">
+<meta name="robots" content="index, follow">
+
 <style>
 :root{
  --bg:#050505;
@@ -11,9 +15,10 @@
  --border:#1e1e1e;
  --gold:#c9a44a;
  --gold-soft:#9f8740;
+ --green:#00ff8c;
+ --green-soft:#00c46a;
  --text:#eaeaea;
  --muted:#888;
- --accent:#00ffd5;
 }
 
 *{box-sizing:border-box}
@@ -24,277 +29,248 @@ body{
  background:var(--bg);
  font-family:Inter,Segoe UI,sans-serif;
  color:var(--text);
- display:flex;
- justify-content:center;
- align-items:center;
- padding:20px;
 }
 
+/* ---------- HERO ---------- */
+.hero{
+ padding:80px 20px 60px;
+ text-align:center;
+ background:
+ radial-gradient(circle at top, rgba(201,164,74,.15), transparent 60%);
+}
+
+.hero h1{
+ font-size:3rem;
+ color:var(--gold);
+ margin-bottom:14px;
+}
+
+.hero p{
+ max-width:760px;
+ margin:auto;
+ font-size:17px;
+ color:var(--muted);
+ line-height:1.7;
+}
+
+/* ---------- CONTAINER ---------- */
 .container{
  width:100%;
- max-width:720px;
- background:var(--panel);
- border:1px solid var(--border);
- border-radius:20px;
- padding:30px;
- box-shadow:0 10px 40px rgba(0,0,0,0.5);
+ max-width:1200px;
+ margin:auto;
+ padding:0 24px 60px;
 }
 
-.back-btn{
- display:inline-flex;
- align-items:center;
- gap:8px;
- padding:10px 20px;
- background:linear-gradient(135deg,var(--gold),var(--gold-soft));
- color:#000;
- text-decoration:none;
- border-radius:12px;
- font-weight:bold;
- font-size:14px;
- margin-bottom:30px;
- transition:all 0.3s;
-}
-
-.back-btn:hover{
- transform:translateY(-2px);
- box-shadow:0 5px 20px rgba(201,164,74,0.3);
-}
-
-.header{
+/* ---------- NOTICE ---------- */
+.notice{
+ background:#000;
+ border:1px dashed var(--gold);
+ border-radius:16px;
+ padding:16px;
+ margin:40px auto;
  text-align:center;
- margin-bottom:40px;
+ max-width:900px;
+ font-size:14px;
 }
 
-.header h1{
- font-size:2.2rem;
- color:var(--gold);
- margin-bottom:10px;
- letter-spacing:1px;
-}
-
-.header p{
- color:var(--muted);
- font-size:15px;
- max-width:600px;
- margin:0 auto;
-}
-
+/* ---------- GRID ---------- */
 .offer-grid{
  display:grid;
- grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
- gap:25px;
- margin-bottom:30px;
+ grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+ gap:30px;
 }
 
+/* ---------- CARD ---------- */
 .offer-card{
  background:#000;
  border:1px solid var(--border);
- border-radius:16px;
- padding:25px;
+ border-radius:18px;
+ padding:30px;
  position:relative;
- overflow:hidden;
- transition:all 0.3s;
+ transition:.35s;
 }
 
 .offer-card:hover{
- transform:translateY(-5px);
+ transform:translateY(-6px);
  border-color:var(--gold);
 }
 
-.offer-card.popular{
- border:2px solid var(--gold);
-}
-
+/* ---------- BADGES ---------- */
 .badge{
  position:absolute;
- top:15px;
- right:15px;
- padding:5px 15px;
- background:linear-gradient(135deg,var(--gold),var(--gold-soft));
- color:#000;
+ top:18px;
+ right:18px;
+ padding:6px 16px;
  font-size:12px;
  font-weight:bold;
  border-radius:20px;
 }
 
-.price{
- font-size:2.5rem;
- color:var(--gold);
- margin:15px 0;
- font-weight:bold;
+/* ---------- FREE ---------- */
+.free{
+ border:2px solid var(--green);
+ box-shadow:0 0 30px rgba(0,255,140,.15);
+}
+.free .badge{
+ background:linear-gradient(135deg,var(--green),var(--green-soft));
+ color:#000;
+}
+.free .price{
+ color:var(--green);
 }
 
+/* ---------- UPCOMING ---------- */
+.upcoming .badge{
+ background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+ color:#000;
+}
+
+/* ---------- TEXT ---------- */
+.offer-card h2{
+ color:var(--gold);
+ margin-top:0;
+}
+
+.price{
+ font-size:2.6rem;
+ font-weight:bold;
+ margin:18px 0;
+}
 .price span{
- font-size:16px;
+ font-size:15px;
  color:var(--muted);
 }
 
-.offer-features{
+.features{
  list-style:none;
  padding:0;
- margin:20px 0;
+ margin:22px 0;
 }
-
-.offer-features li{
+.features li{
  padding:8px 0;
+ border-bottom:1px solid rgba(255,255,255,.08);
  color:#ddd;
- border-bottom:1px solid rgba(255,255,255,0.1);
- display:flex;
- align-items:center;
- gap:10px;
 }
-
-.offer-features li:before{
- content:"✓";
+.features li::before{
+ content:"✓ ";
  color:var(--gold);
- font-weight:bold;
 }
 
-.select-button{
+/* ---------- BUTTON ---------- */
+.btn{
  display:block;
  width:100%;
  padding:15px;
+ border-radius:14px;
+ font-weight:bold;
+ text-align:center;
+ text-decoration:none;
+ margin-top:20px;
+ transition:.3s;
+}
+
+.free .btn{
+ background:linear-gradient(135deg,var(--green),var(--green-soft));
+ color:#000;
+}
+
+.upcoming .btn{
  background:linear-gradient(135deg,var(--gold),var(--gold-soft));
  color:#000;
- text-decoration:none;
- border-radius:12px;
- font-weight:bold;
- font-size:16px;
- text-align:center;
- border:none;
- cursor:pointer;
- transition:all 0.3s;
- margin-top:20px;
 }
 
-.select-button:hover{
+.btn:hover{
  transform:translateY(-2px);
- box-shadow:0 5px 20px rgba(201,164,74,0.3);
+ box-shadow:0 6px 22px rgba(0,0,0,.5);
 }
 
-.content-card{
- background:#000;
- border:1px solid var(--border);
- border-radius:16px;
- padding:25px;
- margin-bottom:20px;
-}
-
-.content-card h2{
- color:var(--gold);
- font-size:1.4rem;
- margin-top:0;
- margin-bottom:15px;
- border-bottom:1px solid rgba(201,164,74,0.2);
- padding-bottom:10px;
-}
-
-.content-card p{
- line-height:1.7;
- margin-bottom:15px;
- color:#ddd;
-}
-
+/* ---------- FOOTER ---------- */
 .footer{
  text-align:center;
- margin-top:40px;
+ margin-top:60px;
+ font-size:12px;
  color:var(--muted);
- font-size:13px;
  border-top:1px solid var(--border);
  padding-top:20px;
 }
 
-@media(max-width:480px){
- .container{padding:20px}
- .header h1{font-size:1.8rem}
- .offer-grid{grid-template-columns:1fr}
- .offer-card{padding:20px}
- .price{font-size:2rem}
+/* ---------- MOBILE ---------- */
+@media(max-width:600px){
+ .hero h1{font-size:2.2rem}
 }
 </style>
 </head>
+
 <body>
+
+<section class="hero">
+ <h1>VirginAI Plans</h1>
+ <p>
+ Start free. Upgrade when ready.  
+ VirginAI is currently in beta — premium plans are coming soon.
+ </p>
+</section>
+
 <div class="container">
- <a href="index.html" class="back-btn">← Back to VirginAI</a>
- 
- <div class="header">
-  <h1>Special Offers & Plans</h1>
-  <p>Choose the perfect plan for your AI needs. All plans include our core features.</p>
- </div>
- 
- <div class="offer-grid">
-  <div class="offer-card">
-   <div class="badge">Free</div>
-   <h2 style="color:var(--gold); margin-top:0;">Basic</h2>
-   <p>Perfect for getting started with AI assistance</p>
-   <div class="price">$0<span>/month</span></div>
-   <ul class="offer-features">
-    <li>50 AI conversations per day</li>
-    <li>Basic context memory</li>
-    <li>Standard response speed</li>
-    <li>Community support</li>
-    <li>Web access only</li>
-   </ul>
-   <button class="select-button">Get Started</button>
-  </div>
-  
-  <div class="offer-card popular">
-   <div class="badge" style="background:linear-gradient(135deg,var(--accent),#00cca3);">Most Popular</div>
-   <h2 style="color:var(--gold); margin-top:0;">Pro</h2>
-   <p>For power users and professionals</p>
-   <div class="price">$9.99<span>/month</span></div>
-   <ul class="offer-features">
-    <li>Unlimited AI conversations</li>
-    <li>Enhanced context memory</li>
-    <li>Priority response speed</li>
-    <li>Priority support</li>
-    <li>API access included</li>
-    <li>Custom AI model selection</li>
-   </ul>
-   <button class="select-button">Get Pro Plan</button>
-  </div>
-  
-  <div class="offer-card">
-   <div class="badge">Premium</div>
-   <h2 style="color:var(--gold); margin-top:0;">Team</h2>
-   <p>For businesses and organizations</p>
-   <div class="price">$29.99<span>/month</span></div>
-   <ul class="offer-features">
-    <li>Everything in Pro, plus:</li>
-    <li>Up to 10 team members</li>
-    <li>Admin dashboard</li>
-    <li>Usage analytics</li>
-    <li>Dedicated support</li>
-    <li>Custom AI training</li>
-    <li>SLA guarantee</li>
-   </ul>
-   <button class="select-button">Contact Sales</button>
-  </div>
- </div>
- 
- <div class="content-card">
-  <h2>Limited Time Offers</h2>
-  <p><strong>🎉 Annual Subscription Discount:</strong> Save 20% when you choose annual billing. Get 12 months for the price of 10!</p>
-  <p><strong>🎓 Student Discount:</strong> Students get 50% off Pro plan with valid .edu email verification.</p>
-  <p><strong>👥 Referral Program:</strong> Refer friends and earn free months. Both you and your friend get 1 month free for each successful referral.</p>
-  <button class="select-button" style="background:linear-gradient(135deg,var(--accent),#00cca3);">View All Offers</button>
- </div>
- 
- <div class="content-card">
-  <h2>Why Upgrade?</h2>
-  <p>Our premium plans support the ongoing development of VirginAI and help us maintain fast, reliable service for all users. Upgrading gives you:</p>
-  <ul style="color:#ddd; line-height:1.7; padding-left:20px;">
-   <li><strong>Faster responses:</strong> Priority access to our AI infrastructure</li>
-   <li><strong>More features:</strong> Access to experimental models and tools</li>
-   <li><strong>Better support:</strong> Direct access to our technical team</li>
-   <li><strong>Longer conversations:</strong> Extended context windows for complex discussions</li>
-   <li><strong>Ad-free experience:</strong> Clean, uninterrupted AI interactions</li>
+
+<div class="notice">
+ 🚧 Paid subscriptions are <strong>not active yet</strong>.  
+ Pricing and features shown below are for preview purposes only.
+</div>
+
+<div class="offer-grid">
+
+ <!-- FREE -->
+ <div class="offer-card free">
+  <div class="badge">ACTIVE</div>
+  <h2>Free</h2>
+  <p>Perfect for students and everyday use</p>
+  <div class="price">$0<span>/month</span></div>
+  <ul class="features">
+   <li>Limited daily conversations</li>
+   <li>Standard AI speed</li>
+   <li>Basic memory</li>
+   <li>Web access</li>
   </ul>
+  <a class="btn">Available Now</a>
  </div>
- 
- <div class="footer">
-  <p>All prices in USD. Cancel anytime. 14-day money-back guarantee on paid plans.</p>
+
+ <!-- PRO -->
+ <div class="offer-card upcoming">
+  <div class="badge">UPCOMING</div>
+  <h2>Pro</h2>
+  <p>For professionals and creators</p>
+  <div class="price">$9.99<span>/month</span></div>
+  <ul class="features">
+   <li>Unlimited chats</li>
+   <li>Faster responses</li>
+   <li>Extended context</li>
+   <li>Priority support</li>
+  </ul>
+  <a class="btn">Join Waitlist</a>
  </div>
+
+ <!-- TEAM -->
+ <div class="offer-card upcoming">
+  <div class="badge">UPCOMING</div>
+  <h2>Team</h2>
+  <p>For startups and organizations</p>
+  <div class="price">$29.99<span>/month</span></div>
+  <ul class="features">
+   <li>Multiple users</li>
+   <li>Admin dashboard</li>
+   <li>Analytics</li>
+   <li>Dedicated support</li>
+  </ul>
+  <a class="btn">Request Access</a>
+ </div>
+
+</div>
+
+<div class="footer">
+ <p>VirginAI © 2025 · Pricing subject to change · No payments collected yet</p>
+</div>
+
 </div>
 </body>
 </html>
