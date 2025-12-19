@@ -2,13 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Plans & Offers | VirginAI</title>
+<title>Special Offers & Plans | VirginAI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta name="description" content="VirginAI pricing plans. Free plan available now. Pro and Team plans coming soon.">
+<meta name="description" content="VirginAI plans and offers. Free plan available now. Pro and Team plans coming soon.">
 <meta name="robots" content="index, follow">
-
-<meta name="robots" content="index, follow">
+<meta name="googlebot" content="index, follow, noimageindex">
 
 <style>
 :root{
@@ -21,6 +20,7 @@
  --green-soft:#00c46a;
  --text:#eaeaea;
  --muted:#888;
+ --accent:#00ffd5;
 }
 
 *{box-sizing:border-box}
@@ -33,53 +33,62 @@ body{
  color:var(--text);
 }
 
-/* ---------- HERO ---------- */
-.hero{
- padding:80px 20px 60px;
- text-align:center;
- background:
- radial-gradient(circle at top, rgba(201,164,74,.15), transparent 60%);
-}
-
-.hero h1{
- font-size:3rem;
- color:var(--gold);
- margin-bottom:14px;
-}
-
-.hero p{
- max-width:760px;
- margin:auto;
- font-size:17px;
- color:var(--muted);
- line-height:1.7;
-}
-
-/* ---------- CONTAINER ---------- */
+/* ---------- COMPACT CONTAINER ---------- */
 .container{
  width:100%;
  max-width:1200px;
- margin:auto;
- padding:0 24px 60px;
+ margin:20px auto; /* Reduced margin */
+ background:var(--panel);
+ border:1px solid var(--border);
+ border-radius:22px;
+ padding:24px 32px; /* Reduced vertical padding */
+ box-shadow:0 15px 50px rgba(0,0,0,.6);
+}
+
+/* ---------- HERO ---------- */
+.hero{
+ text-align:center;
+ margin-bottom:24px; /* Reduced from 40px */
+}
+
+.hero img{
+ width:80px; /* Smaller icon */
+ margin-bottom:12px;
+ filter:drop-shadow(0 0 28px rgba(201,164,74,.35));
+}
+
+.hero h1{
+ font-size:1.8rem; /* Scaled down */
+ color:var(--gold);
+ margin:0 0 6px;
+ letter-spacing:1px;
+}
+
+.hero p{
+ color:var(--muted);
+ max-width:760px;
+ margin:0 auto;
+ font-size:15px;
+ line-height:1.5;
 }
 
 /* ---------- NOTICE ---------- */
 .notice{
  background:#000;
  border:1px dashed var(--gold);
- border-radius:16px;
- padding:16px;
- margin:40px auto;
+ border-radius:12px;
+ padding:10px; /* Reduced from 14px */
+ margin:0 auto 24px;
  text-align:center;
- max-width:900px;
- font-size:14px;
+ max-width:800px;
+ font-size:13px;
 }
 
 /* ---------- GRID ---------- */
 .offer-grid{
  display:grid;
- grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
- gap:30px;
+ grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
+ gap:24px; /* Tighter gap */
 }
 
 /* ---------- CARD ---------- */
@@ -87,192 +96,209 @@ body{
  background:#000;
  border:1px solid var(--border);
  border-radius:18px;
- padding:30px;
- position:relative;
+ padding:22px; /* Reduced padding */
  transition:.35s;
+ position:relative;
 }
 
 .offer-card:hover{
- transform:translateY(-6px);
+ transform:translateY(-3px);
  border-color:var(--gold);
+}
+
+.offer-card.popular{
+ border:2px solid var(--gold);
+ box-shadow:0 0 32px rgba(201,164,74,.15);
 }
 
 /* ---------- BADGES ---------- */
 .badge{
  position:absolute;
- top:18px;
- right:18px;
- padding:6px 16px;
- font-size:12px;
- font-weight:bold;
- border-radius:20px;
+ top:12px;
+ right:12px;
+ padding:4px 12px;
+ font-size:11px;
+ font-weight:800;
+ border-radius:30px;
+ background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+ color:#000;
 }
 
 /* ---------- FREE ---------- */
 .free{
  border:2px solid var(--green);
- box-shadow:0 0 30px rgba(0,255,140,.15);
 }
 .free .badge{
  background:linear-gradient(135deg,var(--green),var(--green-soft));
- color:#000;
 }
 .free .price{
  color:var(--green);
-}
-
-/* ---------- UPCOMING ---------- */
-.upcoming .badge{
- background:linear-gradient(135deg,var(--gold),var(--gold-soft));
- color:#000;
 }
 
 /* ---------- TEXT ---------- */
 .offer-card h2{
  color:var(--gold);
  margin-top:0;
+ font-size:1.3rem;
 }
 
 .price{
- font-size:2.6rem;
- font-weight:bold;
- margin:18px 0;
+ font-size:2rem; /* Scaled down from 2.6rem */
+ margin:12px 0;
+ font-weight:900;
 }
 .price span{
- font-size:15px;
+ font-size:13px;
  color:var(--muted);
 }
 
-.features{
+/* ---------- FEATURES ---------- */
+.offer-features{
  list-style:none;
  padding:0;
- margin:22px 0;
+ margin:15px 0;
+ font-size:14px;
 }
-.features li{
- padding:8px 0;
- border-bottom:1px solid rgba(255,255,255,.08);
- color:#ddd;
+.offer-features li{
+ padding:6px 0;
+ border-bottom:1px solid rgba(255,255,255,.05);
+ display:flex;
+ gap:8px;
+ color:#ccc;
 }
-.features li::before{
- content:"✓ ";
+.offer-features li::before{
+ content:"✓";
  color:var(--gold);
+ font-weight:bold;
 }
 
 /* ---------- BUTTON ---------- */
-.btn{
- display:block;
+.select-button{
  width:100%;
- padding:15px;
- border-radius:14px;
- font-weight:bold;
- text-align:center;
- text-decoration:none;
- margin-top:20px;
+ padding:12px;
+ border-radius:10px;
+ border:none;
+ cursor:pointer;
+ font-size:14px;
+ font-weight:800;
+ background:linear-gradient(135deg,var(--gold),var(--gold-soft));
  transition:.3s;
 }
 
-.free .btn{
+.free .select-button{
  background:linear-gradient(135deg,var(--green),var(--green-soft));
- color:#000;
 }
 
-.upcoming .btn{
- background:linear-gradient(135deg,var(--gold),var(--gold-soft));
- color:#000;
+/* ---------- WHY SECTION ---------- */
+.content-card{
+ background:#000;
+ border:1px solid var(--border);
+ border-radius:18px;
+ padding:20px; /* Reduced padding */
+ margin-top:24px;
 }
 
-.btn:hover{
- transform:translateY(-2px);
- box-shadow:0 6px 22px rgba(0,0,0,.5);
+.content-card h2{
+ color:var(--gold);
+ font-size:1.2rem;
+ margin:0 0 8px;
+ border-bottom:1px solid rgba(201,164,74,.2);
+ padding-bottom:6px;
+}
+
+.content-card p{
+ color:#bbb;
+ line-height:1.5;
+ font-size:14px;
+ margin:0;
 }
 
 /* ---------- FOOTER ---------- */
 .footer{
  text-align:center;
- margin-top:60px;
+ margin-top:24px;
+ padding-top:14px;
+ border-top:1px solid var(--border);
  font-size:12px;
  color:var(--muted);
- border-top:1px solid var(--border);
- padding-top:20px;
 }
 
 /* ---------- MOBILE ---------- */
 @media(max-width:600px){
- .hero h1{font-size:2.2rem}
+ .container{padding:16px; margin:10px auto;}
+ .hero h1{font-size:1.6rem}
+ .offer-grid{gap:16px;}
 }
 </style>
 </head>
 
 <body>
 
-<section class="hero">
- <h1>VirginAI Plans</h1>
- <p>
- Start free. Upgrade when ready.  
- VirginAI is currently in beta — premium plans are coming soon.
- </p>
-</section>
-
 <div class="container">
 
+<section class="hero">
+ <img src="https://cdn-icons-png.flaticon.com/512/4712/4712109.png" alt="VirginAI Logo">
+ <h1>VirginAI Plans & Offers</h1>
+ <p>Start free. Upgrade when ready. Premium plans coming soon.</p>
+</section>
+
 <div class="notice">
- 🚧 Paid subscriptions are <strong>not active yet</strong>.  
- Pricing and features shown below are for preview purposes only.
+  🚧 <strong>No payments are collected yet.</strong>  
+  Paid plans shown below are upcoming and for preview only.
 </div>
 
 <div class="offer-grid">
 
- <!-- FREE -->
  <div class="offer-card free">
   <div class="badge">ACTIVE</div>
   <h2>Free</h2>
-  <p>Perfect for students and everyday use</p>
-  <div class="price">$0<span>/month</span></div>
-  <ul class="features">
-   <li>Limited daily conversations</li>
+  <div class="price">$0<span>/mo</span></div>
+  <ul class="offer-features">
    <li>Standard AI speed</li>
    <li>Basic memory</li>
    <li>Web access</li>
   </ul>
-  <a class="btn">Available Now</a>
+  <button class="select-button">Available Now</button>
  </div>
 
- <!-- PRO -->
- <div class="offer-card upcoming">
-  <div class="badge">UPCOMING</div>
+ <div class="offer-card popular">
+  <div class="badge" style="background:linear-gradient(135deg,var(--accent),#00cca3)">UPCOMING</div>
   <h2>Pro</h2>
-  <p>For professionals and creators</p>
-  <div class="price">$9.99<span>/month</span></div>
-  <ul class="features">
-   <li>Unlimited chats</li>
+  <div class="price">$9.99<span>/mo</span></div>
+  <ul class="offer-features">
+   <li>Unlimited conversations</li>
    <li>Faster responses</li>
-   <li>Extended context</li>
    <li>Priority support</li>
   </ul>
-  <a class="btn">Join Waitlist</a>
+  <button class="select-button">Join Waitlist</button>
  </div>
 
- <!-- TEAM -->
- <div class="offer-card upcoming">
+ <div class="offer-card">
   <div class="badge">UPCOMING</div>
   <h2>Team</h2>
-  <p>For startups and organizations</p>
-  <div class="price">$29.99<span>/month</span></div>
-  <ul class="features">
+  <div class="price">$29.99<span>/mo</span></div>
+  <ul class="offer-features">
    <li>Multiple users</li>
    <li>Admin dashboard</li>
-   <li>Analytics</li>
-   <li>Dedicated support</li>
+   <li>API support</li>
   </ul>
-  <a class="btn">Request Access</a>
+  <button class="select-button">Request Access</button>
  </div>
 
+</div>
+
+<div class="content-card">
+ <h2>Why VirginAI?</h2>
+ <p>
+  Privacy-first, optimized performance, and designed independently for intelligent assistance and productivity.
+ </p>
 </div>
 
 <div class="footer">
- <p>VirginAI © 2025 · Pricing subject to change · No payments collected yet</p>
+ <p>VirginAI © 2025 · Pricing subject to change</p>
 </div>
 
 </div>
+
 </body>
 </html>
