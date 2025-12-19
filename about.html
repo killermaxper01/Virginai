@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,6 +19,7 @@
 <meta property="og:description" content="Learn about VirginAI — a fast, secure, and intelligent AI chat assistant built for everyone.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://virginai.in/about.html">
+<meta property="og:image" content="https://virginai.in/og-image.png"> <!-- ✅ ADDED -->
 
 <!-- Structured Data -->
 <script type="application/ld+json">
@@ -121,6 +124,7 @@ li{
 <div class="container">
 
 <header>
+  <img src="/og-image.png" alt="VirginAI banner">
 <h1>About VirginAI</h1>
 <p>An intelligent AI assistant designed for clarity, speed, and trust</p>
 </header>
@@ -177,6 +181,14 @@ accuracy, or user trust.
 </div>
 
 </div>
+
+<!-- ✅ BACK NAVIGATION REDIRECT -->
+<script>
+history.pushState(null, "", location.href);
+window.onpopstate = function () {
+  window.location.href = "/";
+};
+</script>
 
 </body>
 </html>
