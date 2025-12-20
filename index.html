@@ -190,15 +190,18 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 /* ===== CHAT AREA ===== */
 #chat{
- flex:1;
- overflow-y:auto;
- padding:14px;
- background:var(--panel);
- border:1px solid var(--border);
- border-radius:16px;
- scroll-behavior: smooth;
-}
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  background: var(--panel);
+  border:1px solid var(--border);
+  border-radius:16px;
 
+  /* 👇 Reserve space for fixed footer */
+  margin-bottom: 88px;
+}
+  
+  
 /* ===== MESSAGE BUBBLES ===== */
 .msg{
  max-width:85%;
@@ -263,6 +266,10 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   justify-content: center;
 }
 
+  
+ 
+  
+  
 .m-btn {
   flex: 1;
   padding: 10px 5px;
@@ -301,6 +308,26 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   box-shadow: 0 0 15px rgba(201, 164, 74, 0.3);
 }
 
+/* ===== CHAT FOOTER (MODE + INPUT FIXED) ===== */
+
+  
+  
+.chat-footer{
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  right: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 720px;
+  background: var(--bg);
+  padding: 8px 12px 12px;
+  border-top: 1px solid var(--border);
+  z-index: 20;
+}  
+  
+  
+  
 /* ===== INPUT BAR ===== */
 .input-bar{
  margin-top:4px;
@@ -444,18 +471,22 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 
 <div id="chat"></div>
 
-<div class="mode-selector">
-  <div class="m-btn active" data-mode="normal">Normal</div>
-  <div class="m-btn" data-mode="hard">Hard</div>
-  <div class="m-btn" data-mode="think">Think</div>
-  <div class="m-btn" data-mode="flash">Flash</div>
+<div class="chat-footer">
+  <div class="mode-selector">
+    <div class="m-btn active" data-mode="normal">Smart</div>
+    <div class="m-btn" data-mode="hard">Hard</div>
+    <div class="m-btn" data-mode="think">Think</div>
+    <div class="m-btn" data-mode="flash">Flash</div>
+  </div>
+
+  <div class="input-bar">
+    <textarea id="q" placeholder="Ask anything...."></textarea>
+    <button id="send">➤</button>
+  </div>
 </div>
 
-<div class="input-bar">
- <textarea id="q" placeholder="Ask anything...."></textarea>
- <button id="send">➤</button>
-</div>
-
+  
+  
 <footer>
  <a href="/about.html">About</a> · <a href="/developer.html">Developer</a> · <a href="/help.html">Help</a> · <a href="/faq.html">FAQ</a> · <a href="/contact.html">Contact</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a>
  <br><br>
