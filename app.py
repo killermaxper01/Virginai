@@ -44,89 +44,99 @@ def sitemap():
 def robots():
     return send_from_directory(".", "robots.txt")
 
+# -------------------- HOME --------------------
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
 
+# -------------------- FALLBACK --------------------
 @app.route("/<path:path>")
 def fallback(path):
     if os.path.exists(path):
         return send_from_directory(".", path)
     return send_from_directory(".", "index.html")
 
-# -------------------- API KEYS (MULTI KEY SUPPORT) --------------------
-GEMINI_KEYS = [
-    os.getenv("GEMINI_KEY_1"),
-    os.getenv("GEMINI_KEY_2"),
-    os.getenv("GEMINI_KEY_3"),
-    os.getenv("GEMINI_KEY_4"),
-    os.getenv("GEMINI_KEY_5"),
-]
+# -------------------- API KEYS --------------------
+GEMINI_KEYS = [k.strip() for k in os.getenv("GEMINI_KEYS", "").split(",") if k.strip()]
+GROQ_KEYS   = [k.strip() for k in os.getenv("GROQ_KEYS", "").split(",") if k.strip()]
 
-GROQ_KEYS = [
-    os.getenv("GROQ_KEY_1"),
-    os.getenv("GROQ_KEY_2"),
-]
-
-GEMINI_KEYS = [k for k in GEMINI_KEYS if k]
-GROQ_KEYS   = [k for k in GROQ_KEYS if k]
+# -------------------- MODELS --------------------
+GEMINI_MODELS = {
+    "normal": "gemma-3-27b-it",
+    "hard":   "gemini-3-flash-preview",
+    "think":  "gemini-3-flash-think",
+    "lite":   "gemini-2.5-flash-lite",
+}
 
 GROQ_MODEL = "llama-3.1-8b-instant"
 MAX_CONTEXT = 4
 
 # -------------------- CONTEXT --------------------
 def get_context():
-    return session.setdefault("context", [])
+    if "context" not in session:
+        session["context"] = []
+    return session["context"]
 
 def trim_context(ctx):
     return ctx[-MAX_CONTEXT * 2:]
 
-# -------------------- GEMINI CORE CALL --------------------
-def call_gemini_model(prompt, model):
-    api_key = random.choice(GEMINI_KEYS)
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-    payload = {
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}]
-    }
-    r = requests.post(url, json=payload, timeout=15)
-    r.raise_for_status()
-    return r.json()["candidates"][0]["content"]["parts"][0]["text"]
+# -------------------- KEY FAILOVER HANDLER --------------------
+def try_with_keys(call_fn, keys):
+    keys = keys[:]
+    random.shuffle(keys)
+    last_error = None
 
-# -------------------- GEMINI MODES --------------------
-def gemini_normal(prompt):
-    return call_gemini_model(prompt, "gemma-3-27b-it")
-
-def gemini_hard(prompt):
-    models = ["gemini-3-flash-preview", "gemini-2.5-flash-lite"]
-    for m in random.sample(models, len(models)):
+    for key in keys:
         try:
-            return call_gemini_model(prompt, m)
-        except:
+            return call_fn(key)
+        except Exception as e:
+            last_error = e
             continue
-    raise Exception("Hard mode failed")
 
-def gemini_think(prompt):
-    return call_gemini_model(prompt, "gemini-3-flash-think")
+    raise last_error
 
-# -------------------- GROQ (FLASH MODE) --------------------
+# -------------------- GEMINI --------------------
+def call_gemini(prompt, mode="normal"):
+    model = GEMINI_MODELS.get(mode, GEMINI_MODELS["normal"])
+
+    def _call(api_key):
+        url = f"https://generativelanguage.googleapis.com/v1/models/{model}:generateContent"
+        payload = {
+            "contents": [{
+                "role": "user",
+                "parts": [{"text": prompt}]
+            }]
+        }
+        r = requests.post(
+            url,
+            params={"key": api_key},
+            json=payload,
+            timeout=15
+        )
+        r.raise_for_status()
+        return r.json()["candidates"][0]["content"]["parts"][0]["text"]
+
+    return try_with_keys(_call, GEMINI_KEYS)
+
+# -------------------- GROQ (FLASH) --------------------
 def call_groq(prompt):
-    api_key = random.choice(GROQ_KEYS)
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    payload = {
-        "model": GROQ_MODEL,
-        "messages": [{"role": "user", "content": prompt}]
-    }
-    r = requests.post(
-        url,
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        },
-        json=payload,
-        timeout=15
-    )
-    r.raise_for_status()
-    return r.json()["choices"][0]["message"]["content"]
+    def _call(api_key):
+        r = requests.post(
+            "https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": GROQ_MODEL,
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=15
+        )
+        r.raise_for_status()
+        return r.json()["choices"][0]["message"]["content"]
+
+    return try_with_keys(_call, GROQ_KEYS)
 
 # -------------------- ASK API --------------------
 @app.route("/ask", methods=["POST"])
@@ -148,20 +158,9 @@ def ask():
         prompt = "\n".join(ctx) + "\nAI:"
 
         try:
-            if mode in ["normal", "smart"]:
-                reply = gemini_normal(prompt)
-            elif mode == "hard":
-                reply = gemini_hard(prompt)
-            elif mode == "think":
-                reply = gemini_think(prompt)
-            elif mode == "flash":
-                reply = call_groq(prompt)
-            else:
-                reply = gemini_normal(prompt)
-
-        except:
-            # fallback → flash
-            reply = call_groq(prompt)
+            reply = call_gemini(prompt, mode)
+        except Exception:
+            reply = call_groq(prompt)  # HARD FAILOVER
 
         ctx.append(f"AI: {reply}")
         session["context"] = trim_context(ctx)
