@@ -15,7 +15,7 @@
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#050505">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <meta name="description" content="VirginAI is a premium AI chat assistant powered by Gemini and Groq. Ask questions, learn faster, and get intelligent answers instantly.">
 <meta name="keywords" content="VirginAI, Virgin AI, VirginAI chatbot, VirginAI AI assistant, AI chatbot, AI chat assistant, artificial intelligence chatbot, AI for students, AI study assistant, AI learning assistant, Gemini AI chatbot, Groq AI, LLaMA AI chatbot, secure AI chatbot, privacy friendly AI assistant, free AI chatbot online, AI question answering, AI productivity tool">
@@ -88,8 +88,6 @@
   ]
 }
 </script>
-
-
 
 <style>
 /* Menu Styles */
@@ -174,7 +172,6 @@ body{
  color:var(--text);
  display:flex;
  justify-content:center;
- /* Removed overflow: hidden; to allow scrolling */
 }
 
 .app{
@@ -230,7 +227,6 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
  gap: 8px;
 }
 
-/* ===== AI LOGO STYLING ===== */
 .ai-header {
  display: flex;
  align-items: center;
@@ -259,10 +255,56 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 .ai-content { min-height: 20px; }
 
+/* ===== INTELLIGENCE CLASSES SELECTOR ===== */
+.mode-selector {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: center;
+}
+
+.m-btn {
+  flex: 1;
+  padding: 10px 5px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #0a0a0a;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+/* Default Glow for Normal */
+.m-btn.active[data-mode="normal"] {
+  color: #fff;
+  border-color: #ffffff;
+  background: #1a1a1a;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+.m-btn.active[data-mode="hard"] {
+  color: #ff4d4d;
+  border-color: #ff4d4d;
+  box-shadow: 0 0 15px rgba(255, 77, 77, 0.3);
+}
+.m-btn.active[data-mode="think"] {
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(0, 255, 213, 0.3);
+}
+.m-btn.active[data-mode="flash"] {
+  color: var(--gold);
+  border-color: var(--gold);
+  box-shadow: 0 0 15px rgba(201, 164, 74, 0.3);
+}
+
 /* ===== INPUT BAR ===== */
 .input-bar{
- margin-top:12px;
- padding:10px;
+ margin-top:4px;
+ padding:4px;
  background:var(--panel);
  border:1px solid var(--border);
  border-radius:16px;
@@ -272,21 +314,36 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 }
 
 textarea{
- flex:1;
- min-height:44px;
- max-height:160px;
- resize:none;
- overflow-y:auto;
- padding:12px 14px;
- border-radius:12px;
- border:1px solid var(--border);
- background:#020202;
- color:var(--text);
- font-size:15px;
- outline:none;
-}
+  flex: 1;
 
-button{
+  min-height: 44px;
+  max-height: 160px;
+
+  resize: none;
+  overflow-y: auto;
+
+  padding: 12px 14px;
+  line-height: 1.45;
+
+  border-radius: 12px;
+  border: 1px solid var(--border);
+
+  background: #020202;
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+
+  /* 🔑 KEY PART — grow upward */
+  align-self: flex-end;       /* anchors bottom */
+  box-sizing: border-box;
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+  
+  
+
+button#send{
  width:52px;
  height:52px;
  border:none;
@@ -299,7 +356,7 @@ button{
  transition: all 0.2s;
 }
 
-button:active { transform: scale(0.95); }
+button#send:active { transform: scale(0.95); }
 
 /* ===== FOOTER ===== */
 footer{ margin-top:10px; text-align:center; font-size:11px; color:var(--muted); }
@@ -312,42 +369,28 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
  .app{padding:10px}
  .msg{max-width:92%}
  header h1{font-size:1.5rem}
- .menu-container {
-   top: 10px;
-   left: 10px;
- }
- .menu-toggle {
-   width: 36px;
-   height: 36px;
-   font-size: 18px;
- }
- .menu-dropdown {
-   min-width: 160px;
-   top: 42px;
- }
+ .menu-container { top: 10px; left: 10px; }
+ .menu-toggle { width: 36px; height: 36px; font-size: 18px; }
+ .mode-selector { gap: 4px; }
+ .m-btn { font-size: 10px; padding: 8px 2px; }
 }
 </style>
 </head>
 
 <body>
-<!-- Menu Container -->
 <div class="menu-container">
   <button class="menu-toggle" onclick="toggleMenu()">☰</button>
   <div class="menu-dropdown" id="menuDropdown">
     <a href="upcomingmodel.html" class="menu-item">Upcoming Model AI</a>
     <a href="developer.html" class="menu-item">Developer</a>
     <a href="offers.html" class="menu-item">Offers</a>
-    
-
   </div>
 </div>
 
 <div class="app">
 
 <div class="seo-hidden" aria-hidden="true">
-
   <h1>VirginAI – Advanced Intelligent AI Chat Assistant</h1>
-
   <p>
     <strong>VirginAI</strong> is an independently developed
     <strong>AI-powered chat assistant</strong> focused on
@@ -356,7 +399,6 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     The platform is designed to deliver fast, accurate, and reliable
     AI-generated responses through a secure web interface.
   </p>
-
   <h2>Founders & Creators</h2>
   <p>
     VirginAI was <strong>founded, designed, and developed</strong> by
@@ -364,7 +406,6 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     The project is built as an independent initiative with a focus on
     transparency, performance, and user trust.
   </p>
-
   <h2>Core Technology</h2>
   <p>
     VirginAI integrates advanced large language models including
@@ -373,7 +414,6 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     This multi-model approach ensures availability, low latency, and
     consistent performance under varying workloads.
   </p>
-
   <h2>Key Features</h2>
   <ul>
     <li><strong>Intelligent Question Answering</strong> for learning and research</li>
@@ -383,7 +423,6 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     <li><strong>Secure Infrastructure</strong> including rate limiting and request validation</li>
     <li><strong>Cross-Platform Access</strong> via modern web browsers</li>
   </ul>
-
   <h2>Security & Privacy</h2>
   <p>
     VirginAI is built with a strong emphasis on security and responsible
@@ -391,13 +430,11 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     user sessions, and controlled API access to prevent abuse while
     maintaining system stability.
   </p>
-
   <p>
     The system follows a <strong>privacy-first approach</strong>,
     avoiding unnecessary data storage and focusing on secure,
     ephemeral interactions.
   </p>
-
 </div>
 
 <header>
@@ -406,6 +443,13 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 </header>
 
 <div id="chat"></div>
+
+<div class="mode-selector">
+  <div class="m-btn active" data-mode="normal">Normal</div>
+  <div class="m-btn" data-mode="hard">Hard</div>
+  <div class="m-btn" data-mode="think">Think</div>
+  <div class="m-btn" data-mode="flash">Flash</div>
+</div>
 
 <div class="input-bar">
  <textarea id="q" placeholder="Ask anything...."></textarea>
@@ -420,6 +464,17 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 </div>
 
 <script>
+let currentMode = "normal";
+
+// Toggle between Intelligence Classes
+document.querySelectorAll('.m-btn').forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMode = btn.getAttribute('data-mode');
+  };
+});
+
 // Menu toggle function
 function toggleMenu() {
   const menu = document.getElementById('menuDropdown');
@@ -430,7 +485,7 @@ function toggleMenu() {
 document.addEventListener('click', function(event) {
   const menu = document.getElementById('menuDropdown');
   const toggle = document.querySelector('.menu-toggle');
-  if (!menu.contains(event.target) && !toggle.contains(event.target)) {
+  if (menu && !menu.contains(event.target) && !toggle.contains(event.target)) {
     menu.style.display = 'none';
   }
 });
@@ -446,7 +501,7 @@ function add(text, cls) {
     d.innerHTML = `
       <div class="ai-header">
         <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
-        <span class="ai-name">VirginAI</span>
+        <span class="ai-name">VirginAI • ${currentMode.toUpperCase()}</span>
       </div>
       <div class="ai-content">${text}</div>
     `;
@@ -458,7 +513,6 @@ function add(text, cls) {
   return d;
 }
 
-/* MATRIX TYPING WITH AUTO-SCROLL PULL DOWN */
 function typeMatrix(el, text) {
   const contentEl = el.querySelector(".ai-content");
   let i = 0;
@@ -466,10 +520,7 @@ function typeMatrix(el, text) {
   const speed = 14;
   const timer = setInterval(() => {
     contentEl.textContent += text[i++] || "";
-
-    // ✨ Auto-pull keywords down as they generate
     chat.scrollTop = chat.scrollHeight;
-
     if (i >= text.length) {
       clearInterval(timer);
       chat.scrollTop = chat.scrollHeight;
@@ -491,7 +542,10 @@ async function ask() {
     const r = await fetch("/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: text })
+      body: JSON.stringify({ 
+        question: text,
+        mode: currentMode 
+      })
     });
     const d = await r.json();
     typeMatrix(aiBubble, d.answer || "No response.");
@@ -500,11 +554,23 @@ async function ask() {
   }
 }
 
-/* Event Listeners */
+/* SMART KEYBOARD LOGIC FOR ANDROID & DESKTOP */
 q.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    ask();
+  // Mobile check: Most mobile browsers use touch.
+  const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+  if (e.key === "Enter") {
+    if (isMobile) {
+      // On Android/Mobile: Allow Enter key to create a NEW LINE.
+      // User must click "➤" button to send.
+      return; 
+    } else {
+      // On Desktop: Enter = SEND, Shift+Enter = NEW LINE.
+      if (!e.shiftKey) {
+        e.preventDefault();
+        ask();
+      }
+    }
   }
 });
 
