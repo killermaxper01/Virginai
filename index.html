@@ -164,20 +164,22 @@
 
 *{box-sizing:border-box}
 
+  
 body{
  margin:0;
- height:100vh;
+ min-height:100vh;
  background:var(--bg);
  font-family:Inter,Segoe UI,sans-serif;
  color:var(--text);
  display:flex;
  justify-content:center;
-}
+ overflow-y:auto; /* ✅ allow full page scroll */
+}  
 
 .app{
  width:100%;
  max-width:720px;
- height:100vh;
+ min-height:100vh;
  display:flex;
  flex-direction:column;
  padding:16px;
@@ -198,7 +200,7 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   border-radius:16px;
 
   /* 👇 Reserve space for fixed footer */
-  margin-bottom: 88px;
+  /*margin-bottom: 240px; */
 }
   
   
@@ -309,23 +311,22 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 }
 
 /* ===== CHAT FOOTER (MODE + INPUT FIXED) ===== */
+/* ===== CHAT FOOTER (MODE + INPUT FIXED) ===== */
 
-  
-  
-.chat-footer{
-  position: fixed;
+.chat-footer {
+  position: sticky;
   bottom: 0;
-  left: 50%;
-  right: 0;
-  transform: translateX(-50%);
   width: 100%;
   max-width: 720px;
+  margin: auto;
+
   background: var(--bg);
   padding: 8px 12px 12px;
   border-top: 1px solid var(--border);
-  z-index: 20;
-}  
+  z-index: 10;
+}
   
+
   
   
 /* ===== INPUT BAR ===== */
