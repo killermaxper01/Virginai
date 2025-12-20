@@ -17,24 +17,20 @@ app.config["SESSION_PERMANENT"] = False
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
-    default_limits=["10 per minute"]
+    default_limits=["20 per minute"]
 )
 
 # -------------------- SECURITY + CACHE HEADERS --------------------
 @app.after_request
 def add_headers(response):
-    # ---- Security headers (lightweight, safe) ----
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
 
-    # ---- Cache logic (ETag based, no forced caching) ----
     if request.path.startswith("/ask") or request.path.startswith("/clear-session"):
-        # API → never cache
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
     else:
-        # Static / pages → browser may store BUT must revalidate using ETag
         response.headers["Cache-Control"] = "no-cache, must-revalidate"
 
     return response
@@ -48,52 +44,73 @@ def sitemap():
 def robots():
     return send_from_directory(".", "robots.txt")
 
-# -------------------- HOME --------------------
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
 
-# -------------------- FALLBACK (IMPORTANT) --------------------
-# Any shared / unknown URL → HOME page
 @app.route("/<path:path>")
 def fallback(path):
     if os.path.exists(path):
         return send_from_directory(".", path)
     return send_from_directory(".", "index.html")
 
-# -------------------- API KEYS --------------------
-GEMINI_KEY = os.getenv("GEMINI_API_KEY")
-GROQ_KEY   = os.getenv("GROQ_API_KEY")
+# -------------------- API KEYS (MULTI KEY SUPPORT) --------------------
+GEMINI_KEYS = [
+    os.getenv("GEMINI_KEY_1"),
+    os.getenv("GEMINI_KEY_2"),
+    os.getenv("GEMINI_KEY_3"),
+    os.getenv("GEMINI_KEY_4"),
+    os.getenv("GEMINI_KEY_5"),
+]
 
-GEMINI_MODEL = "gemma-3-27b-it"
-GROQ_MODEL   = "llama-3.1-8b-instant"
+GROQ_KEYS = [
+    os.getenv("GROQ_KEY_1"),
+    os.getenv("GROQ_KEY_2"),
+]
 
+GEMINI_KEYS = [k for k in GEMINI_KEYS if k]
+GROQ_KEYS   = [k for k in GROQ_KEYS if k]
+
+GROQ_MODEL = "llama-3.1-8b-instant"
 MAX_CONTEXT = 4
 
-# -------------------- HELPERS --------------------
+# -------------------- CONTEXT --------------------
 def get_context():
-    if "context" not in session:
-        session["context"] = []
-    return session["context"]
+    return session.setdefault("context", [])
 
 def trim_context(ctx):
     return ctx[-MAX_CONTEXT * 2:]
 
-# -------------------- GEMINI --------------------
-def call_gemini(prompt):
-    url = f"https://generativelanguage.googleapis.com/v1/models/{GEMINI_MODEL}:generateContent"
+# -------------------- GEMINI CORE CALL --------------------
+def call_gemini_model(prompt, model):
+    api_key = random.choice(GEMINI_KEYS)
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     payload = {
-        "contents": [{
-            "role": "user",
-            "parts": [{"text": prompt}]
-        }]
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}]
     }
-    r = requests.post(url, params={"key": GEMINI_KEY}, json=payload, timeout=15)
+    r = requests.post(url, json=payload, timeout=15)
     r.raise_for_status()
     return r.json()["candidates"][0]["content"]["parts"][0]["text"]
 
-# -------------------- GROQ --------------------
+# -------------------- GEMINI MODES --------------------
+def gemini_normal(prompt):
+    return call_gemini_model(prompt, "gemma-3-27b-it")
+
+def gemini_hard(prompt):
+    models = ["gemini-3-flash-preview", "gemini-2.5-flash-lite"]
+    for m in random.sample(models, len(models)):
+        try:
+            return call_gemini_model(prompt, m)
+        except:
+            continue
+    raise Exception("Hard mode failed")
+
+def gemini_think(prompt):
+    return call_gemini_model(prompt, "gemini-3-flash-think")
+
+# -------------------- GROQ (FLASH MODE) --------------------
 def call_groq(prompt):
+    api_key = random.choice(GROQ_KEYS)
     url = "https://api.groq.com/openai/v1/chat/completions"
     payload = {
         "model": GROQ_MODEL,
@@ -102,7 +119,7 @@ def call_groq(prompt):
     r = requests.post(
         url,
         headers={
-            "Authorization": f"Bearer {GROQ_KEY}",
+            "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
         },
         json=payload,
@@ -113,11 +130,12 @@ def call_groq(prompt):
 
 # -------------------- ASK API --------------------
 @app.route("/ask", methods=["POST"])
-@limiter.limit("10 per minute")
+@limiter.limit("20 per minute")
 def ask():
     try:
         data = request.get_json(force=True)
         question = data.get("question", "").strip()
+        mode = data.get("mode", "normal").lower()
 
         if not question:
             return jsonify({"answer": "❗ Please ask a question."}), 400
@@ -129,23 +147,21 @@ def ask():
 
         prompt = "\n".join(ctx) + "\nAI:"
 
-        providers = ["gemini", "groq"]
-        random.shuffle(providers)
+        try:
+            if mode in ["normal", "smart"]:
+                reply = gemini_normal(prompt)
+            elif mode == "hard":
+                reply = gemini_hard(prompt)
+            elif mode == "think":
+                reply = gemini_think(prompt)
+            elif mode == "flash":
+                reply = call_groq(prompt)
+            else:
+                reply = gemini_normal(prompt)
 
-        reply = None
-        for p in providers:
-            try:
-                if p == "gemini" and GEMINI_KEY:
-                    reply = call_gemini(prompt)
-                    break
-                if p == "groq" and GROQ_KEY:
-                    reply = call_groq(prompt)
-                    break
-            except:
-                pass
-
-        if not reply:
-            return jsonify({"answer": "⚠️ AI services are busy. Try again later."}), 503
+        except:
+            # fallback → flash
+            reply = call_groq(prompt)
 
         ctx.append(f"AI: {reply}")
         session["context"] = trim_context(ctx)
