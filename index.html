@@ -40,26 +40,28 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "VirginAI",
+  "alternateName": "Virgin AI Chat Assistant",
   "url": "https://virginai.in",
-  "description": "VirginAI is an independently developed AI-powered chat assistant focused on learning, productivity, and research.",
-  "applicationCategory": "EducationalApplication",
+  "description": "VirginAI is an Indian AI-powered chat assistant developed by Raj Verma and Kalash Verma. It focuses on education, research, productivity, and intelligent problem-solving. VirginAI is a digital AI platform and is not associated with the U.S. state of Virginia.",
+  "applicationCategory": "Artificial Intelligence",
   "operatingSystem": "Web",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD"
+  "countryOfOrigin": {
+    "@type": "Country",
+    "name": "India"
   },
-  "author": [
+  "creator": [
     {
       "@type": "Person",
-      "name": "Raj Verma"
+      "name": "Raj Verma",
+      "nationality": "Indian"
     },
     {
       "@type": "Person",
-      "name": "Kalash Verma"
+      "name": "Kalash Verma",
+      "nationality": "Indian"
     }
   ],
-  "creator": [
+  "founder": [
     {
       "@type": "Person",
       "name": "Raj Verma"
@@ -74,8 +76,17 @@
     "name": "VirginAI",
     "logo": {
       "@type": "ImageObject",
-      "url": "https://virginai.in/android-chrome-512x512.png" 
+      "url": "https://virginai.in/android-chrome-512x512.png"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "India"
     }
+  },
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
   },
   "contactPoint": {
     "@type": "ContactPoint",
@@ -85,10 +96,11 @@
   "sameAs": [
     "https://instagram.com/virginai.in",
     "https://github.com/killermaxper01/Virginai"
-  ]
+  ],
+  "disambiguatingDescription": "VirginAI is an independent artificial intelligence platform developed in India and is not related to the U.S. state of Virginia."
 }
 </script>
-
+  
 <style>
 /* Menu Styles */
 .menu-container {
@@ -164,7 +176,7 @@
 
 *{box-sizing:border-box}
 
-  
+
 body{
  margin:0;
  min-height:100vh;
@@ -202,8 +214,8 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   /* 👇 Reserve space for fixed footer */
   margin-bottom: 50px; 
 }
-  
-  
+
+
 /* ===== MESSAGE BUBBLES ===== */
 .msg{
  max-width:85%;
@@ -268,10 +280,10 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   justify-content: center;
 }
 
-  
- 
-  
-  
+
+
+
+
 .m-btn {
   flex: 1;
   padding: 10px 5px;
@@ -325,10 +337,10 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   border-top: 1px solid var(--border);
   z-index: 10;
 }
-  
 
-  
-  
+
+
+
 /* ===== INPUT BAR ===== */
 .input-bar{
  margin-top:4px;
@@ -368,8 +380,8 @@ textarea{
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
-  
-  
+
+
 
 button#send{
  width:52px;
@@ -419,6 +431,7 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 
 <div class="seo-hidden" aria-hidden="true">
   <h1>VirginAI – Advanced Intelligent AI Chat Assistant</h1>
+
   <p>
     <strong>VirginAI</strong> is an independently developed
     <strong>AI-powered chat assistant</strong> focused on
@@ -427,6 +440,12 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     The platform is designed to deliver fast, accurate, and reliable
     AI-generated responses through a secure web interface.
   </p>
+
+  <p>
+    Proudly developed in <strong>India</strong>, VirginAI is a digital
+    artificial intelligence platform built for global users.
+  </p>
+
   <h2>Founders & Creators</h2>
   <p>
     VirginAI was <strong>founded, designed, and developed</strong> by
@@ -434,37 +453,18 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     The project is built as an independent initiative with a focus on
     transparency, performance, and user trust.
   </p>
+
   <h2>Core Technology</h2>
   <p>
     VirginAI integrates advanced large language models including
-    <strong>Google Gemini 2.0 Flash</strong> and
-    <strong>Groq-powered LLaMA 3.1</strong>.
+    <strong>Google Gemini </strong> and
+    <strong>Groq-powered LLaMA </strong>.
     This multi-model approach ensures availability, low latency, and
     consistent performance under varying workloads.
   </p>
-  <h2>Key Features</h2>
-  <ul>
-    <li><strong>Intelligent Question Answering</strong> for learning and research</li>
-    <li><strong>Fast AI Responses</strong> optimized for low latency</li>
-    <li><strong>Session-Based Conversations</strong> with controlled context length</li>
-    <li><strong>Privacy-Focused Design</strong> with minimal data retention</li>
-    <li><strong>Secure Infrastructure</strong> including rate limiting and request validation</li>
-    <li><strong>Cross-Platform Access</strong> via modern web browsers</li>
-  </ul>
-  <h2>Security & Privacy</h2>
-  <p>
-    VirginAI is built with a strong emphasis on security and responsible
-    AI usage. The platform implements request rate limiting, isolated
-    user sessions, and controlled API access to prevent abuse while
-    maintaining system stability.
-  </p>
-  <p>
-    The system follows a <strong>privacy-first approach</strong>,
-    avoiding unnecessary data storage and focusing on secure,
-    ephemeral interactions.
-  </p>
 </div>
-
+  
+  
 <header>
  <h1>VirginAi</h1>
  <p>end-to-end-encryption</p>
@@ -486,8 +486,8 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
   </div>
 </div>
 
-  
-  
+
+
 <footer>
  <a href="/about.html">About</a> · <a href="/developer.html">Developer</a> · <a href="/help.html">Help</a> · <a href="/faq.html">FAQ</a> · <a href="/contact.html">Contact</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a>
  <br><br>
