@@ -102,7 +102,7 @@
   "disambiguatingDescription": "VirginAI is an independent artificial intelligence platform developed in India and is not related to the U.S. state of Virginia."
 }
 </script>
-  
+
 <style>
 /* Menu Styles */
 .menu-container {
@@ -301,17 +301,17 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   text-align: center;
 }
 
-/* Default Glow for Normal */
-.m-btn.active[data-mode="normal"] {
+/* Default Glow for smart */
+.m-btn.active[data-mode="smart"] {
   color: #fff;
   border-color: #ffffff;
   background: #1a1a1a;
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
-.m-btn.active[data-mode="hard"] {
-  color: #ff4d4d;
-  border-color: #ff4d4d;
-  box-shadow: 0 0 15px rgba(255, 77, 77, 0.3);
+.m-btn.active[data-mode="internet "] {
+  color: #1F51FF;
+  border-color:var(--blue) ;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 .m-btn.active[data-mode="think"] {
   color: var(--accent);
@@ -465,8 +465,8 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     consistent performance under varying workloads.
   </p>
 </div>
-  
-  
+
+
 <header>
   <h1>VirginAI</h1>
   <p>Proudly made in India 🇮🇳 · End-to-end encrypted</p>
@@ -476,8 +476,8 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 
 <div class="chat-footer">
   <div class="mode-selector">
-    <div class="m-btn active" data-mode="normal">Smart</div>
-    <div class="m-btn" data-mode="hard">Hard</div>
+    <div class="m-btn active" data-mode="smart">Smart</div>
+    <div class="m-btn" data-mode="internet ">Internet </div>
     <div class="m-btn" data-mode="think">Think</div>
     <div class="m-btn" data-mode="flash">Flash</div>
   </div>
@@ -498,7 +498,7 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 </div>
 
 <script>
-let currentMode = "normal";
+let currentMode = "smart";
 
 // Toggle between Intelligence Classes
 document.querySelectorAll('.m-btn').forEach(btn => {
