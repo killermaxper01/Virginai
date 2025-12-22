@@ -4,20 +4,24 @@ from flask_limiter.util import get_remote_address
 from flask_cors import CORS
 from dotenv import load_dotenv
 import requests, os, random
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # -------------------- SETUP --------------------
 load_dotenv()
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)  # ✅ MUST be after app creation
+
 CORS(app)
 
 app.secret_key = os.getenv("APP_SECRET_TOKEN", "change_this_secret")
 app.config["SESSION_PERMANENT"] = False
 
+# -------------------- RATE LIMITER --------------------
 limiter = Limiter(
     key_func=get_remote_address,
     app=app,
-    default_limits=["20 per minute"]
+    default_limits=["30 per minute"]  # shared IP safe
 )
 
 # -------------------- SECURITY + CACHE HEADERS --------------------
@@ -28,6 +32,7 @@ def add_headers(response):
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
 
+    # ✅ ETag NOT REMOVED
     if request.path.startswith("/ask") or request.path.startswith("/clear-session"):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
     else:
@@ -46,11 +51,10 @@ GROQ_KEYS   = load_keys("GROQ_KEY_")
 
 # -------------------- MODELS --------------------
 MODELS = {
-    "normal": ["gemma-3-27b-it"],
-    "hard": ["gemini-3-flash-preview", "gemini-2.5-flash-lite"],
+    "smart": ["gemma-3-27b-it"],
+    "internet": ["gemini-3-flash-preview", "gemini-2.5-flash-lite"],
     "think": ["gemini-3-flash-think"],
     "flash": ["llama-3.1-8b-instant"],
-    "smart": ["gemma-3-27b-it"]
 }
 
 MAX_CONTEXT = 4
@@ -63,20 +67,31 @@ def trim_context(ctx):
     return ctx[-MAX_CONTEXT * 2:]
 
 # -------------------- GEMINI CALL --------------------
-def call_gemini(prompt, model):
+def call_gemini(prompt, model, internet=False):
     for key in random.sample(GEMINI_KEYS, len(GEMINI_KEYS)):
         try:
             url = f"https://generativelanguage.googleapis.com/v1/models/{model}:generateContent"
+
             payload = {
                 "contents": [{
                     "role": "user",
                     "parts": [{"text": prompt}]
                 }]
             }
-            r = requests.post(url, params={"key": key}, json=payload, timeout=15)
+
+            if internet:
+                payload["tools"] = [{"google_search": {}}]
+
+            r = requests.post(
+                url,
+                params={"key": key},
+                json=payload,
+                timeout=20
+            )
             r.raise_for_status()
             return r.json()["candidates"][0]["content"]["parts"][0]["text"]
-        except:
+
+        except Exception:
             continue
     return None
 
@@ -98,29 +113,87 @@ def call_groq(prompt):
             )
             r.raise_for_status()
             return r.json()["choices"][0]["message"]["content"]
-        except:
+        except Exception:
             continue
     return None
+
 
 # -------------------- AI ROUTER --------------------
 def generate_ai(prompt, mode):
-    tried = set()
-    queue = MODELS.get(mode, []) + ["llama-3.1-8b-instant", "gemma-3-27b-it"]
+    """
+    MODE BEHAVIOR SUMMARY:
 
-    for model in queue:
-        if model in tried:
-            continue
-        tried.add(model)
+    smart:
+        → Gemini: gemma-3-27b-it
+        → if fails → Groq: llama-3.1-8b-instant
 
-        if "llama" in model:
-            reply = call_groq(prompt)
-        else:
-            reply = call_gemini(prompt, model)
+    internet:
+        → Gemini with Google Search tool:
+            - gemini-3-flash-preview
+            - gemini-2.5-flash-lite
+        → if all fail → smart model
+        → if still fail → Groq
 
+    think:
+        → Gemini reasoning model:
+            - gemini-3-flash-think
+        → if fails → smart model
+        → if still fail → Groq
+
+    flash:
+        → Groq (fastest & cheapest):
+            - llama-3.1-8b-instant
+        → if Groq fails → smart model
+    """
+
+    # ---------- helper: try Gemini ----------
+    def try_gemini(model, internet=False):
+        reply = call_gemini(prompt, model, internet)
+        return (reply, model) if reply else (None, None)
+
+    # ---------- helper: try Groq ----------
+    def try_groq():
+        reply = call_groq(prompt)
+        return (reply, "llama-3.1-8b-instant") if reply else (None, None)
+
+    # ---------------- SMART MODE ----------------
+    # Default mode for normal chat
+    if mode == "smart":
+        reply, model = try_gemini("gemma-3-27b-it")
+        return (reply, model) if reply else try_groq()
+
+    # ---------------- INTERNET MODE ----------------
+    # Enables Google search tool inside Gemini
+    if mode == "internet":
+        for m in MODELS["internet"]:
+            reply, model = try_gemini(m, internet=True)
+            if reply:
+                return reply, model
+
+        # fallback chain: smart → groq
+        reply, model = try_gemini("gemma-3-27b-it")
+        return (reply, model) if reply else try_groq()
+
+    # ---------------- THINK MODE ----------------
+    # Pure reasoning, no tools
+    if mode == "think":
+        reply, model = try_gemini("gemini-3-flash-think")
         if reply:
-            return reply
+            return reply, model
 
-    return None
+        reply, model = try_gemini("gemma-3-27b-it")
+        return (reply, model) if reply else try_groq()
+
+    # ---------------- FLASH MODE ----------------
+    # Fastest responses (Groq)
+    if mode == "flash":
+        reply, model = try_groq()
+        return (reply, model) if reply else try_gemini("gemma-3-27b-it")
+
+    # ---------------- UNKNOWN MODE ----------------
+    # Safety fallback
+    reply, model = try_gemini("gemma-3-27b-it")
+    return (reply, model) if reply else try_groq()
 
 # -------------------- ASK API --------------------
 @app.route("/ask", methods=["POST"])
@@ -129,7 +202,7 @@ def ask():
     try:
         data = request.get_json(force=True)
         question = data.get("question", "").strip()
-        mode = data.get("mode", "normal").lower()
+        mode = data.get("mode", "smart").lower()
 
         if not question:
             return jsonify({"answer": "❗ Please ask a question."}), 400
@@ -139,20 +212,28 @@ def ask():
         session["context"] = trim_context(ctx)
 
         prompt = "\n".join(session["context"]) + "\nAI:"
-
-        reply = generate_ai(prompt, mode)
+        reply, model_used = generate_ai(prompt, mode)
 
         if not reply:
-            return jsonify({"answer": "⚠️ AI services are busy. Try again later."}), 503
+            return jsonify({
+                "answer": "⚠️ AI services are busy. Try again later.",
+                "mode_used": mode,
+                "model_used": None
+            }), 503
 
         session["context"].append(f"AI: {reply}")
         session["context"] = trim_context(session["context"])
         session.modified = True
 
-        return jsonify({"answer": reply})
+        return jsonify({
+            "answer": reply,
+            "mode_used": mode,
+            "model_used": model_used
+        })
 
     except requests.exceptions.Timeout:
         return jsonify({"answer": "⏳ AI timeout. Try again."}), 504
+
     except Exception as e:
         print("SERVER ERROR:", e)
         return jsonify({"answer": "❌ Server error. Please retry."}), 500
@@ -163,15 +244,7 @@ def clear_session():
     session.clear()
     return jsonify({"status": "cleared"})
 
-# -------------------- STATIC --------------------
-@app.route("/sitemap.xml")
-def sitemap():
-    return send_from_directory(".", "sitemap.xml")
-
-@app.route("/robots.txt")
-def robots():
-    return send_from_directory(".", "robots.txt")
-
+# -------------------- STATIC FILES --------------------
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
