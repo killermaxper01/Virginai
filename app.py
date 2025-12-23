@@ -5,6 +5,10 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import requests, os, random
 from werkzeug.middleware.proxy_fix import ProxyFix
+#new pip 
+import base64, io
+from PIL import Image
+import PyPDF2
 
 # -------------------- SETUP --------------------
 load_dotenv()
@@ -117,7 +121,71 @@ def call_groq(prompt):
             continue
     return None
 
+#vision model 
+GEMINI_VISION_MODEL = "gemini-2.5-flash"
 
+def call_gemini_vision(file, question):
+    for key in random.sample(GEMINI_KEYS, len(GEMINI_KEYS)):
+        try:
+            img = Image.open(file.stream).convert("RGB")
+            img = img.resize((768, 768))
+
+            buf = io.BytesIO()
+            img.save(buf, format="JPEG", quality=65)
+            img_b64 = base64.b64encode(buf.getvalue()).decode()
+
+            payload = {
+                "contents": [{
+                    "role": "user",
+                    "parts": [
+                        {"text": question},
+                        {
+                            "inline_data": {
+                                "mime_type": "image/jpeg",
+                                "data": img_b64
+                            }
+                        }
+                    ]
+                }]
+            }
+
+            r = requests.post(
+                f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_VISION_MODEL}:generateContent",
+                params={"key": key},
+                json=payload,
+                timeout=25
+            )
+            r.raise_for_status()
+
+            return r.json()["candidates"][0]["content"]["parts"][0]["text"]
+
+        except Exception as e:
+            print("VISION ERROR:", e)
+            continue
+
+    return None
+    
+#text extract    
+def extract_text_from_file(file):
+    try:
+        name = file.filename.lower()
+
+        if name.endswith(".txt") or name.endswith(".py") or name.endswith(".html") or name.endswith(".css"):
+            return file.read().decode("utf-8", errors="ignore"), None
+
+        if name.endswith(".pdf"):
+            reader = PyPDF2.PdfReader(file.stream)
+            text = "\n".join(page.extract_text() or "" for page in reader.pages)
+            return text[:8000], None  # context safe
+
+        return None, "❗ Unsupported file type"
+
+    except Exception as e:
+        return None, "❌ File processing failed"    
+ 
+        
+                      
+    
 # -------------------- AI ROUTER --------------------
 def generate_ai(prompt, mode):
     """
@@ -197,7 +265,8 @@ def generate_ai(prompt, mode):
 
 # -------------------- ASK API --------------------
 @app.route("/ask", methods=["POST"])
-@limiter.limit("20 per minute")
+@limiter.limit("30 per minute")
+               
 def ask():
     try:
         data = request.get_json(force=True)
@@ -238,6 +307,60 @@ def ask():
         print("SERVER ERROR:", e)
         return jsonify({"answer": "❌ Server error. Please retry."}), 500
 
+
+@app.route("/upload", methods=["POST"])
+@limiter.limit("5 per minute")
+def upload():
+    try:
+        if "file" not in request.files:
+            return jsonify({"answer": "❗ No file uploaded"}), 400
+
+        file = request.files["file"]
+        question = request.form.get("question", "Explain this")
+        filename = file.filename.lower()
+
+        # ---------- IMAGE → GEMINI VISION ----------
+        if filename.endswith((".jpg", ".jpeg", ".png", ".webp")):
+            answer = call_gemini_vision(file, question)
+
+            if not answer:
+                return jsonify({"answer": "⚠️ Vision model busy"}), 503
+
+            return jsonify({
+                "answer": answer,
+                "model_used": "gemini-2.5-flash",
+                "source": "image"
+            })
+
+        # ---------- TEXT / PDF → SMART MODE ----------
+        extracted_text, error = extract_text_from_file(file)
+        if error:
+            return jsonify({"answer": error}), 400
+
+        prompt = f"""
+User uploaded document:
+{extracted_text}
+
+User question:
+{question}
+"""
+
+        reply, model_used = generate_ai(prompt, mode="smart")
+
+        if not reply:
+            return jsonify({"answer": "⚠️ AI busy"}), 503
+
+        return jsonify({
+            "answer": reply,
+            "model_used": model_used,
+            "source": "file"
+        })
+
+    except Exception as e:
+        print("UPLOAD ERROR:", e)
+        return jsonify({"answer": "❌ Server error"}), 500
+        
+
 # -------------------- CLEAR SESSION --------------------
 @app.route("/clear-session", methods=["POST"])
 def clear_session():
@@ -258,3 +381,6 @@ def fallback(path):
 # -------------------- RUN --------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
+    
+    
+ 
