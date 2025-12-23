@@ -1,6 +1,5 @@
 
 
-
 Flask
 requests
 flask-limiter
@@ -8,3 +7,5 @@ python-dotenv
 flask-cors
 flask-compress
 gunicorn
+Pillow
+PyPDF2
