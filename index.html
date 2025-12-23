@@ -308,9 +308,9 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   background: #1a1a1a;
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
-.m-btn.active[data-mode="internet "] {
+.m-btn.active[data-mode="internet"] {
   color: #1F51FF;
-  border-color:var(--blue) ;
+  border-color:#1F51FF;
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
 }
 .m-btn.active[data-mode="think"] {
@@ -344,61 +344,109 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 
 /* ===== INPUT BAR ===== */
-.input-bar{
- margin-top:4px;
- padding:4px;
- background:var(--panel);
- border:1px solid var(--border);
- border-radius:16px;
- display:flex;
- gap:10px;
- align-items:flex-end;
+/* ===== INPUT BAR ===== */
+.input-bar {
+  position: relative;
+  margin-top: 8px;
 }
 
-textarea{
-  flex: 1;
-
-  min-height: 44px;
+/* Textarea */
+.input-bar textarea {
+  width: 100%;
+  min-height: 48px;
   max-height: 160px;
-
   resize: none;
-  overflow-y: auto;
 
-  padding: 12px 14px;
-  line-height: 1.45;
+  padding: 14px 56px;          /* space for icons */
+  padding-left: 56px;          /* left + button */
+  padding-right: 56px;         /* right send button */
 
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid var(--border);
-
   background: #020202;
   color: var(--text);
   font-size: 15px;
   outline: none;
 
-  /* 🔑 KEY PART — grow upward */
-  align-self: flex-end;       /* anchors bottom */
-  box-sizing: border-box;
+  overflow-y: auto;
+}
 
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+/* Common icon button */
+.icon-btn {
+  position: absolute;
+  bottom: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+}
+
+/* LEFT (+) */
+.icon-btn.attach {
+  left: 8px;
+  background: #111;
+  color: var(--gold);
+}
+
+/* RIGHT (send arrow) */
+.icon-btn.send {
+  right: 8px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+  color: #000;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.icon-btn:active {
+  transform: scale(0.95);
+}
+  
+  
+.attach-menu {
+  position: absolute;
+  bottom: 56px;
+  left: 8px;
+  background: #0b0b0b;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 20;
+}
+
+.attach-menu button {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.attach-menu button:hover {
+  background: rgba(201,164,74,0.12);
+  color: var(--gold);
 }
 
 
 
-button#send{
- width:52px;
- height:52px;
- border:none;
- border-radius:14px;
- background:linear-gradient(135deg,var(--gold),var(--gold-soft));
- color:#000;
- font-size:18px;
- font-weight:700;
- cursor:pointer;
- transition: all 0.2s;
-}
+  
+  
+  
+  
 
-button#send:active { transform: scale(0.95); }
+
 
 /* ===== FOOTER ===== */
 footer{ margin-top:10px; text-align:center; font-size:11px; color:var(--muted); }
@@ -477,15 +525,36 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 <div class="chat-footer">
   <div class="mode-selector">
     <div class="m-btn active" data-mode="smart">Smart</div>
-    <div class="m-btn" data-mode="internet ">Internet </div>
+    <div class="m-btn" data-mode="internet">Internet</div>
     <div class="m-btn" data-mode="think">Think</div>
     <div class="m-btn" data-mode="flash">Flash</div>
   </div>
 
   <div class="input-bar">
-    <textarea id="q" placeholder="Ask anything...."></textarea>
-    <button id="send">➤</button>
+      <!-- Attach button -->
+    <!--<button class="icon-btn attach" onclick="openPicker()">＋</button> -->
+    <button class="icon-btn attach" onclick="openPicker(event)">＋</button>
+
+   <!-- Text input -->
+    <textarea id="q" placeholder="Ask anything..."></textarea>
+
+   <!-- Send button (inside textarea area) -->
+    <button class="icon-btn send" onclick="ask()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M12 4L19 11H14V20H10V11H5L12 4Z" fill="#000"/>
+      </svg>
+    </button>
+
+   <!-- Hidden file input -->
+    <input type="file" id="fileInput"
+           accept="image/*,.pdf,.txt,.py,.html,.css"
+           hidden>
   </div>
+  <div class="attach-menu" id="attachMenu">
+  <button onclick="pickCamera()">📷 Camera</button>
+  <button onclick="pickGallery()">🖼️ Photos</button>
+  <button onclick="pickFile()">📄 Files</button>
+</div>
 </div>
 
 
@@ -526,7 +595,6 @@ document.addEventListener('click', function(event) {
 
 const chat = document.getElementById("chat");
 const q = document.getElementById("q");
-const send = document.getElementById("send");
 
 function add(text, cls) {
   const d = document.createElement("div");
@@ -564,29 +632,53 @@ function typeMatrix(el, text) {
 
 async function ask() {
   const text = q.value.trim();
-  if (!text) return;
+  const fileInput = document.getElementById("fileInput");
+  const file = fileInput.files[0];
 
-  add(text, "user");
+  if (!text && !file) return;
+
+  if (file) {
+    add(`📎 ${file.name}`, "user");
+  } else {
+    add(text, "user");
+  }
+
   q.value = "";
-  q.style.height = "auto";
+  fileInput.value = "";
 
   const aiBubble = add("Thinking...", "ai");
 
   try {
-    const r = await fetch("/ask", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        question: text,
-        mode: currentMode 
-      })
-    });
+    let r;
+
+    if (file) {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("question", text || "Explain this");
+
+      r = await fetch("/upload", {
+        method: "POST",
+        body: form
+      });
+    } else {
+      r = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: text,
+          mode: currentMode
+        })
+      });
+    }
+
     const d = await r.json();
     typeMatrix(aiBubble, d.answer || "No response.");
+
   } catch {
-    typeMatrix(aiBubble, "⚠️ Service unavailable. Please retry.");
+    typeMatrix(aiBubble, "⚠️ Service unavailable.");
   }
 }
+  
 
 /* SMART KEYBOARD LOGIC FOR ANDROID & DESKTOP */
 q.addEventListener("keydown", e => {
@@ -608,7 +700,7 @@ q.addEventListener("keydown", e => {
   }
 });
 
-send.onclick = ask;
+
 
 q.addEventListener("input", function() {
   this.style.height = "auto";
@@ -627,7 +719,68 @@ window.onpopstate = () => {
   }
 };
 
+function openPicker(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById("attachMenu");
+  menu.style.display = menu.style.display === "flex" ? "none" : "flex";
+}
+
+document.getElementById("fileInput").addEventListener("change", function () {
+  const file = this.files[0];
+  if (!file) return;
+
+  // OPTIONAL: read text/code files into textarea
+  if (
+    file.type.startsWith("text") ||
+    file.name.endsWith(".py") ||
+    file.name.endsWith(".html") ||
+    file.name.endsWith(".css")
+  ) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      q.value += `\n\n--- FILE: ${file.name} ---\n${reader.result}\n`;
+    };
+    reader.readAsText(file);
+  }
+
+  // Image hint (non-chat)
+  if (file.type.startsWith("image")) {
+    q.value += `\n[Image attached: ${file.name}]`;
+  }
+});
+  
+  
+  
+//new add //
+function pickCamera() {
+  openFile("image/*", "environment");
+}
+
+function pickGallery() {
+  openFile("image/*");
+}
+
+function pickFile() {
+  openFile(".pdf,.txt,.py,.html,.css");
+}
+
+function openFile(accept, capture = null) {
+  const input = document.getElementById("fileInput");
+  input.accept = accept;
+
+  if (capture) {
+    input.setAttribute("capture", capture);
+  } else {
+    input.removeAttribute("capture");
+  }
+
+  document.getElementById("attachMenu").style.display = "none";
+  input.click();
+}
+  
+  
 window.onload = () => q.focus();
+  
 </script>
 
 </body>
