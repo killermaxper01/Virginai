@@ -40,6 +40,31 @@
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "VirginAI",
+  "url": "https://virginai.in/"
+}
+</script>
+  
+  
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "VirginAI",
+  "url": "https://virginai.in/",
+  "logo": "https://virginai.in/android-chrome-512x512.png",
+  "sameAs": [
+    "https://instagram.com/virginai.in",
+    "https://github.com/killermaxper01/Virginai"
+  ]
+}
+</script>
+  
+  
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "VirginAI",
   "alternateName": "Virgin AI Chat Assistant",
@@ -407,8 +432,8 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 .icon-btn:active {
   transform: scale(0.95);
 }
-  
-  
+
+
 .attach-menu {
   position: absolute;
   bottom: 56px;
@@ -441,10 +466,10 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 
 
-  
-  
-  
-  
+
+
+
+
 
 
 
@@ -678,7 +703,7 @@ async function ask() {
     typeMatrix(aiBubble, "⚠️ Service unavailable.");
   }
 }
-  
+
 
 /* SMART KEYBOARD LOGIC FOR ANDROID & DESKTOP */
 q.addEventListener("keydown", e => {
@@ -748,9 +773,9 @@ document.getElementById("fileInput").addEventListener("change", function () {
     q.value += `\n[Image attached: ${file.name}]`;
   }
 });
-  
-  
-  
+
+
+
 //new add //
 function pickCamera() {
   openFile("image/*", "environment");
@@ -777,10 +802,10 @@ function openFile(accept, capture = null) {
   document.getElementById("attachMenu").style.display = "none";
   input.click();
 }
-  
-  
+
+
 window.onload = () => q.focus();
-  
+
 </script>
 
 </body>
