@@ -1,281 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Hand Tracking 3D Particles</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gesture Controlled Particles</title>
 
 <style>
-    body {
-        margin: 0;
-        overflow: hidden;
-        background: black;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont;
-    }
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #000;
+    font-family: sans-serif;
+}
 
-    #ui {
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 10;
-        color: #fff;
-        background: rgba(0,0,0,0.65);
-        padding: 14px 18px;
-        border-radius: 12px;
-        font-size: 14px;
-        border: 1px solid rgba(255,255,255,0.2);
-    }
+#canvas-container {
+    position: absolute;
+    inset: 0;
+}
 
-    #status {
-        color: #ffeb3b;
-        font-weight: bold;
-        margin-bottom: 6px;
-    }
+#video-input {
+    position: absolute;
+    transform: scaleX(-1);
+    visibility: hidden;
+}
 
-    video {
-        display: none;
-        transform: scaleX(-1);
-    }
+#ui {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    color: white;
+    z-index: 5;
+}
 
-    canvas {
-        display: block;
-    }
+#startBtn {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: 220px;
+    height: 60px;
+    font-size: 18px;
+    border-radius: 14px;
+    border: none;
+    background: #00ffcc;
+    color: #000;
+    font-weight: bold;
+    z-index: 10;
+}
 </style>
 </head>
 
 <body>
 
+<video id="video-input" autoplay muted playsinline></video>
+<div id="canvas-container"></div>
+
 <div id="ui">
-    <div id="status">Initializing…</div>
-    🖐 Open Hand → Move<br>
-    🤏 Pinch → Scale<br>
-    ✌ Peace → Change Shape
+    <h2>Hand Gesture Particles</h2>
+    <p>Move hand → attract | Height → color</p>
 </div>
 
-<video id="webcam" autoplay muted playsinline></video>
-<canvas id="three-canvas"></canvas>
+<button id="startBtn">START CAMERA</button>
 
-<!-- THREE -->
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
-  }
-}
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
 
-<script type="module">
-import * as THREE from "three";
-import { HandLandmarker, FilesetResolver }
-from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0";
+<script>
+/* ---------------- THREE SETUP ---------------- */
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(
+    75, window.innerWidth / window.innerHeight, 0.1, 1000
+);
+camera.position.z = 5;
 
-const statusEl = document.getElementById("status");
-const video = document.getElementById("webcam");
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById("canvas-container").appendChild(renderer.domElement);
 
-let scene, camera, renderer, particles, geometry;
-let handLandmarker;
-let lastVideoTime = -1;
-
-const COUNT = 6000;
+/* ---------------- PARTICLES ---------------- */
+const COUNT = 5000;
+const geometry = new THREE.BufferGeometry();
 const positions = new Float32Array(COUNT * 3);
-const targets   = new Float32Array(COUNT * 3);
-const colors    = new Float32Array(COUNT * 3);
 
-let shapeIndex = 0;
-let lastShapeSwitch = 0;
-
-/* ---------- SHAPES ---------- */
-const shapes = [
-    i => { // Sphere
-        const phi = Math.acos(-1 + (2 * i) / COUNT);
-        const theta = Math.sqrt(COUNT * Math.PI) * phi;
-        return [
-            Math.cos(theta) * Math.sin(phi) * 2,
-            Math.sin(theta) * Math.sin(phi) * 2,
-            Math.cos(phi) * 2
-        ];
-    },
-    i => { // Heart
-        const t = (i / COUNT) * Math.PI * 2;
-        return [
-            1.2 * Math.pow(Math.sin(t), 3),
-            0.9 * (13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t)) * 0.1,
-            (Math.random() - 0.5) * 0.4
-        ];
-    },
-    i => { // Ring
-        const t = (i / COUNT) * Math.PI * 2;
-        const r = 2.5;
-        return [Math.cos(t)*r, Math.sin(t)*r, (Math.random()-0.5)*0.2];
-    }
-];
-
-function setShape(idx) {
-    for (let i = 0; i < COUNT; i++) {
-        const [x,y,z] = shapes[idx](i);
-        targets[i*3]   = x;
-        targets[i*3+1] = y;
-        targets[i*3+2] = z;
-    }
+for (let i = 0; i < COUNT * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 10;
 }
 
-/* ---------- CAMERA ---------- */
-async function startCamera() {
-    if (!navigator.mediaDevices?.getUserMedia) {
-        throw new Error("Camera not supported");
-    }
+geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
 
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-            facingMode: "user",
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        },
-        audio: false
-    });
+const material = new THREE.PointsMaterial({
+    size: 0.05,
+    color: 0x00ffcc,
+    transparent: true,
+    blending: THREE.AdditiveBlending
+});
 
-    video.srcObject = stream;
+const points = new THREE.Points(geometry, material);
+scene.add(points);
 
-    await new Promise(res => video.onloadedmetadata = res);
-    await video.play();
-}
+/* ---------------- MEDIAPIPE ---------------- */
+const videoElement = document.getElementById("video-input");
 
-/* ---------- INIT ---------- */
-async function init() {
+const hands = new Hands({
+    locateFile: file =>
+        `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+});
+
+hands.setOptions({
+    maxNumHands: 1,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.6,
+    minTrackingConfidence: 0.6
+});
+
+hands.onResults(results => {
+    if (!results.multiHandLandmarks?.length) return;
+
+    const lm = results.multiHandLandmarks[0];
+    const indexTip = lm[8];
+
+    const x = (indexTip.x - 0.5) * -10;
+    const y = (indexTip.y - 0.5) * -10;
+
+    points.position.x += (x - points.position.x) * 0.1;
+    points.position.y += (y - points.position.y) * 0.1;
+
+    material.color.setHSL(indexTip.y, 1, 0.5);
+});
+
+let cameraFeed;
+
+/* ---------------- START BUTTON ---------------- */
+document.getElementById("startBtn").addEventListener("click", async () => {
     try {
-        statusEl.textContent = "Loading 3D…";
-
-        scene = new THREE.Scene();
-        camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 100);
-        camera.position.z = 7;
-
-        renderer = new THREE.WebGLRenderer({
-            canvas: document.getElementById("three-canvas"),
-            antialias: true
-        });
-        renderer.setSize(innerWidth, innerHeight);
-        renderer.setPixelRatio(devicePixelRatio);
-
-        geometry = new THREE.BufferGeometry();
-
-        for (let i = 0; i < COUNT*3; i++) {
-            positions[i] = (Math.random()-0.5) * 15;
-            colors[i] = 1;
-        }
-
-        setShape(0);
-
-        geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-
-        particles = new THREE.Points(
-            geometry,
-            new THREE.PointsMaterial({
-                size: 0.035,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.85,
-                blending: THREE.AdditiveBlending
-            })
-        );
-
-        scene.add(particles);
-
-        statusEl.textContent = "Loading AI Model…";
-
-        const vision = await FilesetResolver.forVisionTasks(
-            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm"
-        );
-
-        handLandmarker = await HandLandmarker.createFromOptions(vision, {
-            baseOptions: {
-                modelAssetPath:
-                "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
+        cameraFeed = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({ image: videoElement });
             },
-            runningMode: "VIDEO",
-            numHands: 1
+            width: 640,
+            height: 480
         });
 
-        statusEl.textContent = "Requesting Camera…";
-        await startCamera();
+        await cameraFeed.start();
 
-        statusEl.textContent = "Running ✅";
-        statusEl.style.color = "#4caf50";
-
+        document.getElementById("startBtn").style.display = "none";
         animate();
 
     } catch (err) {
-        statusEl.textContent = "Error: " + err.message;
-        statusEl.style.color = "red";
+        alert("Camera permission denied. Please allow camera.");
         console.error(err);
     }
-}
+});
 
-/* ---------- ANIMATION ---------- */
+/* ---------------- ANIMATION ---------------- */
 function animate() {
     requestAnimationFrame(animate);
-
-    if (video.currentTime !== lastVideoTime) {
-        lastVideoTime = video.currentTime;
-
-        const res = handLandmarker.detectForVideo(video, performance.now());
-
-        if (res.landmarks?.length) {
-            const h = res.landmarks[0];
-
-            particles.position.lerp(
-                new THREE.Vector3(
-                    (h[9].x - 0.5) * -12,
-                    (h[9].y - 0.5) * -8,
-                    0
-                ),
-                0.1
-            );
-
-            const d = Math.hypot(h[4].x - h[20].x, h[4].y - h[20].y);
-            const s = THREE.MathUtils.clamp(
-                THREE.MathUtils.mapLinear(d, 0.1, 0.35, 0.6, 2.4),
-                0.6, 2.4
-            );
-            particles.scale.lerp(new THREE.Vector3(s,s,s), 0.1);
-
-            const color = new THREE.Color().setHSL(h[9].x, 0.7, 0.6);
-            const cAttr = geometry.attributes.color;
-            for (let i=0;i<COUNT;i++){
-                cAttr.setXYZ(i, color.r, color.g, color.b);
-            }
-            cAttr.needsUpdate = true;
-
-            const peace =
-                h[8].y < h[6].y &&
-                h[12].y < h[10].y &&
-                h[16].y > h[14].y;
-
-            if (peace && performance.now() - lastShapeSwitch > 1000) {
-                shapeIndex = (shapeIndex + 1) % shapes.length;
-                setShape(shapeIndex);
-                lastShapeSwitch = performance.now();
-            }
-        }
-    }
-
-    const arr = geometry.attributes.position.array;
-    for (let i=0;i<arr.length;i++) {
-        arr[i] += (targets[i] - arr[i]) * 0.08;
-    }
-    geometry.attributes.position.needsUpdate = true;
-
-    particles.rotation.y += 0.004;
+    points.rotation.y += 0.002;
     renderer.render(scene, camera);
 }
 
-addEventListener("resize", () => {
-    camera.aspect = innerWidth/innerHeight;
+window.addEventListener("resize", () => {
+    camera.aspect = innerWidth / innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
 });
-
-init();
 </script>
+
 </body>
 </html>
