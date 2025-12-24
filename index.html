@@ -298,6 +298,13 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 }
 
 .ai-content { min-height: 20px; }
+  
+.ai-content img {
+  max-width: 100%;
+  border-radius: 12px;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+}  
 
 /* ===== INTELLIGENCE CLASSES SELECTOR ===== */
 .mode-selector {
@@ -327,6 +334,12 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 }
 
 /* Default Glow for smart */
+  
+.m-btn.active[data-mode="image"] {  
+  color: #ff6fff;  
+  border-color: #ff6fff;  
+  box-shadow: 0 0 18px rgba(255, 111, 255, 0.35);  
+}     
 .m-btn.active[data-mode="smart"] {
   color: #fff;
   border-color: #ffffff;
@@ -549,6 +562,7 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 
 <div class="chat-footer">
   <div class="mode-selector">
+    <div class="m-btn" data-mode="image">Image</div>
     <div class="m-btn active" data-mode="smart">Smart</div>
     <div class="m-btn" data-mode="internet">Internet</div>
     <div class="m-btn" data-mode="think">Think</div>
@@ -621,20 +635,34 @@ document.addEventListener('click', function(event) {
 const chat = document.getElementById("chat");
 const q = document.getElementById("q");
 
-function add(text, cls) {
+function add(text, cls, isImage = false) {
   const d = document.createElement("div");
   d.className = "msg " + cls;
+
   if (cls === "ai") {
-    d.innerHTML = `
-      <div class="ai-header">
-        <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
-        <span class="ai-name">VirginAI • ${currentMode.toUpperCase()}</span>
-      </div>
-      <div class="ai-content">${text}</div>
-    `;
+    if (isImage) {
+      d.innerHTML = `
+        <div class="ai-header">
+          <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
+          <span class="ai-name">VirginAI • IMAGE</span>
+        </div>
+        <div class="ai-content">
+          <img src="${text}" alt="Generated Image">
+        </div>
+      `;
+    } else {
+      d.innerHTML = `
+        <div class="ai-header">
+          <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
+          <span class="ai-name">VirginAI • ${currentMode.toUpperCase()}</span>
+        </div>
+        <div class="ai-content">${text}</div>
+      `;
+    }
   } else {
     d.textContent = text;
   }
+
   chat.appendChild(d);
   chat.scrollTop = chat.scrollHeight;
   return d;
@@ -657,19 +685,43 @@ function typeMatrix(el, text) {
 
 async function ask() {
   const text = q.value.trim();
-  const fileInput = document.getElementById("fileInput");
-  const file = fileInput.files[0];
+  if (!text) return;
 
-  if (!text && !file) return;
+  add(text, "user");
+  q.value = "";
 
-  if (file) {
-    add(`📎 ${file.name}`, "user");
-  } else {
-    add(text, "user");
+  // 🖼️ IMAGE MODE
+  if (currentMode === "image") {
+    const aiBubble = add("Generating image…", "ai");
+
+    try {
+      const r = await fetch("/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: text })
+      });
+
+      const d = await r.json();
+
+      if (d.image) {
+        aiBubble.remove();
+        add(d.image, "ai", true); // ✅ IMAGE IN CHAT
+      } else {
+        aiBubble.querySelector(".ai-content").textContent =
+          d.error || "❌ Image generation failed";
+      }
+
+    } catch {
+      aiBubble.querySelector(".ai-content").textContent =
+        "⚠️ Image service unavailable";
+    }
+
+    return;
   }
 
-  q.value = "";
-  fileInput.value = "";
+  // 💬 NORMAL CHAT + FILE LOGIC (unchanged)
+  const fileInput = document.getElementById("fileInput");
+  const file = fileInput.files[0];
 
   const aiBubble = add("Thinking...", "ai");
 
@@ -685,6 +737,8 @@ async function ask() {
         method: "POST",
         body: form
       });
+
+      fileInput.value = "";
     } else {
       r = await fetch("/ask", {
         method: "POST",
