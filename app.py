@@ -9,6 +9,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 import base64, io
 from PIL import Image
 import PyPDF2
+from flask import Response
 
 # -------------------- SETUP --------------------
 load_dotenv()
@@ -365,6 +366,7 @@ User question:
 #image creation 
 
 # -------------------- IMAGE GENERATION (SECURE PROXY) --------------------
+
 @app.route("/generate-image", methods=["POST"])
 @limiter.limit("10 per minute")
 def generate_image():
@@ -375,18 +377,11 @@ def generate_image():
         if not prompt:
             return jsonify({"error": "Prompt required"}), 400
 
-        worker_url = os.getenv("CF_IMAGE_WORKER_URL")
-        worker_token = os.getenv("CF_IMAGE_TOKEN")
-
-        if not worker_url or not worker_token:
-            return jsonify({"error": "Image service not configured"}), 500
-
-        # 🔐 SERVER → WORKER (TOKEN PROTECTED)
         r = requests.post(
-            worker_url,
+            os.getenv("CF_IMAGE_WORKER_URL"),
             headers={
                 "Content-Type": "application/json",
-                "X-Internal-Token": worker_token
+                "X-Internal-Token": os.getenv("INTERNAL_TOKEN")
             },
             json={"prompt": prompt},
             timeout=60
@@ -395,13 +390,15 @@ def generate_image():
         if r.status_code != 200:
             return jsonify({"error": "Image generation failed"}), 502
 
-        # Convert PNG bytes → Base64 for browser
-        img_base64 = base64.b64encode(r.content).decode()
-
-        return jsonify({
-            "image": f"data:image/png;base64,{img_base64}",
-            "model": "SDXL · Cloudflare Workers AI"
-        })
+        # ✅ RETURN RAW IMAGE
+        return Response(
+            r.content,
+            mimetype="image/png",
+            headers={
+                "Cache-Control": "no-store",
+                "X-Image-Model": "SDXL-Cloudflare"
+            }
+        )
 
     except Exception as e:
         print("IMAGE ERROR:", e)
