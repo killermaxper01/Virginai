@@ -164,7 +164,7 @@ def call_gemini_vision(file, question):
             continue
 
     return None
-    
+
 #text extract    
 def extract_text_from_file(file):
     try:
@@ -182,10 +182,10 @@ def extract_text_from_file(file):
 
     except Exception as e:
         return None, "❌ File processing failed"    
- 
-        
-                      
-    
+
+
+
+
 # -------------------- AI ROUTER --------------------
 def generate_ai(prompt, mode):
     """
@@ -266,7 +266,7 @@ def generate_ai(prompt, mode):
 # -------------------- ASK API --------------------
 @app.route("/ask", methods=["POST"])
 @limiter.limit("30 per minute")
-               
+
 def ask():
     try:
         data = request.get_json(force=True)
@@ -359,8 +359,55 @@ User question:
     except Exception as e:
         print("UPLOAD ERROR:", e)
         return jsonify({"answer": "❌ Server error"}), 500
-        
 
+
+
+#image creation 
+
+# -------------------- IMAGE GENERATION (SECURE PROXY) --------------------
+@app.route("/generate-image", methods=["POST"])
+@limiter.limit("10 per minute")
+def generate_image():
+    try:
+        data = request.get_json(force=True)
+        prompt = data.get("prompt", "").strip()
+
+        if not prompt:
+            return jsonify({"error": "Prompt required"}), 400
+
+        worker_url = os.getenv("CF_IMAGE_WORKER_URL")
+        worker_token = os.getenv("CF_IMAGE_TOKEN")
+
+        if not worker_url or not worker_token:
+            return jsonify({"error": "Image service not configured"}), 500
+
+        # 🔐 SERVER → WORKER (TOKEN PROTECTED)
+        r = requests.post(
+            worker_url,
+            headers={
+                "Content-Type": "application/json",
+                "X-Internal-Token": worker_token
+            },
+            json={"prompt": prompt},
+            timeout=60
+        )
+
+        if r.status_code != 200:
+            return jsonify({"error": "Image generation failed"}), 502
+
+        # Convert PNG bytes → Base64 for browser
+        img_base64 = base64.b64encode(r.content).decode()
+
+        return jsonify({
+            "image": f"data:image/png;base64,{img_base64}",
+            "model": "SDXL · Cloudflare Workers AI"
+        })
+
+    except Exception as e:
+        print("IMAGE ERROR:", e)
+        return jsonify({"error": "Server error"}), 500
+        
+        
 # -------------------- CLEAR SESSION --------------------
 @app.route("/clear-session", methods=["POST"])
 def clear_session():
@@ -381,6 +428,3 @@ def fallback(path):
 # -------------------- RUN --------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
-    
-    
- 
