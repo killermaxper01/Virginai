@@ -321,6 +321,33 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
  letter-spacing: 1px;
 }
 
+.ai-thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  color: #c9a44a;
+}
+
+.ai-thinking span {
+  width: 6px;
+  height: 6px;
+  background: #c9a44a;
+  border-radius: 50%;
+  animation: blink 1.4s infinite both;
+}
+
+.ai-thinking span:nth-child(2) { animation-delay: 0.2s; }
+.ai-thinking span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+  0% { opacity: .2; }
+  20% { opacity: 1; }
+  100% { opacity: .2; }
+}  
+  
+  
+ 
 .ai-content { min-height: 20px; }
 .ai-content img {
   cursor: zoom-in;
@@ -917,7 +944,15 @@ async function ask() {
   const fileInput = document.getElementById("fileInput");
   const file = fileInput.files[0];
 
-  const aiBubble = add("Thinking...", "ai");
+  const aiBubble = add(
+  `<div class="ai-thinking">
+     Thinking
+     <span></span>
+     <span></span>
+     <span></span>
+   </div>`,
+  "ai"
+);
 
   try {
     let r;
@@ -985,8 +1020,8 @@ window.addEventListener("beforeunload", () => {
     URL.revokeObjectURL(currentImageBlobUrl);
   }
 });  
-  
-  
+
+
 /* Mobile Protection */
 let backOnce = false;
 history.pushState(null, "", location.href);
