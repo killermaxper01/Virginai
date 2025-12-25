@@ -333,22 +333,44 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   border: 1px solid var(--border);
 }  
   
+  
 .download-btn {
-  margin-top: 10px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  margin-top: 8px;
+  padding: 6px 10px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(201, 164, 74, 0.45);
+
+  background: linear-gradient(
+    135deg,
+    rgba(201, 164, 74, 0.95),
+    rgba(159, 135, 64, 0.95)
+  );
+
   color: #000;
-  font-size: 13px;
-  font-weight: bold;
+  font-size: 12px;
+  font-weight: 600;
+
   cursor: pointer;
-  width: 100%;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.download-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(201, 164, 74, 0.35);
 }
 
 .download-btn:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
+  box-shadow: none;
 }  
+  
   
 .img-loader {
   display: none;
@@ -759,6 +781,7 @@ const q = document.getElementById("q");
   
 let currentImageBlobUrl = null;
 
+  
 document.addEventListener("click", e => {
   if (e.target.tagName === "IMG" && e.target.closest(".ai-content")) {
     const viewer = document.getElementById("imgViewer");
@@ -767,8 +790,13 @@ document.addEventListener("click", e => {
     currentImageBlobUrl = e.target.src;
     img.src = currentImageBlobUrl;
     viewer.style.display = "flex";
+
+    // 🔥 push state when viewer opens
+    history.pushState({ imageViewer: true }, "");
   }
-});
+});  
+  
+  
 
 document.getElementById("imgViewer").onclick = () => {
   if (currentImageBlobUrl?.startsWith("blob:")) {
@@ -803,9 +831,14 @@ function add(text, cls, isImage = false) {
         </div>
         <div class="ai-content">
           <img src="${text}" alt="AI generated image by VirginAI">
-          <button class="download-btn" onclick="downloadImage('${text}')">
-            ⬇️ Download
+          <button class="download-btn" onclick="downloadImage('${text}')" title="Download image">
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+           <path d="M12 3V14" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+          <path d="M7 10L12 15L17 10" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 21H19" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+          </svg>
           </button>
+      
         </div>
       `;
     } else {
@@ -818,7 +851,7 @@ function add(text, cls, isImage = false) {
       `;
     }
   } else {
-    d.textContent = text;
+    d.innerHTML = text;
   }
 
   chat.appendChild(d);
@@ -960,6 +993,21 @@ q.addEventListener("input", function() {
 let backOnce = false;
 history.pushState(null, "", location.href);
 window.onpopstate = () => {
+  const viewer = document.getElementById("imgViewer");
+
+  // 🖼️ If image viewer is open → CLOSE IT
+  if (viewer.style.display === "flex") {
+    viewer.style.display = "none";
+
+    if (currentImageBlobUrl?.startsWith("blob:")) {
+      URL.revokeObjectURL(currentImageBlobUrl);
+      currentImageBlobUrl = null;
+    }
+
+    return; // ⛔ STOP here (do not exit page)
+  }
+
+  // 🚪 Normal app exit protection
   if (!backOnce) {
     backOnce = true;
     alert("Press back again to exit VirginAI");
