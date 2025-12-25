@@ -150,8 +150,8 @@
   }
 }
 </script>  
-  
-  
+
+
 <style>
 /* Menu Styles */
 .menu-container {
@@ -332,8 +332,8 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   margin-top: 8px;
   border: 1px solid var(--border);
 }  
-  
-  
+
+
 .download-btn {
   align-self: flex-end;
   display: inline-flex;
@@ -370,8 +370,8 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   transform: scale(0.95);
   box-shadow: none;
 }  
-  
-  
+
+
 .img-loader {
   display: none;
   flex-direction: column;
@@ -395,8 +395,27 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 @keyframes spin {
   to { transform: rotate(360deg); }
 }  
-  
-  
+
+/*img loader*/
+.loader{
+  display:inline-flex;
+  gap:6px;
+}
+.loader span{
+  width:6px;
+  height:6px;
+  background:#c9a44a;
+  border-radius:50%;
+  animation:blink 1.4s infinite both;
+}
+.loader span:nth-child(2){animation-delay:.2s}
+.loader span:nth-child(3){animation-delay:.4s}
+
+@keyframes blink{
+  0%{opacity:.2}
+  20%{opacity:1}
+  100%{opacity:.2}
+}  
 
 /* ===== INTELLIGENCE CLASSES SELECTOR ===== */
 .mode-selector {
@@ -642,7 +661,7 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     This distributed approach ensures high availability, low latency,
     and reliable performance even under heavy user load.
   </p>
-  
+
   <h2>AI Image Generation</h2>
   <p>
     VirginAI includes an advanced
@@ -669,7 +688,7 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     <li>No image data stored on servers</li>
     <li>Integrated directly into chat interface</li>
   </ul>
-  
+
 </div>
 
 
@@ -679,8 +698,8 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 </header>
 
 <div id="chat"></div>
-  
-  
+
+
 
 <div class="chat-footer">
   <div class="mode-selector">
@@ -731,7 +750,7 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
   <div class="spinner"></div>
   <p>Generating image…</p>
 </div>  
-  
+
 <div id="imgViewer" style="
   display:none;
   position:fixed;
@@ -747,7 +766,7 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
     border-radius:14px;
   ">
 </div>  
-  
+
 <script>
 let currentMode = "smart";
 
@@ -778,10 +797,10 @@ document.addEventListener('click', function(event) {
 const chat = document.getElementById("chat");
 const q = document.getElementById("q");
 
-  
+
 let currentImageBlobUrl = null;
 
-  
+
 document.addEventListener("click", e => {
   if (e.target.tagName === "IMG" && e.target.closest(".ai-content")) {
     const viewer = document.getElementById("imgViewer");
@@ -795,18 +814,14 @@ document.addEventListener("click", e => {
     history.pushState({ imageViewer: true }, "");
   }
 });  
-  
-  
 
-document.getElementById("imgViewer").onclick = () => {
-  if (currentImageBlobUrl?.startsWith("blob:")) {
-    URL.revokeObjectURL(currentImageBlobUrl);
-    currentImageBlobUrl = null;
-  }
-  document.getElementById("imgViewer").style.display = "none";
-};
-  
-  
+
+
+//document.getElementById("imgViewer").onclick = () => {
+//  document.getElementById("imgViewer").style.display = "none";
+//};
+
+
 function downloadImage(blobUrl) {
   if (!blobUrl || !blobUrl.startsWith("blob:")) return;
   const a = document.createElement("a");
@@ -816,7 +831,7 @@ function downloadImage(blobUrl) {
   a.click();
   document.body.removeChild(a);
 }  
-  
+
 
 function add(text, cls, isImage = false) {
   const d = document.createElement("div");
@@ -888,7 +903,7 @@ function imageLoaderHTML() {
     </div>
   `;
 }  
-  
+
 async function ask() {
   const text = q.value.trim();
   if (!text) return;
@@ -898,7 +913,11 @@ async function ask() {
 
   // 🖼️ IMAGE MODE
   if (currentMode === "image") {
-    const aiBubble = add(imageLoaderHTML(), "ai");
+    //const aiBubble = add(imageLoaderHTML(), "ai");
+    const aiBubble = add(
+  `<div class="loader"><span></span><span></span><span></span></div>`,
+  "ai"
+);
 
     try {
       const r = await fetch("/generate-image", {
