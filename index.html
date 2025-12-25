@@ -816,12 +816,6 @@ document.addEventListener("click", e => {
 });  
 
 
-
-//document.getElementById("imgViewer").onclick = () => {
-//  document.getElementById("imgViewer").style.display = "none";
-//};
-
-
 function downloadImage(blobUrl) {
   if (!blobUrl || !blobUrl.startsWith("blob:")) return;
   const a = document.createElement("a");
@@ -1008,25 +1002,27 @@ q.addEventListener("input", function() {
   this.style.height = (this.scrollHeight) + "px";
 });
 
+window.addEventListener("beforeunload", () => {
+  if (currentImageBlobUrl?.startsWith("blob:")) {
+    URL.revokeObjectURL(currentImageBlobUrl);
+  }
+});  
+  
+  
 /* Mobile Protection */
 let backOnce = false;
 history.pushState(null, "", location.href);
+
 window.onpopstate = () => {
   const viewer = document.getElementById("imgViewer");
 
-  // 🖼️ If image viewer is open → CLOSE IT
+  // 🖼️ If image viewer is open → CLOSE ONLY
   if (viewer.style.display === "flex") {
     viewer.style.display = "none";
-
-    if (currentImageBlobUrl?.startsWith("blob:")) {
-      URL.revokeObjectURL(currentImageBlobUrl);
-      currentImageBlobUrl = null;
-    }
-
-    return; // ⛔ STOP here (do not exit page)
+    return; // ❗ DO NOT revoke blob here
   }
 
-  // 🚪 Normal app exit protection
+  // 🚪 App exit protection
   if (!backOnce) {
     backOnce = true;
     alert("Press back again to exit VirginAI");
