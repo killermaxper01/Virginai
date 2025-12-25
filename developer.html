@@ -7,13 +7,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <!-- SEO -->
-<meta name="description" content="Learn about the developer behind VirginAI — an AI-powered chat assistant built with modern AI models, security, and performance in mind.">
-<meta name="author" content="VirginAI Developer">
+<meta name="description" content="Meet the developer behind VirginAI — a secure, intelligent AI platform built with performance, privacy, and user trust at its core.">
+<meta name="author" content="VirginAI">
 <meta name="robots" content="index, follow">
 
 <!-- Open Graph -->
 <meta property="og:title" content="Developer | VirginAI">
-<meta property="og:description" content="Meet the developer behind VirginAI and explore the technology stack powering this intelligent AI chat assistant.">
+<meta property="og:description" content="Learn about the vision, technology, and mission behind VirginAI.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://virginai.in/developer.html">
 
@@ -37,20 +37,20 @@ body{
 }
 
 .container{
- max-width:900px;
+ max-width:960px;
  margin:auto;
- padding:50px 22px;
+ padding:60px 22px;
 }
 
 header{
  text-align:center;
- margin-bottom:40px;
+ margin-bottom:50px;
 }
 
 header h1{
  color:var(--gold);
- letter-spacing:1.5px;
- margin-bottom:8px;
+ letter-spacing:1.6px;
+ margin-bottom:10px;
 }
 
 header p{
@@ -61,14 +61,32 @@ header p{
 .card{
  background:linear-gradient(180deg,#0a0a0a,#0e0e0e);
  border:1px solid var(--border);
- border-radius:18px;
- padding:28px;
- box-shadow:0 0 35px rgba(201,164,74,.08);
+ border-radius:20px;
+ padding:32px;
+ box-shadow:0 0 40px rgba(201,164,74,.08);
+}
+
+.avatar-box{
+ display:flex;
+ align-items:center;
+ gap:24px;
+ margin-bottom:30px;
+}
+
+.avatar{
+ width:96px;
+ height:96px;
+ border-radius:50%;
+ border:1px solid var(--border);
+ object-fit:cover;
+ box-shadow:0 0 25px rgba(201,164,74,.25);
+ background:#000;
 }
 
 h2{
  color:var(--gold);
- margin-top:0;
+ margin-top:35px;
+ margin-bottom:10px;
 }
 
 p{
@@ -89,20 +107,15 @@ li{
 
 .footer{
  text-align:center;
- margin-top:40px;
+ margin-top:45px;
  font-size:12px;
  color:var(--muted);
 }
 
-a{
- color:var(--gold);
- text-decoration:none;
-}
-a:hover{opacity:.85}
-
 /* Mobile */
 @media(max-width:600px){
- .container{padding:35px 16px}
+ .container{padding:40px 16px}
+ .avatar-box{flex-direction:column;text-align:center}
 }
 </style>
 </head>
@@ -113,36 +126,55 @@ a:hover{opacity:.85}
 
 <header>
 <h1>Developer</h1>
-<p>The mind and technology behind VirginAI</p>
+<p>The vision and engineering behind VirginAI</p>
 </header>
 
 <div class="card">
 
-<h2>About the Developer</h2>
+<div class="avatar-box">
+  <img
+    src="/android-chrome-512x512.png"
+    alt="VirginAI Logo"
+    class="avatar"
+    loading="lazy"
+  >
+  <div>
+    <h2 style="margin-top:0">Independent Developer</h2>
+    <p style="margin:6px 0 0">
+      Founder & Architect of VirginAI
+    </p>
+  </div>
+</div>
+
+<h2>About</h2>
 <p>
-VirginAI is developed by an independent developer focused on building
-<strong>secure, fast, and reliable AI-powered applications</strong>.
-The project is designed with a strong emphasis on privacy, performance,
-and clean user experience.
+VirginAI is built by an independent developer focused on creating
+<strong>secure, high-performance, and user-first AI systems</strong>.
+The platform is engineered with clarity, reliability, and ethical AI
+principles at its core.
 </p>
 
-<h2>Technology Stack</h2>
-<p>VirginAI is powered by a modern, scalable, and carefully selected technology stack:</p>
+<h2>Core Technology</h2>
+<p>
+VirginAI uses a modern, adaptable AI architecture capable of supporting
+advanced conversational and generative features.
+The system is designed to evolve with future AI advancements while
+maintaining stability and trust.
+</p>
 
 <ul>
 <li><strong>Backend:</strong> Python, Flask</li>
-<li><strong>AI Models:</strong> Google Gemini, Groq LLaMA (8B / 70B variants)</li>
-<li>Open-source & research models (such as Qwen, Gemma, Mixtral, DeepSeek, and LLaMA-based variants) accessed through compatible inference APIs</li>
-<li><strong>Frontend:</strong> HTML5, CSS3, JavaScript (Vanilla)</li>
-<li><strong>Security:</strong> Rate limiting, session isolation, CORS protection</li>
-<li><strong>Infrastructure:</strong> Render Cloud Hosting</li>
+<li><strong>AI Engine:</strong> Advanced generative & multimodal models</li>
+<li><strong>Frontend:</strong> HTML5, CSS3, JavaScript</li>
+<li><strong>Security:</strong> Rate limiting, request isolation, CORS protection</li>
+<li><strong>Infrastructure:</strong> Scalable cloud hosting</li>
 </ul>
 
 <h2>Mission</h2>
 <p>
-The mission of VirginAI is to provide a clean, intelligent, and trustworthy AI assistant
-that helps users learn, explore ideas, and solve problems — without unnecessary complexity
-or invasive data practices.
+VirginAI exists to make artificial intelligence accessible, responsible,
+and genuinely useful — empowering users without invading privacy or
+introducing unnecessary complexity.
 </p>
 
 </div>
