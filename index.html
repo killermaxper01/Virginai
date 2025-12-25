@@ -400,27 +400,22 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 
 
+.loader {
+  display: flex;
+  gap: 6px;
+}
 
-/*img loader*/
-.loader{
-  display:inline-flex;
-  gap:6px;
+.loader span {
+  width: 8px;
+  height: 8px;
+  background: #c9a44a;
+  border-radius: 50%;
+  animation: blink 1.4s infinite both;
 }
-.loader span{
-  width:6px;
-  height:6px;
-  background:#c9a44a;
-  border-radius:50%;
-  animation:blink 1.4s infinite both;
-}
+
 .loader span:nth-child(2){animation-delay:.2s}
 .loader span:nth-child(3){animation-delay:.4s}
 
-@keyframes blink{
-  0%{opacity:.2}
-  20%{opacity:1}
-  100%{opacity:.2}
-}  
 
 /* ===== INTELLIGENCE CLASSES SELECTOR ===== */
 .mode-selector {
@@ -751,10 +746,7 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 </footer>
 </div>
 
-<div id="imgLoader" class="img-loader">
-  <div class="spinner"></div>
-  <p>Generating image…</p>
-</div>  
+
 
 <div id="imgViewer" style="
   display:none;
@@ -888,20 +880,6 @@ function typeMatrix(el, text) {
   }, speed);
 }
 
-function imageLoaderHTML() {
-  return `
-    <div class="ai-header">
-      <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
-      <span class="ai-name">VirginAI • IMAGE</span>
-    </div>
-    <div class="ai-content">
-      <div class="img-loader" style="display:flex">
-        <div class="spinner"></div>
-        <span>Generating image…</span>
-      </div>
-    </div>
-  `;
-}  
 
 async function ask() {
   const text = q.value.trim();
