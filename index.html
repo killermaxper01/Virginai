@@ -349,6 +349,32 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 .download-btn:active {
   transform: scale(0.97);
 }  
+  
+.img-loader {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  gap: 10px;
+  color: #c9a44a;
+  font-size: 15px;
+}
+
+.spinner {
+  width: 38px;
+  height: 38px;
+  border: 4px solid rgba(201,164,74,0.25);
+  border-top-color: #c9a44a;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}  
+  
+  
 
 /* ===== INTELLIGENCE CLASSES SELECTOR ===== */
 .mode-selector {
@@ -631,6 +657,8 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 </header>
 
 <div id="chat"></div>
+  
+  
 
 <div class="chat-footer">
   <div class="mode-selector">
@@ -677,6 +705,27 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 </footer>
 </div>
 
+<div id="imgLoader" class="img-loader">
+  <div class="spinner"></div>
+  <p>Generating image…</p>
+</div>  
+  
+<div id="imgViewer" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.9);
+  z-index:9999;
+  justify-content:center;
+  align-items:center;
+">
+  <img id="viewerImg" style="
+    max-width:95%;
+    max-height:95%;
+    border-radius:14px;
+  ">
+</div>  
+  
 <script>
 let currentMode = "smart";
 
@@ -707,25 +756,40 @@ document.addEventListener('click', function(event) {
 const chat = document.getElementById("chat");
 const q = document.getElementById("q");
 
+  
+let currentImageBlobUrl = null;
+
 document.addEventListener("click", e => {
   if (e.target.tagName === "IMG" && e.target.closest(".ai-content")) {
-    window.open(e.target.src, "_blank");
+    const viewer = document.getElementById("imgViewer");
+    const img = document.getElementById("viewerImg");
+
+    currentImageBlobUrl = e.target.src;
+    img.src = currentImageBlobUrl;
+    viewer.style.display = "flex";
   }
-});  
+});
+
+document.getElementById("imgViewer").onclick = () => {
+  if (currentImageBlobUrl?.startsWith("blob:")) {
+    URL.revokeObjectURL(currentImageBlobUrl);
+    currentImageBlobUrl = null;
+  }
+  document.getElementById("imgViewer").style.display = "none";
+};
   
   
 function downloadImage(blobUrl) {
+  if (!blobUrl || !blobUrl.startsWith("blob:")) return;
   const a = document.createElement("a");
   a.href = blobUrl;
   a.download = `VirginAI_Image_${Date.now()}.png`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-
-  // ✅ FREE MEMORY
-  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 }  
   
+
 function add(text, cls, isImage = false) {
   const d = document.createElement("div");
   d.className = "msg " + cls;
@@ -738,7 +802,7 @@ function add(text, cls, isImage = false) {
           <span class="ai-name">VirginAI • IMAGE</span>
         </div>
         <div class="ai-content">
-          <img src="${text}" alt="Generated Image">
+          <img src="${text}" alt="AI generated image by VirginAI">
           <button class="download-btn" onclick="downloadImage('${text}')">
             ⬇️ Download
           </button>
@@ -777,6 +841,21 @@ function typeMatrix(el, text) {
   }, speed);
 }
 
+function imageLoaderHTML() {
+  return `
+    <div class="ai-header">
+      <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
+      <span class="ai-name">VirginAI • IMAGE</span>
+    </div>
+    <div class="ai-content">
+      <div class="img-loader" style="display:flex">
+        <div class="spinner"></div>
+        <span>Generating image…</span>
+      </div>
+    </div>
+  `;
+}  
+  
 async function ask() {
   const text = q.value.trim();
   if (!text) return;
@@ -786,31 +865,29 @@ async function ask() {
 
   // 🖼️ IMAGE MODE
   if (currentMode === "image") {
-  const aiBubble = add("Generating image…", "ai");
+    const aiBubble = add(imageLoaderHTML(), "ai");
 
-  try {
-    const r = await fetch("/generate-image", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: text })
-    });
+    try {
+      const r = await fetch("/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: text })
+      });
 
-    if (!r.ok) throw new Error("Image failed");
+      if (!r.ok) throw new Error("Image failed");
 
-    // ✅ CONVERT TO BLOB
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
 
-    aiBubble.remove();
-    add(url, "ai", true); // 👈 REAL IMAGE URL
+      aiBubble.remove();
+      add(url, "ai", true); // ✅ show image
 
-  } catch {
-    aiBubble.querySelector(".ai-content").textContent =
-      "⚠️ Image service unavailable";
+    } catch {
+      aiBubble.querySelector(".ai-content").innerHTML =
+        "⚠️ Image service unavailable";
+    }
+    return;
   }
-
-  return;
-}
 
   // 💬 NORMAL CHAT + FILE LOGIC (unchanged)
   const fileInput = document.getElementById("fileInput");
