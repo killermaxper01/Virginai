@@ -128,6 +128,30 @@
 }
 </script>
 
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "VirginAI Image Generator",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "Web",
+  "description": "VirginAI provides AI-powered text-to-image generation allowing users to create realistic and artistic images using natural language prompts.",
+  "featureList": [
+    "Text-to-image generation",
+    "High-resolution AI images",
+    "Cinematic and artistic styles",
+    "Secure cloud processing",
+    "Integrated AI chat image creation"
+  ],
+  "creator": {
+    "@type": "Organization",
+    "name": "VirginAI",
+    "url": "https://virginai.in"
+  }
+}
+</script>  
+  
+  
 <style>
 /* Menu Styles */
 .menu-container {
@@ -298,12 +322,32 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 }
 
 .ai-content { min-height: 20px; }
-  
+.ai-content img {
+  cursor: zoom-in;
+}  
+
 .ai-content img {
   max-width: 100%;
   border-radius: 12px;
   margin-top: 8px;
   border: 1px solid var(--border);
+}  
+  
+.download-btn {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+  color: #000;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+.download-btn:active {
+  transform: scale(0.97);
 }  
 
 /* ===== INTELLIGENCE CLASSES SELECTOR ===== */
@@ -334,7 +378,7 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 }
 
 /* Default Glow for smart */
-  
+
 .m-btn.active[data-mode="image"] {  
   color: #ff6fff;  
   border-color: #ff6fff;  
@@ -544,12 +588,40 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 
   <h2>Core Technology</h2>
   <p>
-    VirginAI integrates advanced large language models including
-    <strong>Google Gemini </strong> and
-    <strong>Groq-powered LLaMA </strong>.
-    This multi-model approach ensures availability, low latency, and
-    consistent performance under varying workloads.
+    VirginAI is powered by a modern, multi-model artificial intelligence
+    architecture combining advanced large language models and
+    high-quality image generation systems.
+    This distributed approach ensures high availability, low latency,
+    and reliable performance even under heavy user load.
   </p>
+  
+  <h2>AI Image Generation</h2>
+  <p>
+    VirginAI includes an advanced
+    <strong>AI image generation feature</strong> that allows users to
+    create high-quality images from text prompts.
+  </p>
+
+  <p>
+    Users can generate images in multiple styles such as
+    <strong>realistic</strong>, <strong>cinematic</strong>,
+    <strong>artistic</strong>, and <strong>futuristic</strong>
+    using state-of-the-art diffusion models.
+  </p>
+
+  <p>
+    The image generation system is powered by secure cloud-based
+    infrastructure and is optimized for speed, privacy, and reliability.
+  </p>
+
+  <ul>
+    <li>Text-to-image AI generation</li>
+    <li>High-resolution outputs</li>
+    <li>Fast response time</li>
+    <li>No image data stored on servers</li>
+    <li>Integrated directly into chat interface</li>
+  </ul>
+  
 </div>
 
 
@@ -635,6 +707,25 @@ document.addEventListener('click', function(event) {
 const chat = document.getElementById("chat");
 const q = document.getElementById("q");
 
+document.addEventListener("click", e => {
+  if (e.target.tagName === "IMG" && e.target.closest(".ai-content")) {
+    window.open(e.target.src, "_blank");
+  }
+});  
+  
+  
+function downloadImage(blobUrl) {
+  const a = document.createElement("a");
+  a.href = blobUrl;
+  a.download = `VirginAI_Image_${Date.now()}.png`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+
+  // ✅ FREE MEMORY
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+}  
+  
 function add(text, cls, isImage = false) {
   const d = document.createElement("div");
   d.className = "msg " + cls;
@@ -648,6 +739,9 @@ function add(text, cls, isImage = false) {
         </div>
         <div class="ai-content">
           <img src="${text}" alt="Generated Image">
+          <button class="download-btn" onclick="downloadImage('${text}')">
+            ⬇️ Download
+          </button>
         </div>
       `;
     } else {
