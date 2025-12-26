@@ -1,5 +1,4 @@
 
-
 Flask
 requests
 flask-limiter
@@ -9,3 +8,5 @@ flask-compress
 gunicorn
 Pillow
 PyPDF2
+firebase-admin
+
