@@ -7,10 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Create your VirginAI account">
 
-<!-- FAVICON -->
 <link rel="icon" href="/android-chrome-512x512.png">
-
-<!-- GOOGLE FONT -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -22,9 +19,7 @@
   --text:#eaeaea;
   --muted:#9a9a9a;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
   min-height:100vh;
@@ -35,8 +30,6 @@ body{
   justify-content:center;
   color:var(--text);
 }
-
-/* CARD */
 .card{
   width:100%;
   max-width:430px;
@@ -46,37 +39,15 @@ body{
   padding:34px 28px;
   box-shadow:0 0 45px rgba(201,164,74,.08);
 }
-
-/* HEADER */
 .brand{
   text-align:center;
   margin-bottom:24px;
 }
-.brand img{
-  width:72px;
-  border-radius:16px;
-}
-.brand h1{
-  margin:10px 0 0;
-  color:var(--gold);
-  font-size:22px;
-}
-.brand p{
-  margin-top:6px;
-  font-size:13px;
-  color:var(--muted);
-}
-
-/* INPUT */
-.input{
-  margin-bottom:14px;
-}
-.input label{
-  display:block;
-  font-size:13px;
-  margin-bottom:6px;
-  color:#bcbcbc;
-}
+.brand img{width:72px;border-radius:16px;}
+.brand h1{margin:10px 0 0;color:var(--gold);font-size:22px;}
+.brand p{margin-top:6px;font-size:13px;color:var(--muted);}
+.input{margin-bottom:14px;}
+.input label{display:block;font-size:13px;margin-bottom:6px;color:#bcbcbc;}
 .input input{
   width:100%;
   padding:12px 14px;
@@ -86,12 +57,7 @@ body{
   color:var(--text);
   font-size:14px;
 }
-.input input:focus{
-  border-color:var(--gold);
-  outline:none;
-}
-
-/* BUTTON */
+.input input:focus{border-color:var(--gold);outline:none;}
 .btn{
   width:100%;
   padding:13px;
@@ -101,20 +67,8 @@ body{
   font-weight:500;
   cursor:pointer;
 }
-
-.btn-main{
-  background:linear-gradient(135deg,#c9a44a,#9f8740);
-  color:#000;
-}
-
-.divider{
-  text-align:center;
-  margin:18px 0;
-  font-size:12px;
-  color:var(--muted);
-}
-
-/* SOCIAL */
+.btn-main{background:linear-gradient(135deg,#c9a44a,#9f8740);color:#000;}
+.divider{text-align:center;margin:18px 0;font-size:12px;color:var(--muted);}
 .social{
   background:#000;
   border:1px solid var(--border);
@@ -125,35 +79,16 @@ body{
   gap:10px;
   margin-bottom:10px;
 }
-
-.social img{
-  width:18px;
-}
-
-/* APPLE */
-.apple{
-  background:#000;
-  border:1px solid #333;
-}
-
-/* FOOTER */
-.footer{
-  margin-top:16px;
-  text-align:center;
-  font-size:12px;
-  color:var(--muted);
-}
-.footer a{
-  color:var(--gold);
-  text-decoration:none;
-}
+.social img{width:18px;}
+.apple{background:#000;border:1px solid #333;}
+.footer{margin-top:16px;text-align:center;font-size:12px;color:var(--muted);}
+.footer a{color:var(--gold);text-decoration:none;}
 </style>
 </head>
 
 <body>
 
 <div class="card">
-
   <div class="brand">
     <img src="/android-chrome-512x512.png">
     <h1>VirginAI</h1>
@@ -191,11 +126,6 @@ body{
     Continue with Google
   </button>
 
-  <button class="btn social" onclick="facebookSignup()">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg">
-    Continue with Facebook
-  </button>
-
   <button class="btn social apple" onclick="appleSignup()">
     <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg">
     Continue with Apple
@@ -205,16 +135,13 @@ body{
     Already have an account?
     <a href="/login.html">Login</a>
   </div>
-
 </div>
 
-<!-- FIREBASE -->
 <script type="module">
 import { auth, db } from "./firebase.js";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
-  FacebookAuthProvider,
   OAuthProvider,
   signInWithPopup,
   updateProfile
@@ -223,7 +150,6 @@ import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-
 
 window.signupEmail = async (e) => {
   e.preventDefault();
-
   const name = name.value;
   const dob = dob.value;
   const email = email.value;
@@ -232,31 +158,23 @@ window.signupEmail = async (e) => {
   try{
     const cred = await createUserWithEmailAndPassword(auth,email,password);
     await updateProfile(cred.user,{displayName:name});
-
     await setDoc(doc(db,"users",cred.user.uid),{
       name,email,dob,provider:"password",
       createdAt:Date.now()
     });
-
     location.href="/";
   }catch(err){ alert(err.message); }
 };
 
 window.googleSignup = async () => {
-  const p=new GoogleAuthProvider();
-  await signInWithPopup(auth,p);
-  location.href="/";
-};
-
-window.facebookSignup = async () => {
-  const p=new FacebookAuthProvider();
-  await signInWithPopup(auth,p);
+  const provider = new GoogleAuthProvider();
+  await signInWithPopup(auth,provider);
   location.href="/";
 };
 
 window.appleSignup = async () => {
-  const p=new OAuthProvider("apple.com");
-  await signInWithPopup(auth,p);
+  const provider = new OAuthProvider("apple.com");
+  await signInWithPopup(auth,provider);
   location.href="/";
 };
 </script>
