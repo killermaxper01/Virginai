@@ -7,9 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Login to VirginAI – Secure AI-powered platform">
 
-<!-- FAVICON (YOUR LOGO) -->
-<link rel="icon" type="image/png" sizes="32x32" href="/android-chrome-512x512.png">
-<link rel="apple-touch-icon" href="/android-chrome-512x512.png">
+<!-- FAVICON -->
+<link rel="icon" href="/android-chrome-512x512.png">
 
 <!-- GOOGLE FONT -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -38,7 +37,7 @@ body{
 }
 
 /* CARD */
-.login-card{
+.card{
   width:100%;
   max-width:420px;
   background:linear-gradient(180deg,#0a0a0a,#0f0f0f);
@@ -51,46 +50,34 @@ body{
 /* HEADER */
 .brand{
   text-align:center;
-  margin-bottom:28px;
+  margin-bottom:24px;
 }
-
 .brand img{
   width:72px;
-  height:72px;
   border-radius:16px;
-  margin-bottom:12px;
 }
-
 .brand h1{
-  margin:0;
+  margin:10px 0 0;
   font-size:22px;
   color:var(--gold);
-  letter-spacing:1px;
 }
-
 .brand p{
-  margin:6px 0 0;
+  margin-top:6px;
   font-size:13px;
   color:var(--muted);
 }
 
-/* FORM */
-form{
-  margin-top:22px;
-}
-
-.input-group{
+/* INPUT */
+.input{
   margin-bottom:16px;
 }
-
-.input-group label{
+.input label{
   display:block;
   font-size:13px;
-  color:#bcbcbc;
   margin-bottom:6px;
+  color:#bcbcbc;
 }
-
-.input-group input{
+.input input{
   width:100%;
   padding:12px 14px;
   border-radius:12px;
@@ -98,63 +85,61 @@ form{
   background:#080808;
   color:var(--text);
   font-size:14px;
+}
+.input input:focus{
+  border-color:var(--gold);
   outline:none;
 }
 
-.input-group input:focus{
-  border-color:var(--gold);
-}
-
-/* BUTTONS */
+/* BUTTON */
 .btn{
   width:100%;
   padding:13px;
   border-radius:14px;
   border:none;
   font-size:15px;
-  cursor:pointer;
   font-weight:500;
+  cursor:pointer;
 }
 
-.btn-primary{
+.btn-main{
   background:linear-gradient(135deg,#c9a44a,#9f8740);
   color:#000;
 }
 
-.btn-primary:hover{
-  opacity:.92;
-}
-
 .divider{
   text-align:center;
+  margin:18px 0;
   font-size:12px;
   color:var(--muted);
-  margin:18px 0;
 }
 
-/* GOOGLE BUTTON */
-.btn-google{
+/* SOCIAL */
+.social{
   background:#111;
-  color:#fff;
   border:1px solid var(--border);
+  color:#fff;
   display:flex;
   align-items:center;
   justify-content:center;
   gap:10px;
+  margin-bottom:10px;
 }
+.social img{width:18px}
 
-.btn-google img{
-  width:18px;
+/* APPLE */
+.apple{
+  background:#000;
+  border:1px solid #333;
 }
 
 /* FOOTER */
 .footer{
-  margin-top:18px;
+  margin-top:16px;
   text-align:center;
   font-size:12px;
   color:var(--muted);
 }
-
 .footer a{
   color:var(--gold);
   text-decoration:none;
@@ -164,40 +149,48 @@ form{
 
 <body>
 
-<div class="login-card">
+<div class="card">
 
   <div class="brand">
-    <img src="/android-chrome-512x512.png" alt="VirginAI Logo">
+    <img src="/android-chrome-512x512.png">
     <h1>VirginAI</h1>
     <p>Secure AI Platform</p>
   </div>
 
   <form onsubmit="loginEmail(event)">
-    <div class="input-group">
+    <div class="input">
       <label>Email</label>
-      <input type="email" id="email" required placeholder="you@example.com">
+      <input id="email" type="email" required placeholder="you@example.com">
     </div>
 
-    <div class="input-group">
+    <div class="input">
       <label>Password</label>
-      <input type="password" id="password" required placeholder="••••••••">
+      <input id="password" type="password" required placeholder="••••••••">
     </div>
 
-    <button class="btn btn-primary" type="submit">
-      Login
-    </button>
+    <button class="btn btn-main">Login</button>
   </form>
 
   <div class="divider">OR</div>
 
-  <button class="btn btn-google" onclick="loginGoogle()">
+  <button class="btn social" onclick="googleLogin()">
     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
     Continue with Google
   </button>
 
+  <button class="btn social" onclick="facebookLogin()">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg">
+    Continue with Facebook
+  </button>
+
+  <button class="btn social apple" onclick="appleLogin()">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg">
+    Continue with Apple
+  </button>
+
   <div class="footer">
     Don’t have an account?
-    <a href="signup.html">Create one</a>
+    <a href="/signup.html">Create one</a>
   </div>
 
 </div>
@@ -205,33 +198,42 @@ form{
 <!-- FIREBASE -->
 <script type="module">
 import { auth } from "./firebase.js";
-import { 
+import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
+  FacebookAuthProvider,
+  OAuthProvider,
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 window.loginEmail = async (e) => {
   e.preventDefault();
-  const email = email.value;
-  const password = password.value;
-
   try{
-    await signInWithEmailAndPassword(auth, email, password);
-    location.href = "/";
-  }catch(err){
-    alert(err.message);
-  }
+    await signInWithEmailAndPassword(
+      auth,
+      email.value,
+      password.value
+    );
+    location.href="/";
+  }catch(err){ alert(err.message); }
 };
 
-window.loginGoogle = async () => {
-  try{
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-    location.href = "/";
-  }catch(err){
-    alert(err.message);
-  }
+window.googleLogin = async () => {
+  const p=new GoogleAuthProvider();
+  await signInWithPopup(auth,p);
+  location.href="/";
+};
+
+window.facebookLogin = async () => {
+  const p=new FacebookAuthProvider();
+  await signInWithPopup(auth,p);
+  location.href="/";
+};
+
+window.appleLogin = async () => {
+  const p=new OAuthProvider("apple.com");
+  await signInWithPopup(auth,p);
+  location.href="/";
 };
 </script>
 
