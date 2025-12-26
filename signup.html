@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sign Up | VirginAI</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Create your VirginAI account">
+
+<!-- FAVICON -->
+<link rel="icon" type="image/png" sizes="32x32" href="/android-chrome-512x512.png">
+<link rel="apple-touch-icon" href="/android-chrome-512x512.png">
+
+<!-- GOOGLE FONT -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#050505;
+  --panel:#0c0c0c;
+  --border:#1e1e1e;
+  --gold:#c9a44a;
+  --text:#eaeaea;
+  --muted:#9a9a9a;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  font-family:Inter,Segoe UI,sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text);
+}
+
+/* CARD */
+.card{
+  width:100%;
+  max-width:420px;
+  background:linear-gradient(180deg,#0a0a0a,#0f0f0f);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:34px 28px;
+  box-shadow:0 0 45px rgba(201,164,74,.08);
+}
+
+/* HEADER */
+.brand{
+  text-align:center;
+  margin-bottom:26px;
+}
+
+.brand img{
+  width:72px;
+  height:72px;
+  border-radius:16px;
+  margin-bottom:12px;
+}
+
+.brand h1{
+  margin:0;
+  font-size:22px;
+  color:var(--gold);
+  letter-spacing:1px;
+}
+
+.brand p{
+  margin-top:6px;
+  font-size:13px;
+  color:var(--muted);
+}
+
+/* FORM */
+.input{
+  margin-bottom:16px;
+}
+
+.input label{
+  display:block;
+  font-size:13px;
+  margin-bottom:6px;
+  color:#bcbcbc;
+}
+
+.input input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#080808;
+  color:var(--text);
+  font-size:14px;
+  outline:none;
+}
+
+.input input:focus{
+  border-color:var(--gold);
+}
+
+.btn{
+  width:100%;
+  padding:13px;
+  border-radius:14px;
+  border:none;
+  font-size:15px;
+  font-weight:500;
+  cursor:pointer;
+}
+
+.btn-main{
+  background:linear-gradient(135deg,#c9a44a,#9f8740);
+  color:#000;
+}
+
+.btn-main:hover{opacity:.92}
+
+.divider{
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+  margin:18px 0;
+}
+
+.btn-google{
+  background:#111;
+  color:#fff;
+  border:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+.btn-google img{width:18px}
+
+.footer{
+  margin-top:18px;
+  text-align:center;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.footer a{
+  color:var(--gold);
+  text-decoration:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <div class="brand">
+    <img src="/android-chrome-512x512.png" alt="VirginAI Logo">
+    <h1>VirginAI</h1>
+    <p>Create your account</p>
+  </div>
+
+  <form onsubmit="signupEmail(event)">
+    <div class="input">
+      <label>Email</label>
+      <input id="email" type="email" required placeholder="you@example.com">
+    </div>
+
+    <div class="input">
+      <label>Password</label>
+      <input id="password" type="password" required minlength="6" placeholder="Minimum 6 characters">
+    </div>
+
+    <button class="btn btn-main" type="submit">
+      Create Account
+    </button>
+  </form>
+
+  <div class="divider">OR</div>
+
+  <button class="btn btn-google" onclick="signupGoogle()">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
+    Sign up with Google
+  </button>
+
+  <div class="footer">
+    Already have an account?
+    <a href="/login.html">Login</a>
+  </div>
+
+</div>
+
+<!-- FIREBASE LOGIC -->
+<script type="module">
+import { auth } from "./firebase.js";
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithRedirect
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+window.signupEmail = async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try{
+    await createUserWithEmailAndPassword(auth, email, password);
+    location.href = "/";
+  }catch(err){
+    alert(err.message);
+  }
+};
+
+window.signupGoogle = async () => {
+  const provider = new GoogleAuthProvider();
+  await signInWithRedirect(auth, provider);
+};
+</script>
+
+</body>
+</html>
