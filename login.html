@@ -36,7 +36,6 @@ body{
   color:var(--text);
 }
 
-/* CARD */
 .card{
   width:100%;
   max-width:420px;
@@ -47,7 +46,6 @@ body{
   box-shadow:0 0 45px rgba(201,164,74,.08);
 }
 
-/* HEADER */
 .brand{
   text-align:center;
   margin-bottom:24px;
@@ -67,7 +65,6 @@ body{
   color:var(--muted);
 }
 
-/* INPUT */
 .input{
   margin-bottom:16px;
 }
@@ -91,7 +88,6 @@ body{
   outline:none;
 }
 
-/* BUTTON */
 .btn{
   width:100%;
   padding:13px;
@@ -114,9 +110,8 @@ body{
   color:var(--muted);
 }
 
-/* SOCIAL */
 .social{
-  background:#111;
+  background:#000;
   border:1px solid var(--border);
   color:#fff;
   display:flex;
@@ -127,13 +122,11 @@ body{
 }
 .social img{width:18px}
 
-/* APPLE */
 .apple{
   background:#000;
   border:1px solid #333;
 }
 
-/* FOOTER */
 .footer{
   margin-top:16px;
   text-align:center;
@@ -178,11 +171,6 @@ body{
     Continue with Google
   </button>
 
-  <button class="btn social" onclick="facebookLogin()">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg">
-    Continue with Facebook
-  </button>
-
   <button class="btn social apple" onclick="appleLogin()">
     <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg">
     Continue with Apple
@@ -201,7 +189,6 @@ import { auth } from "./firebase.js";
 import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
-  FacebookAuthProvider,
   OAuthProvider,
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -215,24 +202,20 @@ window.loginEmail = async (e) => {
       password.value
     );
     location.href="/";
-  }catch(err){ alert(err.message); }
+  }catch(err){
+    alert(err.message);
+  }
 };
 
 window.googleLogin = async () => {
-  const p=new GoogleAuthProvider();
-  await signInWithPopup(auth,p);
-  location.href="/";
-};
-
-window.facebookLogin = async () => {
-  const p=new FacebookAuthProvider();
-  await signInWithPopup(auth,p);
+  const provider = new GoogleAuthProvider();
+  await signInWithPopup(auth, provider);
   location.href="/";
 };
 
 window.appleLogin = async () => {
-  const p=new OAuthProvider("apple.com");
-  await signInWithPopup(auth,p);
+  const provider = new OAuthProvider("apple.com");
+  await signInWithPopup(auth, provider);
   location.href="/";
 };
 </script>
