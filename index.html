@@ -1127,5 +1127,14 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 </script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/firebase-messaging-sw.js")
+    .then(() => console.log("🔥 Service Worker registered"))
+    .catch(err => console.error("SW error", err));
+}
+</script>
+
 </body>
 </html>
