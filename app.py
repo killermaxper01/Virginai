@@ -502,24 +502,35 @@ def send_bulk_notification():
     
     
 #per user notification 
-@app.route("/send-notification", methods=["POST"])
+@app.route("/send-user-notification", methods=["POST"])
 @limiter.limit("10 per minute")
-def send_notification():
+def send_user_notification():
     try:
-        # 🔐 ADMIN AUTH (INSIDE FUNCTION)
+        # 🔐 ADMIN AUTH
         admin_token = request.headers.get("X-Admin-Token")
         if admin_token != os.getenv("ADMIN_PUSH_TOKEN"):
             return jsonify({"error": "Unauthorized"}), 401
 
         data = request.get_json(force=True)
 
-        token = data.get("token")
+        user_id = data.get("user_id")
         title = data.get("title", "VirginAI 🔔")
-        body = data.get("body", "You have a new notification")
+        body  = data.get("body", "You have a new notification")
 
+        if not user_id:
+            return jsonify({"error": "user_id required"}), 400
+
+        # 🔹 Fetch user document
+        doc_ref = db.collection("users").document(user_id).get()
+
+        if not doc_ref.exists:
+            return jsonify({"error": "User not found"}), 404
+
+        token = doc_ref.to_dict().get("fcmToken")
         if not token:
-            return jsonify({"error": "FCM token required"}), 400
+            return jsonify({"error": "User has no FCM token"}), 400
 
+        # 🔹 Send notification
         message = messaging.Message(
             notification=messaging.Notification(
                 title=title,
@@ -537,16 +548,17 @@ def send_notification():
             token=token
         )
 
-        response = messaging.send(message)
+        msg_id = messaging.send(message)
 
         return jsonify({
             "success": True,
-            "message_id": response
+            "message_id": msg_id,
+            "user_id": user_id
         })
 
     except Exception as e:
-        print("FCM ERROR:", e)
-        return jsonify({"error": "Notification failed"}), 500
+        print("USER PUSH ERROR:", e)
+        return jsonify({"error": "User notification failed"}), 500
 
 # -------------------- CLEAR SESSION --------------------
 @app.route("/clear-session", methods=["POST"])
