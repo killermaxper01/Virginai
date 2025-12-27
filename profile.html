@@ -1,11 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Edit Profile | VirginAI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  background:#050505;
+  font-family:Inter,Segoe UI,sans-serif;
+  color:#eaeaea;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+
+.card{
+  width:100%;
+  max-width:420px;
+  background:#0c0c0c;
+  border:1px solid #1e1e1e;
+  border-radius:18px;
+  padding:28px;
+  text-align:center;
+}
+
+.avatar{
+  width:96px;
+  height:96px;
+  border-radius:50%;
+  border:2px solid #c9a44a;
+  object-fit:cover;
+  margin-bottom:12px;
+}
+
+h2{
+  margin:10px 0;
+  color:#c9a44a;
+}
+
+input{
+  width:100%;
+  margin-top:12px;
+  padding:12px;
+  border-radius:12px;
+  border:1px solid #2a2a2a;
+  background:#090909;
+  color:#fff;
+  outline:none;
+}
+
+.btn{
+  margin-top:14px;
+  padding:12px;
+  width:100%;
+  border-radius:14px;
+  border:none;
+  font-size:15px;
+  cursor:pointer;
+  background:linear-gradient(135deg,#c9a44a,#9f8740);
+  color:#000;
+}
+
+.small{
+  font-size:12px;
+  color:#888;
+  margin-top:6px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <img id="photo" class="avatar">
+
+  <h2 id="currentName">Loading...</h2>
+
+  <input id="nameInput" placeholder="Enter new name">
+
+  <button class="btn" id="saveBtn">Save Name</button>
+
+  <div class="small" id="status"></div>
+</div>
+
 <script type="module">
 import { auth } from "./firebase.js";
-import { onAuthStateChanged } from
-"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  onAuthStateChanged,
+  updateProfile
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-onAuthStateChanged(auth, user => {
+const photo = document.getElementById("photo");
+const currentName = document.getElementById("currentName");
+const nameInput = document.getElementById("nameInput");
+const status = document.getElementById("status");
+
+onAuthStateChanged(auth, (user) => {
   if (!user) {
-    location.href = "/login.html";
+    location.replace("/login.html");
+    return;
   }
+
+  photo.src = user.photoURL || "/default-avatar.png";
+  currentName.textContent = user.displayName || "VirginAI User";
+  nameInput.value = user.displayName || "";
 });
+
+document.getElementById("saveBtn").onclick = async () => {
+  const newName = nameInput.value.trim();
+  if (!newName) {
+    status.textContent = "Name cannot be empty";
+    return;
+  }
+
+  try {
+    await updateProfile(auth.currentUser, {
+      displayName: newName
+    });
+
+    currentName.textContent = newName;
+    status.textContent = "✅ Name updated successfully";
+  } catch (err) {
+    status.textContent = "❌ Failed to update name";
+    console.error(err);
+  }
+};
 </script>
+
+</body>
+</html>
