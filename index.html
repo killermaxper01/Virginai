@@ -1087,5 +1087,46 @@ window.onload = () => q.focus();
 
 </script>
 
+<script type="module">
+import { auth } from "./firebase.js";
+import {
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+/* ELEMENTS */
+const menuDropdown = document.getElementById("menuDropdown");
+
+/* AUTH STATE */
+onAuthStateChanged(auth, (user) => {
+  // Clear auth items only (avoid duplicates)
+  menuDropdown.querySelectorAll(".auth-item").forEach(e => e.remove());
+
+  if (user) {
+    // Logged in → show Profile & Logout
+    menuDropdown.insertAdjacentHTML("beforeend", `
+      <a href="profile.html" class="menu-item auth-item">
+        👤 ${user.displayName || "Profile"}
+      </a>
+      <a href="#" id="logoutBtn" class="menu-item auth-item">
+        🚪 Logout
+      </a>
+    `);
+
+    document.getElementById("logoutBtn").onclick = async () => {
+      await signOut(auth);
+      location.reload();
+    };
+
+  } else {
+    // Guest → show Login
+    menuDropdown.insertAdjacentHTML("beforeend", `
+      <a href="login.html" class="menu-item auth-item">
+        🔐 Login
+      </a>
+    `);
+  }
+});
+</script>
 </body>
 </html>
