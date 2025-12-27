@@ -1,6 +1,5 @@
-/* firebase-messaging-sw.js */
+// firebase-messaging-sw.js
 
-// -------------------- IMPORT FIREBASE --------------------
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
@@ -13,19 +12,19 @@ firebase.initializeApp({
   appId: "1:444972440350:web:03651aa7be5213c710470f"
 });
 
-// -------------------- MESSAGING INSTANCE --------------------
+// -------------------- MESSAGING --------------------
 const messaging = firebase.messaging();
 
-// -------------------- BACKGROUND NOTIFICATION --------------------
-// 👉 Works when TAB is CLOSED / MINIMIZED
+// -------------------- BACKGROUND MESSAGE --------------------
 messaging.onBackgroundMessage((payload) => {
   console.log("[SW] Background message:", payload);
 
   const title = payload.notification?.title || "VirginAI 🔔";
+
   const options = {
-    body: payload.notification?.body || "You have a new update",
-    icon: "/android-chrome-192x192.png",   // ✅ MAIN ICON
-    badge: "/android-chrome-192x192.png",  // ✅ ANDROID BADGE
+    body: payload.notification?.body || "New update available",
+    icon: "/android-chrome-192x192.png",     // ✅ MAIN ICON
+    badge: "/android-chrome-192x192.png",   // ✅ ANDROID BADGE
     vibrate: [200, 100, 200],
     data: {
       url: "https://virginai.in"
@@ -35,7 +34,7 @@ messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(title, options);
 });
 
-// -------------------- NOTIFICATION CLICK --------------------
+// -------------------- CLICK ACTION --------------------
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
@@ -47,9 +46,7 @@ self.addEventListener("notificationclick", (event) => {
             return client.focus();
           }
         }
-        if (clients.openWindow) {
-          return clients.openWindow("https://virginai.in");
-        }
+        return clients.openWindow("https://virginai.in");
       })
   );
 });
