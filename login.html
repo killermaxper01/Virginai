@@ -5,7 +5,7 @@
 <title>Login | VirginAI</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Login to VirginAI – Secure AI-powered platform">
+<meta name="description" content="Login to VirginAI">
 
 <link rel="icon" href="/android-chrome-512x512.png">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -20,6 +20,7 @@
   --muted:#9a9a9a;
 }
 *{box-sizing:border-box}
+
 body{
   margin:0;
   min-height:100vh;
@@ -30,6 +31,7 @@ body{
   justify-content:center;
   color:var(--text);
 }
+
 .card{
   width:100%;
   max-width:420px;
@@ -39,20 +41,34 @@ body{
   padding:34px 28px;
   box-shadow:0 0 45px rgba(201,164,74,.08);
 }
+
 .brand{text-align:center;margin-bottom:24px}
 .brand img{width:72px;border-radius:16px}
-.brand h1{margin:10px 0 0;font-size:22px;color:var(--gold)}
+.brand h1{margin:10px 0 0;color:var(--gold);font-size:22px}
 .brand p{margin-top:6px;font-size:13px;color:var(--muted)}
-.input{margin-bottom:16px}
+
+.input{margin-bottom:14px; position:relative}
 .input label{font-size:13px;color:#bcbcbc;display:block;margin-bottom:6px}
 .input input{
   width:100%;
-  padding:12px 14px;
+  padding:12px 40px 12px 14px;
   border-radius:12px;
   border:1px solid var(--border);
   background:#080808;
   color:var(--text);
+  font-size:14px;
 }
+.input input:focus{border-color:var(--gold);outline:none}
+
+.eye{
+  position:absolute;
+  right:12px;
+  top:36px;
+  cursor:pointer;
+  font-size:14px;
+  color:#aaa;
+}
+
 .btn{
   width:100%;
   padding:13px;
@@ -66,6 +82,7 @@ body{
   background:linear-gradient(135deg,#c9a44a,#9f8740);
   color:#000;
 }
+
 .social{
   background:#000;
   border:1px solid var(--border);
@@ -77,12 +94,23 @@ body{
   margin-bottom:10px;
 }
 .social img{width:18px}
+
 .divider{text-align:center;margin:18px 0;font-size:12px;color:var(--muted)}
+
 .footer{text-align:center;font-size:12px;color:var(--muted)}
 .footer a{color:var(--gold);text-decoration:none}
+
+.forgot{
+  text-align:right;
+  font-size:12px;
+  margin-bottom:10px;
+}
+.forgot a{color:var(--gold);cursor:pointer}
+
 .loader{
   display:none;
-  width:22px;height:22px;
+  width:22px;
+  height:22px;
   border:3px solid #000;
   border-top:3px solid transparent;
   border-radius:50%;
@@ -100,7 +128,7 @@ body{
   <div class="brand">
     <img src="/android-chrome-512x512.png">
     <h1>VirginAI</h1>
-    <p>Secure AI Platform</p>
+    <p>Login to your account</p>
   </div>
 
   <form id="loginForm">
@@ -108,9 +136,15 @@ body{
       <label>Email</label>
       <input id="email" type="email" required>
     </div>
+
     <div class="input">
       <label>Password</label>
       <input id="password" type="password" required>
+      <span class="eye" onclick="togglePass()">👁️</span>
+    </div>
+
+    <div class="forgot">
+      <a onclick="resetPassword()">Forgot password?</a>
     </div>
 
     <button class="btn btn-main">
@@ -138,15 +172,16 @@ body{
 
 </div>
 
+<!-- FIREBASE -->
 <script type="module">
-import { auth, db } from "./firebase.js";
+import { auth } from "./firebase.js";
 import {
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   OAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const loader=document.getElementById("loginLoader");
 const text=document.getElementById("loginText");
@@ -168,37 +203,46 @@ document.getElementById("loginForm").addEventListener("submit",async(e)=>{
     );
     location.href="/";
   }catch(err){
-    alert(err.message);
     loading(false);
+    if(err.code==="auth/wrong-password" || err.code==="auth/invalid-credential"){
+      alert("❌ Wrong password");
+    }else if(err.code==="auth/user-not-found"){
+      alert("❌ Account not found");
+    }else{
+      alert("Login failed");
+    }
   }
 });
 
-/* GOOGLE LOGIN */
-document.getElementById("googleBtn").onclick=async()=>{
+/* GOOGLE */
+googleBtn.onclick=async()=>{
   try{
-    const r = await signInWithPopup(auth,new GoogleAuthProvider());
-    await setDoc(doc(db,"users",r.user.uid),{
-      name:r.user.displayName,
-      email:r.user.email,
-      provider:"google",
-      lastLogin:Date.now()
-    },{merge:true});
+    await signInWithPopup(auth,new GoogleAuthProvider());
     location.href="/";
-  }catch(e){alert(e.message);}
+  }catch(e){alert("Google login failed");}
 };
 
-/* APPLE LOGIN */
-document.getElementById("appleBtn").onclick=async()=>{
+/* APPLE */
+appleBtn.onclick=async()=>{
   try{
-    const r = await signInWithPopup(auth,new OAuthProvider("apple.com"));
-    await setDoc(doc(db,"users",r.user.uid),{
-      name:r.user.displayName||"Apple User",
-      email:r.user.email||"",
-      provider:"apple",
-      lastLogin:Date.now()
-    },{merge:true});
+    await signInWithPopup(auth,new OAuthProvider("apple.com"));
     location.href="/";
-  }catch(e){alert(e.message);}
+  }catch(e){alert("Apple login failed");}
+};
+
+/* PASSWORD RESET */
+window.resetPassword=async()=>{
+  if(!email.value){
+    alert("Enter email first");
+    return;
+  }
+  await sendPasswordResetEmail(auth,email.value);
+  alert("Password reset email sent");
+};
+
+/* SHOW / HIDE PASSWORD */
+window.togglePass=()=>{
+  password.type=password.type==="password"?"text":"password";
 };
 </script>
 
