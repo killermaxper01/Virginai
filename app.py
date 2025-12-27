@@ -437,17 +437,22 @@ def send_notification():
         message = messaging.Message(
             notification=messaging.Notification(
                 title=title,
-                body=body
+                body=body,
+                image="https://virginai.in/android-chrome-192x192.png"
             ),
+
             data={
                 "url": "https://virginai.in"
             },
+
             webpush=messaging.WebpushConfig(
                 notification=messaging.WebpushNotification(
-                    icon="/android-chrome-192x192.png",
-                    badge="/android-chrome-192x192.png"
+                    icon="https://virginai.in/android-chrome-192x192.png",
+                    badge="https://virginai.in/android-chrome-192x192.png",
+                    vibrate=[200, 100, 200]
                 )
             ),
+
             token=token
         )
 
