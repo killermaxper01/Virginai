@@ -3,7 +3,6 @@
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js");
 
-// -------------------- FIREBASE INIT --------------------
 firebase.initializeApp({
   apiKey: "AIzaSyCt27Y4VmFPGgMvqvKYv5jcI90N8VoUHfY",
   authDomain: "virginai-6b615.firebaseapp.com",
@@ -12,41 +11,25 @@ firebase.initializeApp({
   appId: "1:444972440350:web:03651aa7be5213c710470f"
 });
 
-// -------------------- MESSAGING --------------------
 const messaging = firebase.messaging();
 
-// -------------------- BACKGROUND MESSAGE --------------------
+// ✅ DATA MESSAGE HANDLER (MOST IMPORTANT)
 messaging.onBackgroundMessage((payload) => {
-  console.log("[SW] Background message:", payload);
+  console.log("[SW] DATA MESSAGE:", payload);
 
-  const title = payload.notification?.title || "VirginAI 🔔";
-
+  const title = payload.data?.title || "VirginAI 🔔";
   const options = {
-    body: payload.notification?.body || "New update available",
-    icon: "/android-chrome-192x192.png",     // ✅ MAIN ICON
-    badge: "/android-chrome-192x192.png",   // ✅ ANDROID BADGE
-    vibrate: [200, 100, 200],
-    data: {
-      url: "https://virginai.in"
-    }
+    body: payload.data?.body || "New update available",
+    icon: "/android-chrome-192x192.png",
+    badge: "/android-chrome-192x192.png",
+    data: { url: payload.data?.url || "https://virginai.in" },
+    vibrate: [200, 100, 200]
   };
 
   self.registration.showNotification(title, options);
 });
 
-// -------------------- CLICK ACTION --------------------
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-
-  event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true })
-      .then((clientList) => {
-        for (const client of clientList) {
-          if (client.url === "https://virginai.in" && "focus" in client) {
-            return client.focus();
-          }
-        }
-        return clients.openWindow("https://virginai.in");
-      })
-  );
+  event.waitUntil(clients.openWindow(event.notification.data.url));
 });
