@@ -17,20 +17,34 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// -------------------- INIT MESSAGING --------------------
+// -------------------- INIT --------------------
 const messaging = getMessaging(app);
+let swRegistration = null;
+
+// -------------------- REGISTER SERVICE WORKER --------------------
+if ("serviceWorker" in navigator) {
+  try {
+    swRegistration = await navigator.serviceWorker.register(
+      "/firebase-messaging-sw.js"
+    );
+    console.log("✅ Service Worker registered");
+  } catch (err) {
+    console.error("❌ SW registration failed:", err);
+  }
+}
 
 // -------------------- REQUEST PERMISSION + SAVE TOKEN --------------------
 export async function initNotifications() {
   try {
     const permission = await Notification.requestPermission();
     if (permission !== "granted") {
-      console.warn("🔕 Notification permission denied");
+      console.warn("🔕 Notifications blocked by user");
       return;
     }
 
     const token = await getToken(messaging, {
-      vapidKey: "BECWG_Ge9EOcfeDcuRvLOIKvhpUFGCPMU1GenJKDHyDuPR65efUtZVQSvERWTMs2kxt9mg6UvY7sBFwVnrLARjo"
+      vapidKey: "BECWG_Ge9EOcfeDcuRvLOIKvhpUFGCPMU1GenJKDHyDuPR65efUtZVQSvERWTMs2kxt9mg6UvY7sBFwVnrLARjo",
+      serviceWorkerRegistration: swRegistration
     });
 
     if (!token) {
@@ -48,12 +62,13 @@ export async function initNotifications() {
         {
           fcmToken: token,
           platform: "web",
+          notificationsEnabled: true,
           updatedAt: Date.now()
         },
         { merge: true }
       );
 
-      console.log("✅ FCM token saved to Firestore");
+      console.log("✅ Token saved to Firestore");
     });
 
   } catch (err) {
