@@ -11,11 +11,21 @@ from PIL import Image
 import PyPDF2
 from flask import Response
 #firebase integration 
-# Firebase Admin
+
+
+import json
 import firebase_admin
 from firebase_admin import credentials, messaging
-        
-        
+
+if not firebase_admin._apps:
+    firebase_json = os.getenv("FIREBASE_ADMIN_JSON")
+    if not firebase_json:
+        raise RuntimeError("FIREBASE_ADMIN_JSON env not set")
+
+    cred_dict = json.loads(firebase_json)
+    cred = credentials.Certificate(cred_dict)
+    firebase_admin.initialize_app(cred)
+
 # -------------------- SETUP --------------------
 load_dotenv()
 
@@ -408,7 +418,7 @@ def generate_image():
     except Exception as e:
         print("IMAGE ERROR:", e)
         return jsonify({"error": "Server error"}), 500
-        
+
 #firebase notification 
 # -------------------- SEND PUSH NOTIFICATION --------------------
 @app.route("/send-notification", methods=["POST"])
