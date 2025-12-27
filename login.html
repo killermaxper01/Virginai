@@ -10,7 +10,7 @@
 <!-- FAVICON -->
 <link rel="icon" href="/android-chrome-512x512.png">
 
-<!-- GOOGLE FONT -->
+<!-- FONT -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -36,6 +36,7 @@ body{
   color:var(--text);
 }
 
+/* CARD */
 .card{
   width:100%;
   max-width:420px;
@@ -46,34 +47,15 @@ body{
   box-shadow:0 0 45px rgba(201,164,74,.08);
 }
 
-.brand{
-  text-align:center;
-  margin-bottom:24px;
-}
-.brand img{
-  width:72px;
-  border-radius:16px;
-}
-.brand h1{
-  margin:10px 0 0;
-  font-size:22px;
-  color:var(--gold);
-}
-.brand p{
-  margin-top:6px;
-  font-size:13px;
-  color:var(--muted);
-}
+/* HEADER */
+.brand{text-align:center;margin-bottom:24px}
+.brand img{width:72px;border-radius:16px}
+.brand h1{margin:10px 0 0;font-size:22px;color:var(--gold)}
+.brand p{margin-top:6px;font-size:13px;color:var(--muted)}
 
-.input{
-  margin-bottom:16px;
-}
-.input label{
-  display:block;
-  font-size:13px;
-  margin-bottom:6px;
-  color:#bcbcbc;
-}
+/* INPUT */
+.input{margin-bottom:16px}
+.input label{font-size:13px;color:#bcbcbc;display:block;margin-bottom:6px}
 .input input{
   width:100%;
   padding:12px 14px;
@@ -83,11 +65,9 @@ body{
   color:var(--text);
   font-size:14px;
 }
-.input input:focus{
-  border-color:var(--gold);
-  outline:none;
-}
+.input input:focus{border-color:var(--gold);outline:none}
 
+/* BUTTON */
 .btn{
   width:100%;
   padding:13px;
@@ -97,19 +77,12 @@ body{
   font-weight:500;
   cursor:pointer;
 }
-
 .btn-main{
   background:linear-gradient(135deg,#c9a44a,#9f8740);
   color:#000;
 }
 
-.divider{
-  text-align:center;
-  margin:18px 0;
-  font-size:12px;
-  color:var(--muted);
-}
-
+/* SOCIAL */
 .social{
   background:#000;
   border:1px solid var(--border);
@@ -122,21 +95,25 @@ body{
 }
 .social img{width:18px}
 
-.apple{
-  background:#000;
-  border:1px solid #333;
-}
+/* DIVIDER */
+.divider{text-align:center;margin:18px 0;font-size:12px;color:var(--muted)}
 
-.footer{
-  margin-top:16px;
-  text-align:center;
-  font-size:12px;
-  color:var(--muted);
+/* FOOTER */
+.footer{text-align:center;font-size:12px;color:var(--muted)}
+.footer a{color:var(--gold);text-decoration:none}
+
+/* SPINNER */
+.loader{
+  display:none;
+  width:22px;
+  height:22px;
+  border:3px solid #000;
+  border-top:3px solid transparent;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:auto;
 }
-.footer a{
-  color:var(--gold);
-  text-decoration:none;
-}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 
@@ -150,28 +127,31 @@ body{
     <p>Secure AI Platform</p>
   </div>
 
-  <form onsubmit="loginEmail(event)">
+  <form id="loginForm">
     <div class="input">
       <label>Email</label>
-      <input id="email" type="email" required placeholder="you@example.com">
+      <input id="email" type="email" required>
     </div>
 
     <div class="input">
       <label>Password</label>
-      <input id="password" type="password" required placeholder="••••••••">
+      <input id="password" type="password" required>
     </div>
 
-    <button class="btn btn-main">Login</button>
+    <button class="btn btn-main" id="loginBtn">
+      <span id="loginText">Login</span>
+      <div class="loader" id="loginLoader"></div>
+    </button>
   </form>
 
   <div class="divider">OR</div>
 
-  <button class="btn social" onclick="googleLogin()">
+  <button class="btn social" id="googleBtn">
     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
     Continue with Google
   </button>
 
-  <button class="btn social apple" onclick="appleLogin()">
+  <button class="btn social" id="appleBtn">
     <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg">
     Continue with Apple
   </button>
@@ -183,7 +163,7 @@ body{
 
 </div>
 
-<!-- FIREBASE -->
+<!-- FIREBASE LOGIC -->
 <script type="module">
 import { auth } from "./firebase.js";
 import {
@@ -193,8 +173,19 @@ import {
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-window.loginEmail = async (e) => {
+const loader=document.getElementById("loginLoader");
+const text=document.getElementById("loginText");
+
+function loading(on){
+  loader.style.display=on?"block":"none";
+  text.style.display=on?"none":"inline";
+}
+
+/* EMAIL LOGIN */
+document.getElementById("loginForm").addEventListener("submit",async(e)=>{
   e.preventDefault();
+  loading(true);
+
   try{
     await signInWithEmailAndPassword(
       auth,
@@ -204,19 +195,24 @@ window.loginEmail = async (e) => {
     location.href="/";
   }catch(err){
     alert(err.message);
+    loading(false);
   }
+});
+
+/* GOOGLE */
+document.getElementById("googleBtn").onclick=async()=>{
+  try{
+    await signInWithPopup(auth,new GoogleAuthProvider());
+    location.href="/";
+  }catch(e){alert(e.message);}
 };
 
-window.googleLogin = async () => {
-  const provider = new GoogleAuthProvider();
-  await signInWithPopup(auth, provider);
-  location.href="/";
-};
-
-window.appleLogin = async () => {
-  const provider = new OAuthProvider("apple.com");
-  await signInWithPopup(auth, provider);
-  location.href="/";
+/* APPLE */
+document.getElementById("appleBtn").onclick=async()=>{
+  try{
+    await signInWithPopup(auth,new OAuthProvider("apple.com"));
+    location.href="/";
+  }catch(e){alert(e.message);}
 };
 </script>
 
