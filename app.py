@@ -435,10 +435,10 @@ def send_notification():
             return jsonify({"error": "FCM token required"}), 400
 
         message = messaging.Message(
-            notification=messaging.Notification(
-                title=title,
-                body=body
-            ),
+            data={
+                "title": title,
+                "body": body
+            },
             token=token
         )
 
