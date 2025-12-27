@@ -2,72 +2,129 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Edit Profile | VirginAI</title>
+<title>Profile | VirginAI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- FONT -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
+:root{
+  --bg:#050505;
+  --card:#0c0c0c;
+  --border:#1e1e1e;
+  --gold:#c9a44a;
+  --gold-soft:#9f8740;
+  --text:#eaeaea;
+  --muted:#9a9a9a;
+  --danger:#ff4d4d;
+}
+
+*{box-sizing:border-box}
+
 body{
   margin:0;
-  background:#050505;
+  min-height:100vh;
+  background:var(--bg);
   font-family:Inter,Segoe UI,sans-serif;
-  color:#eaeaea;
+  color:var(--text);
   display:flex;
   justify-content:center;
   align-items:center;
-  min-height:100vh;
 }
 
 .card{
   width:100%;
-  max-width:420px;
-  background:#0c0c0c;
-  border:1px solid #1e1e1e;
-  border-radius:18px;
+  max-width:460px;
+  background:linear-gradient(180deg,#0a0a0a,#0f0f0f);
+  border:1px solid var(--border);
+  border-radius:20px;
   padding:28px;
+  box-shadow:0 0 45px rgba(201,164,74,.08);
+}
+
+.header{
   text-align:center;
 }
 
 .avatar{
-  width:96px;
-  height:96px;
+  width:100px;
+  height:100px;
   border-radius:50%;
-  border:2px solid #c9a44a;
+  border:2px solid var(--gold);
   object-fit:cover;
-  margin-bottom:12px;
 }
 
-h2{
-  margin:10px 0;
-  color:#c9a44a;
+.name{
+  margin:14px 0 4px;
+  font-size:20px;
+  font-weight:600;
+  color:var(--gold);
+}
+
+.email{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.section{
+  margin-top:22px;
+}
+
+.label{
+  font-size:12px;
+  color:#bcbcbc;
+  margin-bottom:6px;
 }
 
 input{
   width:100%;
-  margin-top:12px;
-  padding:12px;
+  padding:12px 14px;
   border-radius:12px;
-  border:1px solid #2a2a2a;
-  background:#090909;
-  color:#fff;
+  border:1px solid var(--border);
+  background:#080808;
+  color:var(--text);
+  font-size:14px;
+}
+
+input:focus{
   outline:none;
+  border-color:var(--gold);
 }
 
 .btn{
-  margin-top:14px;
-  padding:12px;
   width:100%;
+  padding:13px;
   border-radius:14px;
   border:none;
   font-size:15px;
+  font-weight:500;
   cursor:pointer;
-  background:linear-gradient(135deg,#c9a44a,#9f8740);
-  color:#000;
 }
 
-.small{
+.btn-main{
+  background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+  color:#000;
+  margin-top:12px;
+}
+
+.btn-danger{
+  background:#120606;
+  border:1px solid var(--danger);
+  color:var(--danger);
+  margin-top:14px;
+}
+
+.meta{
+  margin-top:10px;
   font-size:12px;
-  color:#888;
-  margin-top:6px;
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.status{
+  margin-top:10px;
+  font-size:13px;
 }
 </style>
 </head>
@@ -75,57 +132,98 @@ input{
 <body>
 
 <div class="card">
-  <img id="photo" class="avatar">
 
-  <h2 id="currentName">Loading...</h2>
+  <!-- HEADER -->
+  <div class="header">
+    <img id="photo" class="avatar">
+    <div id="displayName" class="name">Loading...</div>
+    <div id="email" class="email"></div>
+  </div>
 
-  <input id="nameInput" placeholder="Enter new name">
+  <!-- EDIT NAME -->
+  <div class="section">
+    <div class="label">Display Name</div>
+    <input id="nameInput" placeholder="Enter new name">
+    <button class="btn btn-main" id="saveBtn">Save Name</button>
+    <div id="status" class="status"></div>
+  </div>
 
-  <button class="btn" id="saveBtn">Save Name</button>
+  <!-- USER INFO -->
+  <div class="section meta">
+    <div><b>User ID:</b> <span id="uid"></span></div>
+    <div><b>Provider:</b> <span id="provider"></span></div>
+    <div><b>Email Verified:</b> <span id="verified"></span></div>
+  </div>
 
-  <div class="small" id="status"></div>
+  <!-- DELETE ACCOUNT -->
+  <button class="btn btn-danger" id="deleteBtn">
+    Delete Account
+  </button>
+
 </div>
 
 <script type="module">
 import { auth } from "./firebase.js";
 import {
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  deleteUser
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const photo = document.getElementById("photo");
-const currentName = document.getElementById("currentName");
+const displayName = document.getElementById("displayName");
+const email = document.getElementById("email");
 const nameInput = document.getElementById("nameInput");
+const uid = document.getElementById("uid");
+const provider = document.getElementById("provider");
+const verified = document.getElementById("verified");
 const status = document.getElementById("status");
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, user => {
   if (!user) {
     location.replace("/login.html");
     return;
   }
 
   photo.src = user.photoURL || "/default-avatar.png";
-  currentName.textContent = user.displayName || "VirginAI User";
+  displayName.textContent = user.displayName || "VirginAI User";
+  email.textContent = user.email || "";
   nameInput.value = user.displayName || "";
+
+  uid.textContent = user.uid;
+  provider.textContent = user.providerData[0]?.providerId || "password";
+  verified.textContent = user.emailVerified ? "Yes" : "No";
 });
 
+/* UPDATE NAME */
 document.getElementById("saveBtn").onclick = async () => {
   const newName = nameInput.value.trim();
   if (!newName) {
     status.textContent = "Name cannot be empty";
+    status.style.color = "#ff6b6b";
     return;
   }
 
-  try {
-    await updateProfile(auth.currentUser, {
-      displayName: newName
-    });
+  try{
+    await updateProfile(auth.currentUser, { displayName:newName });
+    displayName.textContent = newName;
+    status.textContent = "✔ Name updated successfully";
+    status.style.color = "#8cff8c";
+  }catch(err){
+    status.textContent = "❌ Update failed";
+    status.style.color = "#ff6b6b";
+  }
+};
 
-    currentName.textContent = newName;
-    status.textContent = "✅ Name updated successfully";
-  } catch (err) {
-    status.textContent = "❌ Failed to update name";
-    console.error(err);
+/* DELETE ACCOUNT */
+document.getElementById("deleteBtn").onclick = async () => {
+  if (!confirm("This will permanently delete your account. Continue?")) return;
+
+  try{
+    await deleteUser(auth.currentUser);
+    location.replace("/signup.html");
+  }catch(err){
+    alert("Re-login required to delete account.");
   }
 };
 </script>
