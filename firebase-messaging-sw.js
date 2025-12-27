@@ -16,7 +16,7 @@ messaging.onBackgroundMessage(payload => {
     payload.notification.title,
     {
       body: payload.notification.body,
-      icon: "/logo.png"
+      icon: "/android-chrome-512x512.png"
     }
   );
 });
