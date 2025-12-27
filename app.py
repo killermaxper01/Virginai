@@ -421,30 +421,40 @@ def generate_image():
 
 #firebase notification 
 # -------------------- SEND PUSH NOTIFICATION --------------------
-@app.route("/send-notification", methods=["POST"])
-@limiter.limit("10 per minute")
-def send_notification():
+@app.route("/send-bulk-notification", methods=["POST"])
+@limiter.limit("2 per minute")  # 🔒 very strict
+def send_bulk_notification():
     try:
+        # 🔐 1️⃣ ADMIN AUTH CHECK
+        admin_token = request.headers.get("X-Admin-Token")
+        if admin_token != os.getenv("ADMIN_PUSH_TOKEN"):
+            return jsonify({"error": "Unauthorized"}), 401
+
         data = request.get_json(force=True)
 
-        token = data.get("token")
         title = data.get("title", "VirginAI 🔔")
-        body = data.get("body", "You have a new notification")
+        body  = data.get("body", "New update available")
 
-        if not token:
-            return jsonify({"error": "FCM token required"}), 400
+        # 2️⃣ Fetch tokens
+        tokens = []
+        users_ref = db.collection("users").stream()
 
-        message = messaging.Message(
+        for doc in users_ref:
+            token = doc.to_dict().get("fcmToken")
+            if token:
+                tokens.append(token)
+
+        if not tokens:
+            return jsonify({"error": "No users found"}), 400
+
+        # 3️⃣ Multicast
+        message = messaging.MulticastMessage(
             notification=messaging.Notification(
                 title=title,
                 body=body,
                 image="https://virginai.in/android-chrome-192x192.png"
             ),
-
-            data={
-                "url": "https://virginai.in"
-            },
-
+            data={"url": "https://virginai.in"},
             webpush=messaging.WebpushConfig(
                 notification=messaging.WebpushNotification(
                     icon="https://virginai.in/android-chrome-192x192.png",
@@ -452,20 +462,21 @@ def send_notification():
                     vibrate=[200, 100, 200]
                 )
             ),
-
-            token=token
+            tokens=tokens
         )
 
-        response = messaging.send(message)
+        response = messaging.send_multicast(message)
 
         return jsonify({
             "success": True,
-            "message_id": response
+            "total": len(tokens),
+            "sent": response.success_count,
+            "failed": response.failure_count
         })
 
     except Exception as e:
-        print("FCM ERROR:", e)
-        return jsonify({"error": "Notification failed"}), 500
+        print("BULK ERROR:", e)
+        return jsonify({"error": "Bulk send failed"}), 500
 
 
 # -------------------- CLEAR SESSION --------------------
