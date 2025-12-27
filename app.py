@@ -10,7 +10,12 @@ import base64, io
 from PIL import Image
 import PyPDF2
 from flask import Response
-
+#firebase integration 
+# Firebase Admin
+import firebase_admin
+from firebase_admin import credentials, messaging
+        
+        
 # -------------------- SETUP --------------------
 load_dotenv()
 
@@ -404,7 +409,40 @@ def generate_image():
         print("IMAGE ERROR:", e)
         return jsonify({"error": "Server error"}), 500
         
-        
+#firebase notification 
+# -------------------- SEND PUSH NOTIFICATION --------------------
+@app.route("/send-notification", methods=["POST"])
+@limiter.limit("10 per minute")
+def send_notification():
+    try:
+        data = request.get_json(force=True)
+
+        token = data.get("token")
+        title = data.get("title", "VirginAI 🔔")
+        body = data.get("body", "You have a new notification")
+
+        if not token:
+            return jsonify({"error": "FCM token required"}), 400
+
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title=title,
+                body=body
+            ),
+            token=token
+        )
+
+        response = messaging.send(message)
+
+        return jsonify({
+            "success": True,
+            "message_id": response
+        })
+
+    except Exception as e:
+        print("FCM ERROR:", e)
+        return jsonify({"error": "Notification failed"}), 500
+
 # -------------------- CLEAR SESSION --------------------
 @app.route("/clear-session", methods=["POST"])
 def clear_session():
