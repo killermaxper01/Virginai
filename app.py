@@ -17,6 +17,16 @@ import json
 import firebase_admin
 from firebase_admin import credentials, messaging
 
+
+if not firebase_admin._apps:
+    firebase_json = os.getenv("FIREBASE_ADMIN_JSON")
+    cred_dict = json.loads(firebase_json)
+    cred = credentials.Certificate(cred_dict)
+    firebase_admin.initialize_app(cred)
+
+from firebase_admin import firestore
+db = firestore.client()
+
 if not firebase_admin._apps:
     firebase_json = os.getenv("FIREBASE_ADMIN_JSON")
     if not firebase_json:
@@ -422,20 +432,19 @@ def generate_image():
 #firebase notification 
 # -------------------- SEND PUSH NOTIFICATION --------------------
 @app.route("/send-bulk-notification", methods=["POST"])
-@limiter.limit("2 per minute")  # 🔒 very strict
+@limiter.limit("2 per minute")  # 🔒 ADMIN only
 def send_bulk_notification():
     try:
-        # 🔐 1️⃣ ADMIN AUTH CHECK
+        # 🔐 ADMIN AUTH
         admin_token = request.headers.get("X-Admin-Token")
         if admin_token != os.getenv("ADMIN_PUSH_TOKEN"):
             return jsonify({"error": "Unauthorized"}), 401
 
         data = request.get_json(force=True)
-
         title = data.get("title", "VirginAI 🔔")
         body  = data.get("body", "New update available")
 
-        # 2️⃣ Fetch tokens
+        # 🔹 Fetch tokens from Firestore
         tokens = []
         users_ref = db.collection("users").stream()
 
@@ -447,43 +456,61 @@ def send_bulk_notification():
         if not tokens:
             return jsonify({"error": "No users found"}), 400
 
-        # 3️⃣ Multicast
-        message = messaging.MulticastMessage(
-            notification=messaging.Notification(
-                title=title,
-                body=body,
-                image="https://virginai.in/android-chrome-192x192.png"
-            ),
-            data={"url": "https://virginai.in"},
-            webpush=messaging.WebpushConfig(
-                notification=messaging.WebpushNotification(
-                    icon="https://virginai.in/android-chrome-192x192.png",
-                    badge="https://virginai.in/android-chrome-192x192.png",
-                    vibrate=[200, 100, 200]
-                )
-            ),
-            tokens=tokens
-        )
+        # 🔹 Helper for Firebase 500 limit
+        def chunks(lst, size=500):
+            for i in range(0, len(lst), size):
+                yield lst[i:i + size]
 
-        response = messaging.send_multicast(message)
+        success = 0
+        failure = 0
+
+        # 🔹 Send in batches
+        for batch in chunks(tokens, 500):
+            msg = messaging.MulticastMessage(
+                notification=messaging.Notification(
+                    title=title,
+                    body=body,
+                    image="https://virginai.in/android-chrome-192x192.png"
+                ),
+                data={"url": "https://virginai.in"},
+                webpush=messaging.WebpushConfig(
+                    notification=messaging.WebpushNotification(
+                        icon="https://virginai.in/android-chrome-192x192.png",
+                        badge="https://virginai.in/android-chrome-192x192.png",
+                        vibrate=[200, 100, 200]
+                    )
+                ),
+                tokens=batch
+            )
+
+            resp = messaging.send_multicast(msg)
+            success += resp.success_count
+            failure += resp.failure_count
 
         return jsonify({
             "success": True,
-            "total": len(tokens),
-            "sent": response.success_count,
-            "failed": response.failure_count
+            "total_users": len(tokens),
+            "sent": success,
+            "failed": failure
         })
 
     except Exception as e:
         print("BULK ERROR:", e)
         return jsonify({"error": "Bulk send failed"}), 500
-
-
+    
+    
+    
+    
 #per user notification 
 @app.route("/send-notification", methods=["POST"])
 @limiter.limit("10 per minute")
 def send_notification():
     try:
+        # 🔐 ADMIN AUTH (INSIDE FUNCTION)
+        admin_token = request.headers.get("X-Admin-Token")
+        if admin_token != os.getenv("ADMIN_PUSH_TOKEN"):
+            return jsonify({"error": "Unauthorized"}), 401
+
         data = request.get_json(force=True)
 
         token = data.get("token")
@@ -499,11 +526,7 @@ def send_notification():
                 body=body,
                 image="https://virginai.in/android-chrome-192x192.png"
             ),
-
-            data={
-                "url": "https://virginai.in"
-            },
-
+            data={"url": "https://virginai.in"},
             webpush=messaging.WebpushConfig(
                 notification=messaging.WebpushNotification(
                     icon="https://virginai.in/android-chrome-192x192.png",
@@ -511,7 +534,6 @@ def send_notification():
                     vibrate=[200, 100, 200]
                 )
             ),
-
             token=token
         )
 
@@ -525,7 +547,6 @@ def send_notification():
     except Exception as e:
         print("FCM ERROR:", e)
         return jsonify({"error": "Notification failed"}), 500
-
 
 # -------------------- CLEAR SESSION --------------------
 @app.route("/clear-session", methods=["POST"])
@@ -547,3 +568,4 @@ def fallback(path):
 # -------------------- RUN --------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
+    
