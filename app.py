@@ -431,7 +431,7 @@ def generate_image():
 
 #firebase notification 
 # -------------------- SEND PUSH NOTIFICATION --------------------
-# -------------------- SEND BULK PUSH NOTIFICATION --------------------
+# -------------------- SEND BULK PUSH # -------------------- SEND BULK PUSH NOTIFICATION --------------------
 @app.route("/send-bulk-notification", methods=["POST"])
 @limiter.limit("2 per minute")  # 🔒 Admin only
 def send_bulk_notification():
@@ -445,7 +445,7 @@ def send_bulk_notification():
         title = data.get("title", "VirginAI 🔔")
         body  = data.get("body", "New update available")
 
-        # 🔹 Fetch tokens
+        # 🔹 Collect FCM tokens
         tokens = []
         for doc in db.collection("users").stream():
             token = doc.to_dict().get("fcmToken")
@@ -476,19 +476,20 @@ def send_bulk_notification():
                     webpush=messaging.WebpushConfig(
                         notification=messaging.WebpushNotification(
                             icon="https://virginai.in/android-chrome-192x192.png",
-                            badge="https://virginai.in/android-chrome-192x192.png"
+                            badge="https://virginai.in/android-chrome-192x192.png",
+                            require_interaction=True
                         )
                     ),
                     tokens=batch
                 )
 
-                response = messaging.send_multicast(message)
+                # ✅ COMPATIBLE METHOD
+                response = messaging.send_each_for_multicast(message)
 
                 success += response.success_count
                 failure += response.failure_count
 
-                # 🔥 log individual failures
-                for idx, resp in enumerate(response.responses):
+                for resp in response.responses:
                     if not resp.success:
                         errors.append(str(resp.exception))
 
@@ -501,13 +502,15 @@ def send_bulk_notification():
             "total_tokens": len(tokens),
             "sent": success,
             "failed": failure,
-            "errors": errors[:5]  # prevent huge response
+            "errors": errors[:5]  # keep response small
         })
 
     except Exception as e:
         print("🔥 BULK FATAL ERROR:", e)
         return jsonify({"error": str(e)}), 500
-    
+
+
+
     
 #per user notification 
 # -------------------- SEND SINGLE USER PUSH --------------------
