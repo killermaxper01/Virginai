@@ -435,10 +435,19 @@ def send_notification():
             return jsonify({"error": "FCM token required"}), 400
 
         message = messaging.Message(
+            notification=messaging.Notification(
+                title=title,
+                body=body
+            ),
             data={
-                "title": title,
-                "body": body
+                "url": "https://virginai.in"
             },
+            webpush=messaging.WebpushConfig(
+                notification=messaging.WebpushNotification(
+                    icon="/android-chrome-192x192.png",
+                    badge="/android-chrome-192x192.png"
+                )
+            ),
             token=token
         )
 
@@ -452,6 +461,7 @@ def send_notification():
     except Exception as e:
         print("FCM ERROR:", e)
         return jsonify({"error": "Notification failed"}), 500
+
 
 # -------------------- CLEAR SESSION --------------------
 @app.route("/clear-session", methods=["POST"])
