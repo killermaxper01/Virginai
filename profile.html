@@ -2,94 +2,85 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Profile | VirginAI</title>
+<title>My Profile | VirginAI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- FONT -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
 :root{
   --bg:#050505;
-  --card:#0c0c0c;
+  --panel:#0c0c0c;
   --border:#1e1e1e;
   --gold:#c9a44a;
-  --gold-soft:#9f8740;
   --text:#eaeaea;
   --muted:#9a9a9a;
-  --danger:#ff4d4d;
 }
 
 *{box-sizing:border-box}
 
 body{
   margin:0;
-  min-height:100vh;
   background:var(--bg);
   font-family:Inter,Segoe UI,sans-serif;
   color:var(--text);
+  min-height:100vh;
   display:flex;
-  justify-content:center;
   align-items:center;
+  justify-content:center;
 }
 
 .card{
   width:100%;
-  max-width:460px;
+  max-width:420px;
   background:linear-gradient(180deg,#0a0a0a,#0f0f0f);
   border:1px solid var(--border);
-  border-radius:20px;
+  border-radius:18px;
   padding:28px;
-  box-shadow:0 0 45px rgba(201,164,74,.08);
-}
-
-.header{
   text-align:center;
+  box-shadow:0 0 40px rgba(201,164,74,.08);
 }
 
 .avatar{
-  width:100px;
-  height:100px;
+  width:96px;
+  height:96px;
   border-radius:50%;
   border:2px solid var(--gold);
   object-fit:cover;
+  object-position:center top;
+  background:#000;
+  margin-bottom:12px;
 }
 
-.name{
-  margin:14px 0 4px;
-  font-size:20px;
-  font-weight:600;
+h2{
+  margin:6px 0;
   color:var(--gold);
 }
 
-.email{
+.info{
   font-size:13px;
   color:var(--muted);
+  margin-bottom:18px;
 }
 
-.section{
-  margin-top:22px;
+.field{
+  text-align:left;
+  margin-bottom:12px;
 }
 
-.label{
+.field label{
   font-size:12px;
   color:#bcbcbc;
-  margin-bottom:6px;
 }
 
-input{
+.field input{
   width:100%;
-  padding:12px 14px;
+  padding:12px;
   border-radius:12px;
   border:1px solid var(--border);
   background:#080808;
-  color:var(--text);
-  font-size:14px;
-}
-
-input:focus{
-  outline:none;
-  border-color:var(--gold);
+  color:#fff;
+  margin-top:6px;
 }
 
 .btn{
@@ -103,28 +94,22 @@ input:focus{
 }
 
 .btn-main{
-  background:linear-gradient(135deg,var(--gold),var(--gold-soft));
+  background:linear-gradient(135deg,#c9a44a,#9f8740);
   color:#000;
-  margin-top:12px;
+  margin-top:10px;
 }
 
 .btn-danger{
-  background:#120606;
-  border:1px solid var(--danger);
-  color:var(--danger);
+  background:#150707;
+  color:#ff6b6b;
+  border:1px solid #402020;
   margin-top:14px;
-}
-
-.meta{
-  margin-top:10px;
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.6;
 }
 
 .status{
   margin-top:10px;
-  font-size:13px;
+  font-size:12px;
+  color:var(--muted);
 }
 </style>
 </head>
@@ -133,35 +118,26 @@ input:focus{
 
 <div class="card">
 
-  <!-- HEADER -->
-  <div class="header">
-    <img id="photo" class="avatar">
-    <div id="displayName" class="name">Loading...</div>
-    <div id="email" class="email"></div>
-  </div>
+  <img id="photo" class="avatar">
 
-  <!-- EDIT NAME -->
-  <div class="section">
-    <div class="label">Display Name</div>
+  <h2 id="displayName">Loading...</h2>
+  <div class="info" id="emailText"></div>
+  <div class="info" id="providerText"></div>
+
+  <div class="field">
+    <label>Edit Name</label>
     <input id="nameInput" placeholder="Enter new name">
-    <button class="btn btn-main" id="saveBtn">Save Name</button>
-    <div id="status" class="status"></div>
   </div>
 
-  <!-- USER INFO -->
-  <div class="section meta">
-    <div><b>User ID:</b> <span id="uid"></span></div>
-    <div><b>Provider:</b> <span id="provider"></span></div>
-    <div><b>Email Verified:</b> <span id="verified"></span></div>
-  </div>
+  <button class="btn btn-main" id="saveBtn">Save Changes</button>
 
-  <!-- DELETE ACCOUNT -->
-  <button class="btn btn-danger" id="deleteBtn">
-    Delete Account
-  </button>
+  <button class="btn btn-danger" id="deleteBtn">Delete Account</button>
+
+  <div class="status" id="status"></div>
 
 </div>
 
+<!-- FIREBASE LOGIC -->
 <script type="module">
 import { auth } from "./firebase.js";
 import {
@@ -172,58 +148,67 @@ import {
 
 const photo = document.getElementById("photo");
 const displayName = document.getElementById("displayName");
-const email = document.getElementById("email");
+const emailText = document.getElementById("emailText");
+const providerText = document.getElementById("providerText");
 const nameInput = document.getElementById("nameInput");
-const uid = document.getElementById("uid");
-const provider = document.getElementById("provider");
-const verified = document.getElementById("verified");
 const status = document.getElementById("status");
 
-onAuthStateChanged(auth, user => {
+/* AUTH GUARD */
+onAuthStateChanged(auth, (user) => {
   if (!user) {
     location.replace("/login.html");
     return;
   }
 
-  photo.src = user.photoURL || "/default-avatar.png";
-  displayName.textContent = user.displayName || "VirginAI User";
-  email.textContent = user.email || "";
-  nameInput.value = user.displayName || "";
+  // HIGH-QUALITY GOOGLE PHOTO FIX
+  if (user.photoURL) {
+    photo.src = user.photoURL.includes("googleusercontent")
+      ? user.photoURL + "?sz=256"
+      : user.photoURL;
+  } else {
+    photo.src = "/default-avatar.png";
+  }
 
-  uid.textContent = user.uid;
-  provider.textContent = user.providerData[0]?.providerId || "password";
-  verified.textContent = user.emailVerified ? "Yes" : "No";
+  displayName.textContent = user.displayName || "VirginAI User";
+  emailText.textContent = user.email || "";
+  providerText.textContent = "Signed in via: " + user.providerData[0].providerId;
+
+  nameInput.value = user.displayName || "";
 });
 
 /* UPDATE NAME */
 document.getElementById("saveBtn").onclick = async () => {
   const newName = nameInput.value.trim();
   if (!newName) {
-    status.textContent = "Name cannot be empty";
-    status.style.color = "#ff6b6b";
+    status.textContent = "❌ Name cannot be empty";
     return;
   }
 
-  try{
-    await updateProfile(auth.currentUser, { displayName:newName });
+  try {
+    await updateProfile(auth.currentUser, { displayName: newName });
     displayName.textContent = newName;
-    status.textContent = "✔ Name updated successfully";
-    status.style.color = "#8cff8c";
-  }catch(err){
-    status.textContent = "❌ Update failed";
-    status.style.color = "#ff6b6b";
+    status.textContent = "✅ Name updated successfully";
+  } catch (e) {
+    status.textContent = "❌ Failed to update name";
   }
 };
 
 /* DELETE ACCOUNT */
 document.getElementById("deleteBtn").onclick = async () => {
-  if (!confirm("This will permanently delete your account. Continue?")) return;
+  const ok = confirm(
+    "⚠️ This will permanently delete your VirginAI account.\n\nAre you sure?"
+  );
+  if (!ok) return;
 
-  try{
+  try {
     await deleteUser(auth.currentUser);
-    location.replace("/signup.html");
-  }catch(err){
-    alert("Re-login required to delete account.");
+    alert("Account deleted successfully");
+    location.replace("/login.html");
+  } catch (e) {
+    alert(
+      "For security reasons, please re-login and try again."
+    );
+    location.replace("/login.html");
   }
 };
 </script>
