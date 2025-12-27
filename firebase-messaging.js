@@ -33,10 +33,14 @@ export async function initNotifications() {
   });
 }
 
-// Foreground notifications
+// ✅ Foreground notification (TAB OPEN)
 onMessage(messaging, (payload) => {
   new Notification(payload.notification.title, {
     body: payload.notification.body,
-    icon: "/android-chrome-512x512.png"
+    icon: "/android-chrome-192x192.png",
+    badge: "/android-chrome-192x192.png"
   });
 });
+
+
+   
