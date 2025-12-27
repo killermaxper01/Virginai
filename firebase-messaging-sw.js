@@ -11,12 +11,18 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage(payload => {
+messaging.onBackgroundMessage((payload) => {
   self.registration.showNotification(
-    payload.notification.title,
+    payload.notification?.title || "VirginAI 🔥",
     {
-      body: payload.notification.body,
-      icon: "/android-chrome-512x512.png"
+      body: payload.notification?.body || "You have a new update",
+      icon: "/android-chrome-192x192.png",     // ✅ MUST be 192x192
+      badge: "/android-chrome-192x192.png",     // ✅ MUST be small
+      vibrate: [200, 100, 200],
+      data: {
+        click_action: "https://virginai.in"
+      }
     }
   );
 });
+
