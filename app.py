@@ -479,6 +479,54 @@ def send_bulk_notification():
         return jsonify({"error": "Bulk send failed"}), 500
 
 
+#per user notification 
+@app.route("/send-notification", methods=["POST"])
+@limiter.limit("10 per minute")
+def send_notification():
+    try:
+        data = request.get_json(force=True)
+
+        token = data.get("token")
+        title = data.get("title", "VirginAI 🔔")
+        body = data.get("body", "You have a new notification")
+
+        if not token:
+            return jsonify({"error": "FCM token required"}), 400
+
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+                image="https://virginai.in/android-chrome-192x192.png"
+            ),
+
+            data={
+                "url": "https://virginai.in"
+            },
+
+            webpush=messaging.WebpushConfig(
+                notification=messaging.WebpushNotification(
+                    icon="https://virginai.in/android-chrome-192x192.png",
+                    badge="https://virginai.in/android-chrome-192x192.png",
+                    vibrate=[200, 100, 200]
+                )
+            ),
+
+            token=token
+        )
+
+        response = messaging.send(message)
+
+        return jsonify({
+            "success": True,
+            "message_id": response
+        })
+
+    except Exception as e:
+        print("FCM ERROR:", e)
+        return jsonify({"error": "Notification failed"}), 500
+
+
 # -------------------- CLEAR SESSION --------------------
 @app.route("/clear-session", methods=["POST"])
 def clear_session():
