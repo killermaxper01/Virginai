@@ -1,16 +1,22 @@
 // firebase-messaging.js
 
 import { app, auth, db } from "./firebase.js";
-import { getMessaging, getToken, onMessage } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
-import { doc, setDoc } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { onAuthStateChanged } from
-  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  getMessaging,
+  getToken,
+  onMessage
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+import {
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const messaging = getMessaging(app);
 
-// ✅ Service Worker registration (REQUIRED)
+// Register SW
 const swReg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
 
 export async function initNotifications() {
@@ -35,10 +41,17 @@ export async function initNotifications() {
   });
 }
 
-// ✅ FOREGROUND MESSAGE HANDLER (TAB OPEN)
+/**
+ * 🔔 FOREGROUND (TAB OPEN)
+ */
 onMessage(messaging, (payload) => {
-  console.log("Foreground message:", payload);
+  console.log("Foreground:", payload);
 
-  // Allowed: in-app UI (NOT browser popup)
-  alert(`${payload.data.title}\n\n${payload.data.body}`);
+  const title = payload.data?.title || "VirginAI 🔔";
+  const options = {
+    body: payload.data?.body || "New message",
+    icon: "/icon-192.png"
+  };
+
+  new Notification(title, options);
 });
