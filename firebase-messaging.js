@@ -10,7 +10,7 @@ import { onAuthStateChanged } from
 
 const messaging = getMessaging(app);
 
-// SW register
+// ✅ Service Worker registration (REQUIRED)
 const swReg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
 
 export async function initNotifications() {
@@ -35,10 +35,10 @@ export async function initNotifications() {
   });
 }
 
-// FOREGROUND (TAB OPEN)
+// ✅ FOREGROUND MESSAGE HANDLER (TAB OPEN)
 onMessage(messaging, (payload) => {
   console.log("Foreground message:", payload);
 
-  // Optional in-app alert
+  // Allowed: in-app UI (NOT browser popup)
   alert(`${payload.data.title}\n\n${payload.data.body}`);
 });
