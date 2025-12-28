@@ -1,22 +1,16 @@
 // firebase-messaging.js
 
 import { app, auth, db } from "./firebase.js";
-import {
-  getMessaging,
-  getToken,
-  onMessage
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
-import {
-  doc,
-  setDoc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import {
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getMessaging, getToken, onMessage } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+import { doc, setDoc } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const messaging = getMessaging(app);
 
-// Register SW
+// ✅ Service Worker registration
 const swReg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
 
 export async function initNotifications() {
@@ -41,17 +35,17 @@ export async function initNotifications() {
   });
 }
 
-/**
- * 🔔 FOREGROUND (TAB OPEN)
- */
+// ✅ FOREGROUND NOTIFICATION (SYSTEM LEVEL)
 onMessage(messaging, (payload) => {
-  console.log("Foreground:", payload);
+  console.log("Foreground message:", payload);
 
-  const title = payload.data?.title || "VirginAI 🔔";
-  const options = {
+  if (Notification.permission !== "granted") return;
+
+  new Notification(payload.data?.title || "VirginAI 🔔", {
     body: payload.data?.body || "New message",
-    icon: "/icon-192.png"
-  };
-
-  new Notification(title, options);
+    icon: "/icon-192.png",
+    data: {
+      url: payload.data?.url || "/"
+    }
+  });
 });
