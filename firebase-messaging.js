@@ -37,8 +37,8 @@ export async function initNotifications() {
 
 // FOREGROUND (TAB OPEN)
 onMessage(messaging, (payload) => {
-  new Notification(payload.data.title, {
-    body: payload.data.body,
-    icon: "/android-chrome-192x192.png"
-  });
+  console.log("Foreground message:", payload);
+
+  // Optional in-app alert
+  alert(`${payload.data.title}\n\n${payload.data.body}`);
 });
