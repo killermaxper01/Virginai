@@ -397,10 +397,20 @@ User question:
 def generate_image():
     try:
         data = request.get_json(force=True)
+
         prompt = data.get("prompt", "").strip()
+        image  = data.get("image")      # base64 (optional)
+        strength = data.get("strength") # optional
 
         if not prompt:
             return jsonify({"error": "Prompt required"}), 400
+
+        payload = {"prompt": prompt}
+
+        # ✅ IMAGE → IMAGE SUPPORT
+        if image:
+            payload["image"] = image
+            payload["strength"] = strength or 0.65
 
         r = requests.post(
             os.getenv("CF_IMAGE_WORKER_URL"),
@@ -408,14 +418,13 @@ def generate_image():
                 "Content-Type": "application/json",
                 "X-Internal-Token": os.getenv("INTERNAL_TOKEN")
             },
-            json={"prompt": prompt},
+            json=payload,
             timeout=60
         )
 
         if r.status_code != 200:
             return jsonify({"error": "Image generation failed"}), 502
 
-        # ✅ RETURN RAW IMAGE
         return Response(
             r.content,
             mimetype="image/png",
@@ -428,6 +437,7 @@ def generate_image():
     except Exception as e:
         print("IMAGE ERROR:", e)
         return jsonify({"error": "Server error"}), 500
+
 
 #firebase notification 
 # -------------------- SEND PUSH NOTIFICATION --------------------
