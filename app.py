@@ -289,6 +289,52 @@ def generate_ai(prompt, mode):
     reply, model = try_gemini("gemma-3-27b-it")
     return (reply, model) if reply else try_groq()
 
+
+#about virginai 
+VIRGINAI_SYSTEM_CONTEXT = """
+SYSTEM RULES (VERY IMPORTANT):
+
+You are an AI assistant used in the VirginAI platform.
+
+VirginAI FACTS (LOCKED — DO NOT CHANGE):
+VirginAI is an Indian AI-powered chat assistant.
+It is developed by Raj Verma and Kalash Verma.
+It focuses on education, research, productivity, and intelligent problem-solving.
+VirginAI is a digital AI platform.
+
+STRICT RULES:
+1. Use the VirginAI FACTS ONLY when the user asks about VirginAI.
+2. Do NOT invent, guess, add, or remove any VirginAI facts.
+3. You MAY rephrase sentences for grammar and clarity ONLY
+   without changing meaning or adding new information.
+4. If a question involves multiple entities (e.g., ChatGPT and VirginAI),
+   answer VirginAI using ONLY the facts above and answer others normally.
+5. If the question is NOT about VirginAI, ignore these facts completely.
+6. Never say "information is not publicly disclosed" for VirginAI founders.
+"""
+
+
+def is_about_virginai(text: str) -> bool:
+    keywords = ["virginai", "virgin ai", "virgin-ai","who are you", "who are u"]
+    return any(k in text.lower() for k in keywords)
+    
+def build_prompt(question: str) -> str:
+    if is_about_virginai(question):
+        return f"""
+{VIRGINAI_SYSTEM_CONTEXT}
+
+User Question:
+{question}
+"""
+    else:
+        return f"""
+User Question:
+{question}
+"""
+
+
+
+
 # -------------------- ASK API --------------------
 @app.route("/ask", methods=["POST"])
 @limiter.limit("30 per minute")
@@ -306,7 +352,11 @@ def ask():
         ctx.append(f"User: {question}")
         session["context"] = trim_context(ctx)
 
-        prompt = "\n".join(session["context"]) + "\nAI:"
+        #prompt = "\n".join(session["context"]) + "\nAI:"
+        prompt = build_prompt(question)
+      
+        
+        
         reply, model_used = generate_ai(prompt, mode)
 
         if not reply:
@@ -495,7 +545,7 @@ def send_bulk_notification():
 
 
 
-    
+
 #per user notification 
 # -------------------- SEND SINGLE USER PUSH --------------------
 @app.route("/send-user-notification", methods=["POST"])
@@ -561,4 +611,3 @@ def fallback(path):
 # -------------------- RUN --------------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
-    
