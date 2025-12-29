@@ -353,7 +353,8 @@ def ask():
         session["context"] = trim_context(ctx)
 
         #prompt = "\n".join(session["context"]) + "\nAI:"
-        prompt = build_prompt(question)
+        prompt = build_prompt( "\n".join(session["context"]) + "\n" + question
+)
       
         
         
