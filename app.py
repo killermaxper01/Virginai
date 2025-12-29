@@ -315,7 +315,7 @@ STRICT RULES:
 
 
 def is_about_virginai(text: str) -> bool:
-    keywords = ["virginai", "virgin ai", "virgin-ai","who are you", "who are u"]
+    keywords = ["virginai", "virgin ai", "virgin-ai","who are you", "who are u","Tell me about yourself"]
     return any(k in text.lower() for k in keywords)
     
 def build_prompt(question: str) -> str:
