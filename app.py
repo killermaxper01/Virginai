@@ -510,12 +510,25 @@ def ask():
         session["context"].append(f"AI: {reply}")
         session["context"] = trim_context(session["context"])
         session.modified = True
+        
+        
 
-        return jsonify({
+        #
+        response = {
             "answer": reply,
-            "mode_used": mode,
-            "model_used": model_used
-        })
+            "model_used": model_used,
+            "source": "file"
+        }
+
+        # 🔒 Hide internal info for external API users
+        if hasattr(request, "external_user"):
+            response.pop("model_used", None)
+
+        return jsonify(response)
+        #
+        
+
+            
 
     except requests.exceptions.Timeout:
         return jsonify({"answer": "⏳ AI timeout. Try again."}), 504
