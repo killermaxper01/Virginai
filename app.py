@@ -18,9 +18,14 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 
 
+if not firebase_admin._apps:
+    firebase_json = os.getenv("FIREBASE_ADMIN_JSON")
+    cred_dict = json.loads(firebase_json)
+    cred = credentials.Certificate(cred_dict)
+    firebase_admin.initialize_app(cred)
 
-
-
+from firebase_admin import firestore
+db = firestore.client()
 
 if not firebase_admin._apps:
     firebase_json = os.getenv("FIREBASE_ADMIN_JSON")
@@ -31,8 +36,6 @@ if not firebase_admin._apps:
     cred = credentials.Certificate(cred_dict)
     firebase_admin.initialize_app(cred)
 
-from firebase_admin import firestore
-db = firestore.client()
 # -------------------- SETUP --------------------
 load_dotenv()
 
@@ -43,148 +46,6 @@ CORS(app)
 
 app.secret_key = os.getenv("APP_SECRET_TOKEN", "change_this_secret")
 app.config["SESSION_PERMANENT"] = False
-
-
-
-#external_api_user
-
-from datetime import datetime
-import json, os
-
-# -------------------- BROWSER CHECK --------------------
-def is_browser_request(req):
-    return bool(
-        req.headers.get("Origin") or
-        req.headers.get("Referer") or
-        req.cookies
-    )
-
-
-# -------------------- LOAD EXTERNAL USERS --------------------
-def load_external_users():
-    """
-    ENV FORMAT:
-    {
-      "raj": "raj@token,50,image,smart,flash",
-      "kalash": "kalash@token,50,smart,flash",
-      "vipin": "vipin@token,100,image,smart,think"
-    }
-    """
-
-    raw = os.getenv("EXTERNAL_USER_API_KEYS", "{}")
-    data = json.loads(raw)
-
-    users = {}
-    for username, value in data.items():
-        parts = [p.strip() for p in value.split(",") if p.strip()]
-
-        token = parts[0]
-        limit = int(parts[1])
-        modes = set(parts[2:])
-
-        users[token] = {
-            "user": username,
-            "limit": limit,
-            "modes": modes
-        }
-
-    return users
-
-
-EXTERNAL_USERS = load_external_users()
-
-
-def check_and_update_quota(user: str, limit: int):
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    doc_id = f"{user}_{today}"
-
-    ref = db.collection("api_usage").document(doc_id)
-    transaction = db.transaction()
-
-    @firestore.transactional
-    def txn(transaction):
-        snap = ref.get(transaction=transaction)
-
-        if snap.exists:
-            data = snap.to_dict()
-
-            if data["count"] >= limit:
-                return False, limit - data["count"]
-
-            transaction.update(ref, {
-                "count": firestore.Increment(1),
-                "last_request": firestore.SERVER_TIMESTAMP
-            })
-
-            return True, limit - (data["count"] + 1)
-
-        # First request today
-        transaction.set(ref, {
-            "user": user,
-            "date": today,
-            "count": 1,
-            "limit": limit,
-            "created_at": firestore.SERVER_TIMESTAMP,
-            "last_request": firestore.SERVER_TIMESTAMP
-        })
-
-        return True, limit - 1
-
-    return txn(transaction)
-                    
-    
-@app.before_request
-def external_api_guard():
-
-    # Protect only AI endpoints
-    if request.path not in ("/ask", "/generate-image"):
-        return
-
-    # Website / browser users → ALLOW
-    if is_browser_request(request):
-        return
-
-    # External API users → REQUIRE TOKEN
-    token = request.headers.get("X-User-Token")
-    if not token:
-        return jsonify({"error": "Missing API token"}), 401
-
-    user_data = EXTERNAL_USERS.get(token)
-    if not user_data:
-        return jsonify({"error": "Invalid API token"}), 401
-
-    # ---------- RPD QUOTA ----------
-    allowed, remaining = check_and_update_quota(
-        user_data["user"],
-        user_data["limit"]
-    )
-
-    if not allowed:
-        return jsonify({
-            "error": "Daily quota exceeded",
-            "limit_per_day": user_data["limit"]
-        }), 429
-
-    # ---------- MODE CHECK ----------
-    if request.path == "/generate-image":
-        required_mode = "image"
-    else:
-        data = request.get_json(silent=True) or {}
-        required_mode = data.get("mode", "smart")
-
-    if required_mode not in user_data["modes"]:
-        return jsonify({
-            "error": f"Mode '{required_mode}' not allowed"
-        }), 403
-
-    # Attach info (optional)
-    request.external_user = {
-        "name": user_data["user"],
-        "remaining": remaining
-    }
-
-
-
 
 # -------------------- RATE LIMITER --------------------
 limiter = Limiter(
@@ -428,54 +289,6 @@ def generate_ai(prompt, mode):
     reply, model = try_gemini("gemma-3-27b-it")
     return (reply, model) if reply else try_groq()
 
-
-#about virginai 
-VIRGINAI_SYSTEM_CONTEXT = """
-SYSTEM RULES (VERY IMPORTANT):
-
-You are an AI assistant used in the VirginAI platform.
-
-VirginAI FACTS (LOCKED — DO NOT CHANGE):
-VirginAI is an Indian AI-powered chat assistant.
-It is developed by Raj Verma and Kalash Verma.
-It focuses on education, research, productivity, and intelligent problem-solving.
-VirginAI is a digital AI platform.
-
-STRICT RULES:
-1. Use the VirginAI FACTS ONLY when the user asks about VirginAI.
-2. Do NOT invent, guess, add, or remove any VirginAI facts.
-3. You MAY rephrase sentences for grammar and clarity ONLY
-   without changing meaning or adding new information.
-4. If a question involves multiple entities (e.g., ChatGPT and VirginAI),
-   answer VirginAI using ONLY the facts above and answer others normally.
-5. If the question is NOT about VirginAI, ignore these facts completely.
-6. Never say "information is not publicly disclosed" for VirginAI founders.
-"""
-
-
-def is_about_virginai(text: str) -> bool:
-    keywords = ["virginai", "virgin ai", "virgin-ai","who are you", "who are u","Tell me about yourself"]
-    return any(k in text.lower() for k in keywords)
-
-
-
-def build_prompt(conversation: str) -> str:
-    if is_about_virginai(conversation):
-        return f"""{VIRGINAI_SYSTEM_CONTEXT}
-
-Conversation:
-{conversation}
-
-Answer clearly and factually.
-"""
-    else:
-        return f"""Conversation:
-{conversation}
-
-Answer normally.
-"""
-
-
 # -------------------- ASK API --------------------
 @app.route("/ask", methods=["POST"])
 @limiter.limit("30 per minute")
@@ -493,11 +306,7 @@ def ask():
         ctx.append(f"User: {question}")
         session["context"] = trim_context(ctx)
 
-        #prompt = "\n".join(session["context"]) + "\nAI:"
-        #prompt = build_prompt( "\n".join(session["context"]) + "\n" + question)
-        prompt = build_prompt("\n".join(session["context"]))
-
-
+        prompt = "\n".join(session["context"]) + "\nAI:"
         reply, model_used = generate_ai(prompt, mode)
 
         if not reply:
