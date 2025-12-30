@@ -65,9 +65,9 @@ def load_external_users():
     """
     ENV FORMAT:
     {
-      "raj": "raj@token,50,image",
+      "raj": "raj@token,50,image,smart,flash",
       "kalash": "kalash@token,50,smart,flash",
-      "lucky": "lucky@token,100,image,smart,think"
+      "vipin": "vipin@token,100,image,smart,think"
     }
     """
 
@@ -144,7 +144,7 @@ def external_api_guard():
     if is_browser_request(request):
         return
 
-    # External API users → REQUIRE TOKEN
+.    # External API users → REQUIRE TOKEN
     token = request.headers.get("X-User-Token")
     if not token:
         return jsonify({"error": "Missing API token"}), 401
@@ -494,10 +494,8 @@ def ask():
         session["context"] = trim_context(ctx)
 
         #prompt = "\n".join(session["context"]) + "\nAI:"
-        #prompt = build_prompt( "\n".join(session["context"]) + "\n" + question
-)
+        #prompt = build_prompt( "\n".join(session["context"]) + "\n" + question)
         prompt = build_prompt("\n".join(session["context"]))
-
 
 
         reply, model_used = generate_ai(prompt, mode)
