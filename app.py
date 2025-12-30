@@ -144,7 +144,7 @@ def external_api_guard():
     if is_browser_request(request):
         return
 
-.    # External API users → REQUIRE TOKEN
+    # External API users → REQUIRE TOKEN
     token = request.headers.get("X-User-Token")
     if not token:
         return jsonify({"error": "Missing API token"}), 401
