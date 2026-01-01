@@ -454,7 +454,7 @@ STRICT RULES:
 
 
 def is_about_virginai(text: str) -> bool:
-    keywords = ["virginai", "virgin ai", "virgin-ai","who are you", "who are u","Tell me about yourself"]
+    keywords = ["virginai", "virgin ai", "virgin-ai","who are you", "who are u","Tell me about yourself","creater","developer","creation","maker","make","develop","made","self","create"]
     return any(k in text.lower() for k in keywords)
 
 
