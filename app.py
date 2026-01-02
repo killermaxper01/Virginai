@@ -220,7 +220,7 @@ GROQ_KEYS   = load_keys("GROQ_KEY_")
 
 # -------------------- MODELS --------------------
 MODELS = {
-    "smart": ["gemma-3-27b-it"],
+    "smart": ["gemma-3-1b-it"],
     "internet": ["gemini-3-flash-preview", "gemini-2.5-flash-lite"],
     "think": ["gemini-3-flash-think"],
     "flash": ["llama-3.1-8b-instant"],
