@@ -404,7 +404,7 @@ def generate_ai(prompt, mode):
                 return reply, model
 
         # fallback chain: smart → groq
-        reply, model = try_gemini("gemma-3-27b-it")
+        reply, model = try_gemini("gemma-3-4b-it")
         return (reply, model) if reply else try_groq()
 
     # ---------------- THINK MODE ----------------
@@ -421,11 +421,11 @@ def generate_ai(prompt, mode):
     # Fastest responses (Groq)
     if mode == "flash":
         reply, model = try_groq()
-        return (reply, model) if reply else try_gemini("gemma-3-27b-it")
+        return (reply, model) if reply else try_gemini("gemma-3-1b-it")
 
     # ---------------- UNKNOWN MODE ----------------
     # Safety fallback
-    reply, model = try_gemini("gemma-3-27b-it")
+    reply, model = try_gemini("gemma-3-4b-it")
     return (reply, model) if reply else try_groq()
 
 
