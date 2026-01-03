@@ -392,7 +392,7 @@ def generate_ai(prompt, mode):
     # ---------------- SMART MODE ----------------
     # Default mode for normal chat
     if mode == "smart":
-        reply, model = try_gemini("gemma-3-27b-it")
+        reply, model = try_gemini("gemma-3-4b-it")
         return (reply, model) if reply else try_groq()
 
     # ---------------- INTERNET MODE ----------------
