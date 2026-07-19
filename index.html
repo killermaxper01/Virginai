@@ -644,7 +644,136 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
  .mode-selector { gap: 4px; }
  .m-btn { font-size: 10px; padding: 8px 2px; }
 }
+
+/* Code Block Styling */
+pre {
+  background: #0d0d0d !important;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  overflow-x: auto;
+  position: relative;
+  font-family: Consolas, monospace;
+}
+.code-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #222;
+  color: var(--text);
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.code-copy-btn:hover {
+  background: #333;
+}
+
+.msg-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s;
+}
+.msg-action-btn:hover {
+    color: var(--gold);
+}
+.msg-action-btn.top-right {
+    margin-left: auto;
+}
+
+#jumpToLatest {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    background: #111;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 8px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s;
+    z-index: 100;
+    font-size: 12px;
+}
+#jumpToLatest:hover {
+    background: var(--gold);
+    color: #000;
+}
+
+.msg.ai.writing .ai-content::after {
+    content: "▌";
+    display: inline-block;
+    animation: blinkCursor 1s step-end infinite;
+    color: var(--gold);
+    margin-left: 4px;
+    vertical-align: bottom;
+}
+@keyframes blinkCursor {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+#stopGenBtn {
+    position: absolute;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111;
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    z-index: 20;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+#stopGenBtn:hover {
+    background: #222;
+}
+
+@keyframes messageAppear {
+    0% { opacity: 0; transform: translateY(10px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.msg {
+    animation: messageAppear 220ms ease-out forwards;
+    will-change: transform, opacity;
+}
+.loader {
+    animation: messageAppear 300ms ease-in;
+}
+
+#toast {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111;
+    color: var(--gold);
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--gold);
+    z-index: 1000;
+    font-size: 13px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    animation: messageAppear 200ms ease-out;
+}
 </style>
+<link rel="stylesheet" href="highlight-github-dark.min.css">
+<script src="marked.min.js"></script>
+<script src="highlight.min.js"></script>
 </head>
 
 <body>
@@ -730,9 +859,10 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 
 <div id="chat"></div>
 
-
+<button id="jumpToLatest" onclick="jumpToBottom()">⬇ Jump to latest</button>
 
 <div class="chat-footer">
+  <div id="stopGenBtn" onclick="stopGenerating()" style="display:none;">■ Stop generating</div>
   <div class="mode-selector">
     <div class="m-btn" data-mode="image">Image</div>
     <div class="m-btn active" data-mode="smart">Smart</div>
@@ -742,24 +872,14 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
   </div>
 
   <div class="input-bar">
-      <!-- Attach button -->
-    <!--<button class="icon-btn attach" onclick="openPicker()">＋</button> -->
     <button class="icon-btn attach" onclick="openPicker(event)">＋</button>
-
-   <!-- Text input -->
     <textarea id="q" placeholder="Ask anything..."></textarea>
-
-   <!-- Send button (inside textarea area) -->
     <button class="icon-btn send" onclick="ask()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
       <path d="M12 4L19 11H14V20H10V11H5L12 4Z" fill="#000"/>
       </svg>
     </button>
-
-   <!-- Hidden file input -->
-    <input type="file" id="fileInput"
-           accept="image/*,.pdf,.txt,.py,.html,.css"
-           hidden>
+    <input type="file" id="fileInput" accept="image/*,.pdf,.txt,.py,.html,.css" hidden>
   </div>
   <div class="attach-menu" id="attachMenu">
   <button onclick="pickCamera()">📷 Camera</button>
@@ -768,14 +888,14 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 </div>
 </div>
 
-
-
 <footer>
  <a href="/about.html">About</a> · <a href="/developer.html">Developer</a> · <a href="/help.html">Help</a> · <a href="/faq.html">FAQ</a> · <a href="/contact.html">Contact</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a>
  <br><br>
  © 2025 VirginAI. All rights reserved.
 </footer>
 </div>
+
+<div id="toast">Copied ✓</div>
 
 
 
@@ -855,6 +975,14 @@ function downloadImage(blobUrl) {
 }  
 
 
+function copyMessage(btn) {
+    const msg = btn.closest('.msg');
+    const contentEl = msg.querySelector('.ai-content');
+    const rawText = contentEl.getAttribute('data-raw') || contentEl.textContent;
+    navigator.clipboard.writeText(rawText);
+    showToast("Message Copied ✓");
+}
+
 function add(text, cls, isImage = false) {
   const d = document.createElement("div");
   d.className = "msg " + cls;
@@ -863,8 +991,7 @@ function add(text, cls, isImage = false) {
     if (isImage) {
       d.innerHTML = `
         <div class="ai-header">
-          <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
-          <span class="ai-name">VirginAI • IMAGE</span>
+          <span class="ai-name">⚡ IMAGE</span>
         </div>
         <div class="ai-content">
           <img src="${text}" alt="AI generated image by VirginAI">
@@ -881,10 +1008,14 @@ function add(text, cls, isImage = false) {
     } else {
       d.innerHTML = `
         <div class="ai-header">
-          <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
-          <span class="ai-name">VirginAI • ${currentMode.toUpperCase()}</span>
+          <span class="ai-name">⚡ ${currentMode.toUpperCase()}</span>
+          <button class="msg-action-btn top-right" onclick="copyMessage(this)" title="Copy text">📋 Copy</button>
         </div>
         <div class="ai-content">${text}</div>
+        <div class="msg-footer" style="display:none; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; justify-content: space-between; align-items: center;">
+           <span class="msg-meta" style="font-size:11px; color:var(--muted);"></span>
+           <button class="msg-action-btn" onclick="ask(this.closest('.msg').regenData)">↻ Regenerate</button>
+        </div>
       `;
     }
   } else {
@@ -892,84 +1023,182 @@ function add(text, cls, isImage = false) {
   }
 
   chat.appendChild(d);
-  chat.scrollTop = chat.scrollHeight;
+  if (autoScroll) {
+      chat.scrollTop = chat.scrollHeight;
+  }
   return d;
 }
 
 
 let autoScroll = true;
+let currentTypingInterval = null;
+let isGenerating = false;
 
+function showToast(text) {
+    const toast = document.getElementById("toast");
+    toast.textContent = text;
+    toast.style.display = "block";
+    setTimeout(() => {
+        toast.style.display = "none";
+    }, 2000);
+}
+
+function renderMarkdown(contentEl, text) {
+    if (typeof marked !== 'undefined') {
+        contentEl.innerHTML = marked.parse(text);
+        if (typeof hljs !== 'undefined') {
+            contentEl.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+                const pre = block.parentElement;
+                pre.style.position = "relative";
+                const copyBtn = document.createElement("button");
+                copyBtn.innerHTML = "📋 Copy";
+                copyBtn.className = "code-copy-btn";
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(block.textContent);
+                    showToast("Code Copied ✓");
+                };
+                pre.appendChild(copyBtn);
+            });
+        }
+    } else {
+        contentEl.textContent = text;
+    }
+}
+
+function stopGenerating() {
+    isGenerating = false;
+    if (currentTypingInterval) {
+        clearInterval(currentTypingInterval);
+        currentTypingInterval = null;
+    }
+    const writingMsg = document.querySelector(".msg.ai.writing");
+    if (writingMsg) {
+        writingMsg.classList.remove("writing");
+        const contentEl = writingMsg.querySelector(".ai-content");
+        const typedText = contentEl.getAttribute("data-current") || contentEl.textContent;
+        renderMarkdown(contentEl, typedText);
+    }
+    const stopBtn = document.getElementById("stopGenBtn");
+    if (stopBtn) stopBtn.style.display = "none";
+}
 
 function typeMatrix(el, text) {
     const contentEl = el.querySelector(".ai-content");
-
-    // Every new AI answer enables auto-scroll again
     autoScroll = true;
-
     el.classList.add("writing");
-
     let i = 0;
+    let currentText = "";
     contentEl.textContent = "";
+    
+    isGenerating = true;
+    const stopBtn = document.getElementById("stopGenBtn");
+    if (stopBtn) stopBtn.style.display = "flex";
 
-    const timer = setInterval(() => {
+    if (currentTypingInterval) clearInterval(currentTypingInterval);
 
-        if (i < text.length) {
-
-            contentEl.textContent += text[i++];
-
-            // Follow latest generated text
-            if (autoScroll) {
-                window.scrollTo({
-                    top: document.documentElement.scrollHeight,
-                    behavior: "instant" // or "smooth"
-                });
-            }
-
-        } else {
-
-            clearInterval(timer);
-
-            el.classList.remove("writing");
-
-            if (autoScroll) {
-                window.scrollTo({
-                    top: document.documentElement.scrollHeight,
-                    behavior: "smooth"
-                });
-            }
-
+    currentTypingInterval = setInterval(() => {
+        if (!isGenerating) {
+            clearInterval(currentTypingInterval);
+            return;
         }
 
+        let chunkSize = Math.floor(Math.random() * 4) + 2;
+        let chunk = text.substring(i, i + chunkSize);
+        i += chunk.length;
+        currentText += chunk;
+        contentEl.textContent = currentText;
+        contentEl.setAttribute("data-current", currentText);
+        contentEl.setAttribute("data-raw", text);
+
+        if (autoScroll) {
+            el.scrollIntoView({ behavior: "instant", block: "end" });
+        }
+
+        if (i >= text.length) {
+            clearInterval(currentTypingInterval);
+            isGenerating = false;
+            if (stopBtn) stopBtn.style.display = "none";
+            el.classList.remove("writing");
+            renderMarkdown(contentEl, text);
+
+            if (autoScroll) {
+                el.scrollIntoView({ behavior: "smooth", block: "end" });
+            }
+        }
     }, 14);
 }
 
-window.addEventListener("scroll", () => {
+function checkScroll(e) {
+    const target = e.target === document ? document.documentElement : e.target;
     const threshold = 120;
+    const atBottom = target.clientHeight + target.scrollTop >= target.scrollHeight - threshold;
+    
+    if (atBottom) {
+        autoScroll = true;
+        const btn = document.getElementById("jumpToLatest");
+        if (btn) {
+            btn.style.opacity = "0";
+            btn.style.pointerEvents = "none";
+        }
+    } else {
+        autoScroll = false;
+        const btn = document.getElementById("jumpToLatest");
+        if (btn) {
+            btn.style.opacity = "1";
+            btn.style.pointerEvents = "auto";
+        }
+    }
+}
+window.addEventListener("scroll", checkScroll, true);
 
-    const atBottom =
-        window.innerHeight + window.scrollY >=
-        document.documentElement.scrollHeight - threshold;
+function jumpToBottom() {
+    autoScroll = true;
+    const btn = document.getElementById("jumpToLatest");
+    if (btn) {
+        btn.style.opacity = "0";
+        btn.style.pointerEvents = "none";
+    }
+    const latest = chat.lastElementChild;
+    if (latest) {
+        latest.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    } else {
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+    }
+}
 
-    autoScroll = atBottom;
-});
 
 
+async function ask(regenData = null) {
+  let text = q.value.trim();
+  let fileInput = document.getElementById("fileInput");
+  let file = fileInput.files[0];
+  let targetMode = currentMode;
 
-async function ask() {
-  const text = q.value.trim();
-  if (!text) return;
-
-  add(text, "user");
-  q.value = "";
+  if (regenData) {
+      text = regenData.text;
+      file = regenData.file;
+      targetMode = regenData.mode;
+      
+      document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.querySelector(`.m-btn[data-mode="${targetMode}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+      currentMode = targetMode;
+  } else {
+      if (!text && !file) return;
+      if (text) add(text, "user");
+      q.value = "";
+  }
 
   // 🖼️ IMAGE MODE
   if (currentMode === "image") {
-    //const aiBubble = add(imageLoaderHTML(), "ai");
     const aiBubble = add(
-  `<div class="loader"><span></span><span></span><span></span></div>`,
-  "ai"
-);
+      `<div class="loader"><span></span><span></span><span></span></div>`,
+      "ai"
+    );
+    aiBubble.regenData = { text, file, mode: targetMode };
 
+    const startTime = Date.now();
     try {
       const r = await fetch("/generate-image", {
         method: "POST",
@@ -983,29 +1212,30 @@ async function ask() {
       const url = URL.createObjectURL(blob);
 
       aiBubble.remove();
-      add(url, "ai", true); // ✅ show image
+      add(url, "ai", true); 
 
     } catch {
       aiBubble.querySelector(".ai-content").innerHTML =
-        "⚠️ Image service unavailable";
+        `⚠️ Image service unavailable. <button onclick="ask(this.closest('.msg').regenData)" style="margin-left: 10px; background: #333; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Retry</button>`;
     }
     return;
   }
 
-  // 💬 NORMAL CHAT + FILE LOGIC (unchanged)
-  const fileInput = document.getElementById("fileInput");
-  const file = fileInput.files[0];
-
+  // 💬 NORMAL CHAT + FILE LOGIC
+  const thinkingStates = ["Thinking", "Reasoning", "Planning", "Analyzing", "Generating"];
+  const randomThinking = thinkingStates[Math.floor(Math.random() * thinkingStates.length)];
   const aiBubble = add(
   `<div class="ai-thinking">
-     Thinking
+     ${randomThinking}
      <span></span>
      <span></span>
      <span></span>
    </div>`,
   "ai"
 );
+  aiBubble.regenData = { text, file, mode: targetMode };
 
+  const startTime = Date.now();
   try {
     let r;
 
@@ -1019,7 +1249,7 @@ async function ask() {
         body: form
       });
 
-      fileInput.value = "";
+      if (!regenData) fileInput.value = "";
     } else {
       r = await fetch("/ask", {
         method: "POST",
@@ -1030,34 +1260,52 @@ async function ask() {
         })
       });
     }
+    
+    if (!r.ok) throw new Error("Service failed");
 
     const d = await r.json();
+    const timeTaken = ((Date.now() - startTime) / 1000).toFixed(1);
+    
+    const footer = aiBubble.querySelector('.msg-footer');
+    if (footer) {
+        footer.style.display = 'flex';
+        footer.querySelector('.msg-meta').innerHTML = `⚡ ${targetMode.toUpperCase()} • ${timeTaken}s`;
+    }
+
     typeMatrix(aiBubble, d.answer || "No response.");
 
   } catch {
-    typeMatrix(aiBubble, "⚠️ Service unavailable.");
+    aiBubble.querySelector('.ai-content').innerHTML = `⚠️ Service unavailable. <button onclick="ask(this.closest('.msg').regenData)" style="margin-left: 10px; background: #333; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Retry</button>`;
+    aiBubble.classList.remove('writing');
   }
 }
 
 
 /* SMART KEYBOARD LOGIC FOR ANDROID & DESKTOP */
 q.addEventListener("keydown", e => {
-  // Mobile check: Most mobile browsers use touch.
   const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
   if (e.key === "Enter") {
     if (isMobile) {
-      // On Android/Mobile: Allow Enter key to create a NEW LINE.
-      // User must click "➤" button to send.
       return; 
     } else {
-      // On Desktop: Enter = SEND, Shift+Enter = NEW LINE.
       if (!e.shiftKey) {
         e.preventDefault();
         ask();
       }
     }
   }
+  
+  if (e.ctrlKey && e.key === "l") {
+      e.preventDefault();
+      document.getElementById("chat").innerHTML = "";
+  }
+});
+
+window.addEventListener("keydown", e => {
+    if (e.key === "Escape" && isGenerating) {
+        stopGenerating();
+    }
 });
 
 
