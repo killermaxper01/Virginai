@@ -210,7 +210,7 @@
 }
 .chat-item-actions button:hover { color: var(--gold); }
 
-.sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; background: rgba(12, 12, 12, 0.6); backdrop-filter: blur(10px); }
+.sidebar-footer { padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; background: rgba(12, 12, 12, 0.6); backdrop-filter: blur(10px); }
 
 @media(max-width: 768px) {
   .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); }
@@ -223,26 +223,40 @@
 :root {
  --bg:#050505;
  --panel:#0c0c0c;
- --border:#1e1e1e;
+ --border:rgba(255,255,255,0.06);
  --gold:#c9a44a;
  --gold-soft:#9f8740;
  --text:#eaeaea;
  --muted:#888;
  --accent:#00ffd5;
- 
- /* Phase 6 Motion System */
+
+ /* Spacing */
+ --space-xs: 4px;
+ --space-sm: 8px;
+ --space-md: 12px;
+ --space-lg: 16px;
+ --space-xl: 24px;
+
+ /* Radii */
+ --radius-sm: 8px;
+ --radius-md: 12px;
+ --radius-lg: 20px;
+ --radius-pill: 26px;
+ --radius-full: 50%;
+
+ /* Motion */
  --duration-fast: 150ms;
- --duration-normal: 220ms;
+ --duration-normal: 200ms;
  --duration-slow: 350ms;
  --ease-standard: cubic-bezier(0.25, 1, 0.5, 1);
  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
  --ease-decelerate: cubic-bezier(0.0, 0, 0.2, 1);
  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
- 
- /* Phase 6 Depth System */
- --shadow-soft: 0 4px 12px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
- --shadow-deep: 0 12px 24px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
- --shadow-float: 0 20px 40px rgba(0,0,0,0.7), 0 8px 16px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+
+ /* Depth */
+ --shadow-soft: 0 2px 8px rgba(0,0,0,0.3);
+ --shadow-deep: 0 8px 24px rgba(0,0,0,0.5), 0 2px 6px rgba(0,0,0,0.3);
+ --shadow-float: 0 16px 40px rgba(0,0,0,0.6), 0 6px 12px rgba(0,0,0,0.4);
 }
 
 *{box-sizing:border-box}
@@ -275,35 +289,34 @@ body {
 
 .app{
  width:100%;
- max-width:720px;
+ max-width:800px;
  min-height:100vh;
  display:flex;
  flex-direction:column;
- padding:16px;
+ padding: var(--space-lg);
  margin: 0 auto;
 }
 
 /* ===== HEADER ===== */
-header{ text-align:center; margin-bottom:10px; }
+header{ text-align:center; margin-bottom: var(--space-md); }
 header h1{ margin:0; font-size:1.8rem; letter-spacing:2px; color:var(--gold); }
-header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
+header p{ margin: var(--space-xs) 0 0; font-size:13px; color:var(--muted); }
 
 /* ===== CHAT AREA ===== */
 #chat {
   flex: 1;
-  padding: 14px;
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  margin-bottom: 24px;
+  padding: var(--space-lg) 0;
+  background: transparent;
+  border: none;
+  margin-bottom: var(--space-lg);
 }
 
 
 .msg.ai{
-    background:#050505;
-    border:1px solid rgba(0,255,140,.18);
-    border-radius:14px;
-    transition:.3s;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    transition: var(--duration-normal);
 }
 
 /* Active while streaming */
@@ -332,15 +345,16 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 /* ===== MESSAGE BUBBLES ===== */
 .msg{
- max-width:85%;
- margin:16px 0;
- padding: 12px 16px;
+ max-width:100%;
+ margin: var(--space-lg) 0;
+ padding: var(--space-md) var(--space-lg);
  line-height:1.6;
  white-space:pre-wrap;
  word-break:break-word;
  overflow-wrap: anywhere;
  font-size: 15px;
  font-family: 'Inter', system-ui, sans-serif;
+ overflow-x: auto;
 }
 
 .user{
@@ -348,36 +362,37 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
  background: #2f2f2f;
  color: #fff;
  border: none;
- border-radius: 20px;
- border-bottom-right-radius: 4px;
- padding: 12px 18px;
+ border-radius: var(--radius-lg);
+ border-bottom-right-radius: var(--space-xs);
+ padding: var(--space-md) 18px;
+ width: fit-content;
+ max-width: 80%;
 }
 
 .ai{
- max-width: 100%;
- margin-right:auto;
- background: transparent; 
+ width: 100%;
+ max-width: 800px;
+ margin: 0 auto;
+ background: transparent;
  border: none;
  color: var(--text);
  display: flex;
  flex-direction: column;
- gap: 8px;
- padding: 12px 0;
+ gap: var(--space-sm);
+ padding: var(--space-md) 0;
 }
 
 .ai-header {
  display: flex;
  align-items: center;
- gap: 12px;
- margin-bottom: 8px;
- padding-bottom: 0;
- border-bottom: none;
+ gap: var(--space-md);
+ margin-bottom: var(--space-sm);
 }
 
 .ai-logo {
  width: 26px;
  height: 26px;
- border-radius: 50%;
+ border-radius: var(--radius-full);
  border: 1.5px solid var(--gold);
  object-fit: cover;
  background: #000;
@@ -386,7 +401,7 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 .ai-name {
  font-size: 12px;
  color: var(--gold);
- font-weight: bold;
+ font-weight: 600;
  text-transform: uppercase;
  letter-spacing: 1px;
 }
@@ -422,17 +437,13 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   
   
  
-.ai-content { min-height: 20px; }
-.ai-content img {
-  cursor: zoom-in;
-}  
-
+.ai-content { min-height: 20px; line-height: 1.7; overflow-x: auto; width: 100%; }
 .ai-content img {
   max-width: 100%;
-  border-radius: 12px;
-  margin-top: 8px;
-  border: 1px solid var(--border);
-}  
+  border-radius: var(--radius-md);
+  margin-top: var(--space-sm);
+  cursor: zoom-in;
+}
 
 
 .download-btn {
@@ -440,37 +451,26 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-
-  margin-top: 8px;
-  padding: 6px 10px;
-
-  border-radius: 999px;
-  border: 1px solid rgba(201, 164, 74, 0.45);
-
-  background: linear-gradient(
-    135deg,
-    rgba(201, 164, 74, 0.95),
-    rgba(159, 135, 64, 0.95)
-  );
-
+  margin-top: var(--space-sm);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: linear-gradient(135deg, var(--gold), var(--gold-soft));
   color: #000;
   font-size: 12px;
   font-weight: 600;
-
   cursor: pointer;
   user-select: none;
-  transition: transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard);
+  transition: transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast);
 }
-
 .download-btn:hover {
   transform: translateY(-1px) scale(1.02);
   box-shadow: var(--shadow-soft);
 }
-
 .download-btn:active {
   transform: scale(0.97);
   box-shadow: none;
-}  
+}
 
 
 
@@ -506,15 +506,15 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 .m-btn {
   flex: 1;
   padding: 10px 5px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: #0a0a0a;
   color: var(--muted);
   cursor: pointer;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 600;
   text-transform: uppercase;
-  transition: transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), border-color var(--duration-fast), color var(--duration-fast);
+  transition: transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast), border-color var(--duration-fast), color var(--duration-fast);
   text-align: center;
 }
 .m-btn:hover {
@@ -556,61 +556,59 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 }
 
 /* ===== CHAT FOOTER (MODE + INPUT FIXED) ===== */
-/* ===== CHAT FOOTER (MODE + INPUT FIXED) ===== */
 
 .chat-footer {
   position: sticky;
   bottom: 0;
   width: 100%;
-  max-width: 720px;
-  margin: auto;
+  max-width: 800px;
+  margin: 0 auto;
 
   background: var(--bg);
   padding: 8px 12px 12px;
-  border-top: 1px solid var(--border);
+  border-top: none;
   z-index: 10;
 }
 
 
 
 
-/* ===== INPUT BAR ===== */* ===== INPUT BAR ===== */
+/* ===== INPUT BAR ===== */
 .input-bar {
   position: relative;
-  margin-top: 8px;
+  margin: var(--space-sm) auto 0;
   display: flex;
   align-items: center;
-  background: rgba(18, 18, 18, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 4px;
-  transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
+  background: #2f2f2f;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-pill);
+  padding: 0;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
   box-shadow: var(--shadow-soft);
+  max-width: 800px;
+  width: 100%;
 }
 
 .input-bar:focus-within {
-  border-color: rgba(201, 164, 74, 0.5);
-  box-shadow: 0 0 0 2px rgba(201, 164, 74, 0.2), var(--shadow-deep);
+  border-color: rgba(201, 164, 74, 0.4);
+  box-shadow: 0 0 0 2px rgba(201, 164, 74, 0.15), var(--shadow-deep);
 }
 
 /* Textarea */
 .input-bar textarea {
   width: 100%;
-  min-height: 48px;
-  max-height: 160px;
+  min-height: 52px;
+  max-height: 200px;
   resize: none;
-
-  padding: 14px 12px;
+  padding: 14px 48px;
   background: transparent;
   border: none;
-  color: var(--text);
+  color: #fff;
   font-size: 15px;
   outline: none;
   font-family: inherit;
-
   overflow-y: auto;
+  line-height: 24px;
 }
 
 .input-bar textarea::placeholder {
@@ -626,68 +624,65 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 .icon-btn {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   border: none;
   cursor: pointer;
   flex-shrink: 0;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   font-size: 18px;
-  transition: transform var(--duration-fast) var(--ease-standard), box-shadow var(--duration-fast) var(--ease-standard), background var(--duration-fast);
+  transition: transform var(--duration-fast), background var(--duration-fast), color var(--duration-fast);
 }
-
 .icon-btn:hover {
-  transform: translateY(-1px) scale(1.05);
-  box-shadow: var(--shadow-soft);
+  transform: scale(1.08);
 }
 
 /* LEFT (+) */
 .icon-btn.attach {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
   background: transparent;
   color: var(--muted);
-  margin-right: 4px;
 }
 .icon-btn.attach:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text);
 }
 
 /* RIGHT (send arrow) */
 .icon-btn.send {
-  background: var(--gold);
-  color: #000;
-  margin-left: 4px;
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  background: #000;
+  color: #fff;
 }
 .icon-btn.send:hover {
-  background: var(--gold-soft);
+  background: #222;
 }
-
 .icon-btn:active {
-  transform: scale(0.95);
-  box-shadow: none;
+  transform: scale(0.93);
 }
 
 
 .attach-menu {
   position: absolute;
   bottom: 64px;
-  left: 8px;
-  background: rgba(18, 18, 18, 0.85);
+  left: var(--space-sm);
+  background: rgba(18, 18, 18, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
   display: none;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-xs);
   z-index: 20;
   box-shadow: var(--shadow-float);
 }
-
 .attach-menu button {
   background: transparent;
   border: none;
@@ -695,17 +690,16 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   padding: 10px 14px;
   text-align: left;
   cursor: pointer;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 10px;
-  transition: all var(--duration-fast) var(--ease-standard);
+  gap: var(--space-sm);
+  transition: background var(--duration-fast), color var(--duration-fast);
 }
-
 .attach-menu button:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--gold);
 }
 
@@ -725,53 +719,88 @@ footer a{ color:var(--gold); text-decoration:none; margin:0 4px; }
 /* ===== SEO HIDDEN ===== */
 .seo-hidden { position:absolute; left:-9999px; width:1px; height:1px; overflow:hidden; }
 
-@media(max-width:480px){
- .app{padding:10px}
- .msg{max-width:92%}
- header h1{font-size:1.5rem}
- .menu-container { top: 10px; left: 10px; }
- .menu-toggle { width: 36px; height: 36px; font-size: 18px; }
- .mode-selector { gap: 4px; }
- .m-btn { font-size: 10px; padding: 8px 2px; }
+/* ===== RESPONSIVE ===== */
+@media(max-width: 1024px) {
+  .app { max-width: 100%; padding: var(--space-md); }
+  .ai { max-width: 100%; }
+  .chat-footer { max-width: 100%; }
+  .input-bar { max-width: 100%; }
+}
+
+@media(max-width: 768px) {
+  .app { padding: var(--space-sm); }
+  .user { max-width: 85%; }
+  header h1 { font-size: 1.5rem; }
+  .mode-selector { gap: var(--space-xs); }
+  .m-btn { font-size: 11px; padding: var(--space-sm) var(--space-xs); }
+  .msg-action-btn, .edit-msg-btn { font-size: 10px; padding: 4px 8px; }
+}
+
+@media(max-width: 480px) {
+  .app { padding: var(--space-sm); }
+  .msg { max-width: 92%; }
+  .user { max-width: 90%; }
+  header h1 { font-size: 1.3rem; }
+  .menu-container { top: var(--space-sm); left: var(--space-sm); }
+  .mode-selector { gap: 3px; }
+  .m-btn { font-size: 10px; padding: 8px 2px; border-radius: 6px; }
+  .input-bar textarea { padding: 12px 44px; min-height: 46px; }
+  .icon-btn { width: 36px; height: 36px; }
+  .ai-header { gap: var(--space-sm); }
+  .ai-name { font-size: 11px; }
 }
 
 /* Code Block Styling */
 pre {
   background: #0d0d0d !important;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
   overflow-x: auto;
+  white-space: pre;
   position: relative;
-  font-family: Consolas, monospace;
+  font-family: 'JetBrains Mono', Consolas, monospace;
 }
 .code-copy-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: #222;
-  color: var(--text);
-  border: 1px solid #333;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
   border-radius: 6px;
-  padding: 4px 8px;
+  padding: 4px 10px;
   font-size: 11px;
   cursor: pointer;
-  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
 }
 .code-copy-btn:hover {
-  background: #333;
+  background: #30363d;
+  color: var(--gold);
+  border-color: var(--gold);
 }
 
-.msg-action-btn {
-    background: transparent;
-    border: none;
-    color: var(--muted);
+.msg-action-btn, .edit-msg-btn {
+    background: #21262d;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
     cursor: pointer;
     font-size: 11px;
-    transition: all 0.2s;
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-fast);
+    font-family: inherit;
 }
-.msg-action-btn:hover {
+.msg-action-btn:hover, .edit-msg-btn:hover {
+    background: #30363d;
     color: var(--gold);
+    border-color: var(--gold);
 }
 .msg-action-btn.top-right {
     margin-left: auto;
@@ -783,15 +812,16 @@ pre {
     right: 20px;
     background: #111;
     color: var(--gold);
-    border: 1px solid var(--gold);
-    padding: 8px 12px;
-    border-radius: 20px;
+    border: none;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-lg);
     cursor: pointer;
     opacity: 0;
     pointer-events: none;
-    transition: all 0.3s;
+    transition: all var(--duration-normal);
     z-index: 100;
     font-size: 12px;
+    box-shadow: var(--shadow-soft);
 }
 #jumpToLatest:hover {
     background: var(--gold);
@@ -818,15 +848,16 @@ pre {
     transform: translateX(-50%);
     background: #111;
     color: var(--text);
-    border: 1px solid var(--border);
-    padding: 8px 16px;
-    border-radius: 20px;
+    border: none;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--radius-lg);
     font-size: 12px;
     cursor: pointer;
     z-index: 20;
     align-items: center;
     gap: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: var(--shadow-soft);
+    transition: background var(--duration-fast);
 }
 #stopGenBtn:hover {
     background: #222;
@@ -863,27 +894,43 @@ pre {
 
 .msg.user {
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
-.edit-msg-btn {
-    position: absolute;
-    left: -35px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #222;
-    border: 1px solid var(--border);
-    border-radius: 50%;
-    width: 28px; height: 28px;
-    cursor: pointer;
-    font-size: 14px;
-    display: none;
-    align-items: center; justify-content: center;
-    color: var(--gold);
+.msg.user:hover .edit-msg-btn { display: inline-flex; }
+
+/* Menu Item Styling */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all var(--duration-fast) var(--ease-standard);
+  position: relative;
+  overflow: hidden;
 }
-@media (hover: none) {
-    .edit-msg-btn { display: flex; left: auto; right: 10px; top: 10px; background: rgba(0,0,0,0.5); }
+.menu-item svg { width: 18px; height: 18px; color: var(--muted); transition: color var(--duration-fast); }
+.menu-item:hover { background: rgba(255, 255, 255, 0.05); }
+.menu-item:hover svg { color: var(--text); }
+
+.menu-item.active {
+  background: rgba(201, 164, 74, 0.1);
+  color: var(--gold);
 }
-@media (hover: hover) {
-    .msg.user:hover .edit-msg-btn { display: flex; }
+.menu-item.active svg { color: var(--gold); }
+.menu-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 8px; bottom: 8px;
+  width: 3px;
+  background: var(--gold);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px rgba(201, 164, 74, 0.5);
 }
 
 .collapse-fade {
@@ -900,11 +947,15 @@ pre {
 .collapse-fade button {
     background: #222;
     color: var(--gold);
-    border: 1px solid var(--gold);
-    border-radius: 12px;
+    border: none;
+    border-radius: var(--radius-sm);
     padding: 6px 14px;
     cursor: pointer;
     font-size: 12px;
+    transition: background var(--duration-fast);
+}
+.collapse-fade button:hover {
+    background: #333;
 }
 .ai-content.expanded {
     max-height: none !important;
@@ -919,14 +970,14 @@ pre {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    background: #111;
+    background: #1a1a1a;
     color: var(--gold);
     padding: 10px 20px;
-    border-radius: 8px;
-    border: 1px solid var(--gold);
+    border-radius: var(--radius-sm);
+    border: none;
     z-index: 1000;
     font-size: 13px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    box-shadow: var(--shadow-deep);
     animation: messageAppear 200ms ease-out;
 }
 
@@ -956,10 +1007,11 @@ body.no-animations * {
     transition: none !important;
 }
 
-.setting-group { margin-bottom: 12px; }
-.setting-group label { display: block; font-size: 14px; margin-bottom: 4px; color: var(--text); }
-.setting-group select { width: 100%; background: #222; border: 1px solid var(--border); color: #fff; padding: 8px; border-radius: 6px; }
-.setting-group input[type="checkbox"] { margin-right: 8px; transform: translateY(2px); }
+.setting-group { margin-bottom: var(--space-md); }
+.setting-group label { display: block; font-size: 14px; margin-bottom: var(--space-xs); color: var(--text); }
+.setting-group select { width: 100%; background: #222; border: 1px solid var(--border); color: #fff; padding: var(--space-sm); border-radius: 6px; transition: border-color var(--duration-fast); }
+.setting-group select:hover { border-color: var(--gold); }
+.setting-group input[type="checkbox"] { margin-right: var(--space-sm); transform: translateY(2px); }
 /* Focus styles */
 *:focus-visible {
     outline: 2px solid var(--gold);
@@ -978,7 +1030,7 @@ body.no-animations * {
 .ai-content li { margin-bottom: 6px; }
 .ai-content li::marker { color: var(--gold); }
 .ai-content hr { border: 0; height: 1px; background: var(--border); margin: 24px 0; }
-.ai-content a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 2px; }
+.ai-content a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color var(--duration-fast); display: inline-flex; align-items: center; gap: 2px; }
 .ai-content a:hover { border-bottom-color: var(--accent); }
 .ai-content p { line-height: 1.6; }
 .ai-content code:not([class^="language-"]) { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; color: #ffb86c; }
@@ -996,16 +1048,14 @@ body.no-animations * {
 .markdown-alert-caution { border-left-color: #ef4444; }
 .markdown-alert-caution .alert-title { color: #ef4444; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 
-/* Code Blocks */
-.ai-content pre { position: relative; border-radius: 12px; overflow: hidden; margin: 16px 0; background: #0d1117 !important; border: 1px solid var(--border); }
-.code-header { background: #161b22; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 12px; color: #8b949e; font-family: 'Inter', sans-serif; }
-.code-lang-wrapper { display: flex; align-items: center; gap: 8px; }
+/* Code Blocks (AI content) */
+.ai-content pre { position: relative; border-radius: var(--radius-md); overflow: hidden; margin: var(--space-lg) 0; background: #0d1117 !important; border: 1px solid var(--border); }
+.code-header { background: #161b22; padding: var(--space-sm) var(--space-lg); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 12px; color: #8b949e; font-family: 'Inter', sans-serif; }
+.code-lang-wrapper { display: flex; align-items: center; gap: var(--space-sm); }
 .code-lang { font-weight: 600; color: #ccc; }
 .code-file { font-family: 'JetBrains Mono', monospace; color: #888; }
-.code-copy-btn { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
-.code-copy-btn:hover { background: #30363d; color: var(--gold); border-color: var(--gold); }
-.ai-content pre code { display: block; padding: 16px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.5; color: #e6e6e6; }
-.mermaid { background: #111; padding: 16px; border-radius: 12px; margin: 16px 0; border: 1px solid var(--border); display: flex; justify-content: center; overflow-x: auto; }
+.ai-content pre code { display: block; padding: var(--space-lg); overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.5; color: #e6e6e6; }
+.mermaid { background: #111; padding: var(--space-lg); border-radius: var(--radius-md); margin: var(--space-lg) 0; border: 1px solid var(--border); display: flex; justify-content: center; overflow-x: auto; }
 </style>
 <link rel="stylesheet" href="highlight-github-dark.min.css">
 <script src="marked.min.js"></script>
@@ -1030,10 +1080,14 @@ body.no-animations * {
       <!-- dynamically populated -->
     </div>
     <div class="sidebar-footer">
-      <a href="index.html" class="menu-item active"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Chat</a>
-      <a href="images.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Image Gen</a>
-      <a href="explore.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> Explore APIs</a>
-      <a href="#" onclick="openSettings()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</a>
+      <a href="index.html" class="menu-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Chat</a>
+      <a href="images.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Image Generator</a>
+      <a href="explore.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> Explore APIs</a>
+      <a href="#" onclick="alert('History coming soon')" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> History</a>
+      <a href="#" onclick="alert('Profile coming soon')" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Profile</a>
+      <a href="#" onclick="openSettings()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</a>
+      <a href="developer.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg> Developer</a>
+      <a href="offers.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg> Offers</a>
       <div id="menuDropdown" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;"></div>
       <div style="display: flex; gap: 8px; margin-top: 8px;">
           <button class="m-btn" style="flex:1;" onclick="ChatStorage.exportAll()">Export</button>
@@ -1044,8 +1098,8 @@ body.no-animations * {
 
   <main id="main-content" style="flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0;">
     <div class="menu-container" style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
-      <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar" style="background: transparent; border: none; color: var(--text); cursor: pointer; display: flex; padding: 4px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"></line><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>
       </button>
     </div>
 
@@ -1153,7 +1207,7 @@ body.no-animations * {
     </button>
     <textarea id="q" placeholder="Message VirginAI..."></textarea>
     <button class="icon-btn send" onclick="ask()" aria-label="Send Message">
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
     </button>
     <input type="file" id="fileInput" accept="image/*,.pdf,.txt,.py,.html,.css" hidden>
   </div>
@@ -1720,19 +1774,19 @@ function add(text, cls, isImage = false, rawText = null, isRestoring = false) {
         <div class="ai-header">
           <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
           <span class="ai-name">VirginAI • ${currentMode.toUpperCase()}</span>
-          <button class="msg-action-btn top-right" onclick="copyMessage(this)" title="Copy text">📋 Copy</button>
+          <button class="msg-action-btn top-right" onclick="copyMessage(this)" title="Copy text"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy</button>
         </div>
         <div class="ai-content">${text}</div>
         <div class="msg-footer" style="display:none; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; justify-content: space-between; align-items: center;">
            <span class="msg-meta" style="font-size:11px; color:var(--muted);"></span>
-           <button class="msg-action-btn" onclick="ask(this.closest('.msg').regenData)">↻ Regenerate</button>
+           <button class="msg-action-btn" onclick="ask(this.closest('.msg').regenData)"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Regenerate</button>
         </div>
       `;
     }
   } else {
     d.innerHTML = `
       <div class="user-content">${text}</div>
-      <button class="edit-msg-btn" onclick="editMessage(this)" title="Edit">✏️</button>
+      <button class="edit-msg-btn" onclick="editMessage(this)" title="Edit" style="display:none; margin-top:6px; align-self:flex-end;"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Edit</button>
     `;
     let storedRaw = rawText !== null ? rawText : text;
     // Strip HTML if we didn't provide explicit rawText
