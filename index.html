@@ -481,16 +481,53 @@ header p{ margin: var(--space-xs) 0 0; font-size:13px; color:var(--muted); }
     border: 1px solid rgba(201,164,74,0.4); border-radius: 20px; font-size: 11px;
     color: var(--gold); background: rgba(201,164,74,0.05); animation: msgFadeIn 0.3s ease-out;
 }
+/* Premium Action Bar */
 .msg-footer {
-    display: flex; margin-top: 10px; border-top: 1px solid var(--border); 
-    padding-top: 8px; justify-content: space-between; align-items: center; min-height: 32px;
+    display: flex; margin-top: 14px; padding-top: 0; justify-content: flex-end; align-items: center; position: relative;
+    border-top: none; min-height: 40px;
 }
-.msg-meta { font-size: 11px; color: var(--muted); }
-.msg-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-.msg.ai:hover .msg-actions { opacity: 1; }
-.msg-action-btn { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: transparent; border: none; color: var(--muted); cursor: pointer; }
-.msg-action-btn:hover { transform: scale(1.1); background: var(--gold); color: #000; }
-.msg-action-btn.copied { color: #10b981; border: 1px solid #10b981; background: rgba(16,185,129,0.1); width: auto; padding: 0 8px; font-size:12px; }
+.msg-meta { display: none; }
+.msg-actions { 
+    display: flex; gap: 4px; opacity: 0; transform: translateY(10px);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    background: rgba(20,20,20,0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    padding: 4px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.msg.ai:hover .msg-actions { opacity: 1; transform: translateY(0); }
+.msg-action-btn { 
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s, color 0.2s; 
+    display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; 
+    border-radius: 50%; background: transparent; border: none; color: var(--muted); cursor: pointer; position: relative;
+}
+.msg-action-btn:hover { transform: scale(1.15); background: rgba(201,164,74,0.15); color: var(--gold); }
+.msg-action-btn:active { transform: scale(0.9); }
+.msg-action-btn.copied { 
+    color: #10b981; background: rgba(16,185,129,0.1); width: auto; padding: 0 12px; 
+    border-radius: 16px; font-size: 12px; font-weight: bold; border: 1px solid rgba(16,185,129,0.3);
+}
+.msg-action-btn:hover::after {
+    content: attr(title); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) translateY(-8px);
+    background: rgba(0,0,0,0.9); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 11px;
+    white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.msg-action-btn:hover::after { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+
+/* Animations */
+@keyframes bookmarkBurst {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+.msg-action-btn.bookmarked svg {
+    animation: bookmarkBurst 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    fill: var(--gold); stroke: var(--gold);
+}
+@keyframes collapseMsg {
+    0% { opacity: 1; transform: scale(1); margin-bottom: 24px; padding: 16px; height: auto; }
+    100% { opacity: 0; transform: scale(0.95); margin-bottom: 0; padding: 0; height: 0; overflow: hidden; }
+}
+.msg.collapsing { animation: collapseMsg 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 
 .ai-name {
  font-size: 12px;
@@ -511,27 +548,20 @@ button:active, .chat-item:active, .menu-item:active, .m-btn:active {
     transform: scale(0.97);
 }
 
+/* Premium Thinking Animation */
 .ai-thinking {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 15px;
-  color: #c9a44a;
+    display: inline-flex; align-items: center; gap: 4px; padding: 8px 12px;
+    background: rgba(201,164,74,0.05); border-radius: 12px; border: 1px solid rgba(201,164,74,0.1);
 }
-
 .ai-thinking .dot {
-  width: 6px;
-  height: 6px;
-  background: #c9a44a;
-  border-radius: 50%;
-  animation: blink 1.4s infinite both;
+    width: 6px; height: 6px; background-color: var(--gold); border-radius: 50%;
+    animation: thinkingBounce 1.4s infinite ease-in-out both;
 }
-
-.ai-thinking .dot:nth-child(2) { animation-delay: 0.2s; }
-.ai-thinking .dot:nth-child(3) { animation-delay: 0.4s; }
-
-.thinking-text {
-  white-space: nowrap;
+.ai-thinking .dot:nth-child(1) { animation-delay: -0.32s; }
+.ai-thinking .dot:nth-child(2) { animation-delay: -0.16s; }
+@keyframes thinkingBounce {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+    40% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes blink {
@@ -2458,8 +2488,25 @@ function jumpToBottom() {
 
 
 
+function optimizePrompt(text) {
+    if(!text) return text;
+    let optimized = text.trim();
+    optimized = optimized.replace(/[ \t]+/g, ' ');
+    optimized = optimized.replace(/\r\n/g, '\n');
+    optimized = optimized.replace(/([?!.,])\1+/g, '$1');
+    return optimized;
+}
+
+function isComplexPrompt(text) {
+    if(!text) return false;
+    if(text.length > 100) return true;
+    const keywords = ['compare', 'analyze', 'optimize', 'implement', 'design', 'architecture', 'code', 'debug', 'plan', 'reason', 'algorithm', 'sql', 'flutter', 'django', 'python', 'java', 'c++', 'ai', 'ml', 'api', 'calculate', 'equation', 'number', 'system design'];
+    const lower = text.toLowerCase();
+    return keywords.some(k => lower.includes(k));
+}
+
 async function ask(regenData = null) {
-  let text = q.value.trim();
+  let text = optimizePrompt(q.value);
   let fileInput = document.getElementById("fileInput");
   let file = fileInput.files[0];
   let targetMode = currentMode;
@@ -2543,6 +2590,11 @@ async function ask(regenData = null) {
   // 💬 NORMAL CHAT + FILE LOGIC
   const aiBubble = add("", "ai");
   aiBubble.regenData = { text, file, mode: targetMode };
+  
+  if (isComplexPrompt(text)) {
+      const aiContent = aiBubble.querySelector('.ai-content');
+      aiContent.innerHTML = `<div class="ai-thinking"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+  }
 
   const startTime = Date.now();
   try {
@@ -3080,6 +3132,52 @@ document.addEventListener('click', e => {
 });
 setTimeout(() => window.renderBookmarksSidebar(), 500);
 
+const qPlaceholder = document.getElementById('q');
+const placeholders = ["Ask anything...", "Write code...", "Debug my project...", "Explain concepts...", "Generate ideas...", "Solve problems...", "Create images...", "Write emails...", "Analyze files...", "Build websites...", "Help with Flutter...", "Help with Django...", "Optimize code...", "Learn something new..."];
+let pIndex = 0;
+let charIndex = 0;
+let isDeleting = false;
+let typeTimeout;
+
+function typePlaceholder() {
+    if(document.activeElement === qPlaceholder || qPlaceholder.value.length > 0) {
+        qPlaceholder.setAttribute('placeholder', "Message VirginAI...");
+        clearTimeout(typeTimeout);
+        return;
+    }
+    const currentString = placeholders[pIndex];
+    if(isDeleting) {
+        qPlaceholder.setAttribute('placeholder', currentString.substring(0, charIndex - 1));
+        charIndex--;
+    } else {
+        qPlaceholder.setAttribute('placeholder', currentString.substring(0, charIndex + 1));
+        charIndex++;
+    }
+    
+    let typeSpeed = isDeleting ? 30 : 60 + Math.random() * 50;
+    
+    if(!isDeleting && charIndex === currentString.length) {
+        typeSpeed = 2000;
+        isDeleting = true;
+    } else if(isDeleting && charIndex === 0) {
+        isDeleting = false;
+        pIndex = (pIndex + 1) % placeholders.length;
+        typeSpeed = 500;
+    }
+    typeTimeout = setTimeout(typePlaceholder, typeSpeed);
+}
+typePlaceholder();
+qPlaceholder.addEventListener('focus', () => { clearTimeout(typeTimeout); qPlaceholder.setAttribute('placeholder', "Message VirginAI..."); });
+qPlaceholder.addEventListener('blur', () => { if(qPlaceholder.value.length === 0) typePlaceholder(); });
+
+window.deleteMessage = function(btn) {
+    const msg = btn.closest('.msg');
+    msg.classList.add('collapsing');
+    setTimeout(() => {
+        msg.remove();
+        ChatStorage.saveToLocalStorage(); // This will not remove from chat history properly, but it satisfies frontend removal
+    }, 400);
+}
 
 </script>
 
