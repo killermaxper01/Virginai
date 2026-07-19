@@ -156,7 +156,7 @@
 
 /* Sidebar Styles */
 .sidebar {
-  width: 260px;
+  width: 320px;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -193,31 +193,41 @@
   flex: 1; overflow-y: auto; padding: 12px;
 }
 .sidebar-group-label {
-  font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: bold; margin: 12px 0 6px 4px; letter-spacing: 1px;
+  font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 600; margin: 16px 0 8px 8px; letter-spacing: 1px;
 }
 .chat-item {
-  padding: 10px; border-radius: 8px; cursor: pointer; color: var(--text);
-  font-size: 13px; display: flex; align-items: center; justify-content: space-between;
-  transition: background var(--duration-fast); margin-bottom: 2px;
+  padding: 12px 14px; border-radius: var(--radius-sm); cursor: pointer; color: var(--text);
+  font-size: 14px; display: flex; align-items: center; justify-content: space-between;
+  transition: background var(--duration-fast); margin-bottom: 4px; min-height: 44px;
 }
-.chat-item:hover { background: rgba(201, 164, 74, 0.1); }
-.chat-item.active { background: rgba(201, 164, 74, 0.15); color: var(--gold); font-weight: bold; }
+.chat-item:hover { background: rgba(255, 255, 255, 0.05); }
+.chat-item.active { background: rgba(201, 164, 74, 0.1); color: var(--gold); font-weight: 500; }
 .chat-item-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; margin-right: 8px;}
-.chat-item-actions { display: none; gap: 4px; }
+.chat-item-actions { display: none; gap: 8px; align-items: center; }
 .chat-item:hover .chat-item-actions { display: flex; }
 .chat-item-actions button {
-  background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 14px; padding: 2px;
+  background: rgba(0, 0, 0, 0.2); border: none; color: var(--muted); cursor: pointer; padding: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  transition: transform var(--duration-fast), background var(--duration-fast), color var(--duration-fast);
 }
-.chat-item-actions button:hover { color: var(--gold); }
+.chat-item-actions button svg {
+  width: 14px; height: 14px;
+}
+.chat-item-actions button:hover { color: var(--gold); background: rgba(255, 255, 255, 0.1); transform: scale(1.05); }
 
 .sidebar-footer { padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; background: rgba(12, 12, 12, 0.6); backdrop-filter: blur(10px); }
 
+@media(max-width: 1024px) {
+  .sidebar { width: 280px; }
+}
 @media(max-width: 768px) {
-  .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); }
+  .sidebar { position: fixed; left: 0; top: 0; width: 260px; transform: translateX(-100%); }
   .sidebar.open { transform: translateX(0); }
 }
 @media(min-width: 769px) {
-  .sidebar.closed { margin-left: -260px; }
+  .sidebar.closed { margin-left: -320px; }
+}
+@media(min-width: 769px) and (max-width: 1024px) {
+  .sidebar.closed { margin-left: -280px; }
 }
 
 :root {
@@ -903,20 +913,38 @@ pre {
 .menu-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  gap: var(--space-md);
+  padding: 0 14px;
+  height: 44px;
   color: var(--text);
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
-  transition: all var(--duration-fast) var(--ease-standard);
+  transition: background var(--duration-fast), color var(--duration-fast), transform var(--duration-fast);
   position: relative;
   overflow: hidden;
+  box-sizing: border-box;
 }
-.menu-item svg { width: 18px; height: 18px; color: var(--muted); transition: color var(--duration-fast); }
-.menu-item:hover { background: rgba(255, 255, 255, 0.05); }
-.menu-item:hover svg { color: var(--text); }
+.menu-item svg { 
+  width: 18px; 
+  height: 18px; 
+  color: var(--muted); 
+  transition: color var(--duration-fast), transform var(--duration-fast);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.menu-item:hover { 
+  background: rgba(255, 255, 255, 0.04); 
+}
+.menu-item:active {
+  transform: scale(0.98);
+}
+.menu-item:hover svg { 
+  color: var(--gold); 
+  transform: scale(1.05);
+}
 
 .menu-item.active {
   background: rgba(201, 164, 74, 0.1);
@@ -1081,11 +1109,11 @@ body.no-animations * {
     </div>
     <div class="sidebar-footer">
       <a href="index.html" class="menu-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Chat</a>
-      <a href="images.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Image Generator</a>
+      <a href="javascript:void(0)" onclick="switchToImageMode()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Image Gen</a>
       <a href="explore.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> Explore APIs</a>
-      <a href="#" onclick="alert('History coming soon')" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> History</a>
-      <a href="#" onclick="alert('Profile coming soon')" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Profile</a>
-      <a href="#" onclick="openSettings()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</a>
+      <a href="javascript:void(0)" onclick="alert('History coming soon')" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> History</a>
+      <a href="javascript:void(0)" onclick="alert('Profile coming soon')" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Profile</a>
+      <a href="javascript:void(0)" onclick="openSettings()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</a>
       <a href="developer.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg> Developer</a>
       <a href="offers.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg> Offers</a>
       <div id="menuDropdown" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;"></div>
@@ -1264,7 +1292,7 @@ body.no-animations * {
         <div class="setting-group"><label><input type="checkbox" id="set_code" onchange="saveSettings()"> Code Highlighting</label></div>
         <div class="setting-group"><label><input type="checkbox" id="set_compact" onchange="saveSettings()"> Compact Mode</label></div>
         <div style="margin-top: 20px; text-align: right;">
-            <button onclick="document.getElementById('settingsModal').style.display='none'" style="background:var(--gold); color:#000; padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Done</button>
+            <button onclick="closeSettings()" style="background:var(--gold); color:#000; padding:8px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Done</button>
         </div>
     </div>
 </div>
@@ -1303,6 +1331,21 @@ document.querySelectorAll('.m-btn').forEach(btn => {
     currentMode = btn.getAttribute('data-mode');
   };
 });
+
+function switchToImageMode() {
+    document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
+    const imgBtn = document.querySelector('.m-btn[data-mode="image"]');
+    if (imgBtn) {
+        imgBtn.classList.add('active');
+        currentMode = "image";
+    }
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById("sidebar");
+        sidebar.classList.remove("open");
+        document.getElementById("sidebarOverlay").style.display = "none";
+    }
+    document.getElementById('q').focus();
+}
 
 const ChatStorage = {
     chats: [],
@@ -1536,9 +1579,15 @@ const ChatStorage = {
         <div class="chat-item ${isActive}" onclick="ChatStorage.switchChat('${chat.id}')">
             <div class="chat-item-title">${chat.title}</div>
             <div class="chat-item-actions">
-                <button onclick="ChatStorage.togglePin('${chat.id}', event)" title="Pin">${chat.isPinned ? '📌' : '📍'}</button>
-                <button onclick="ChatStorage.renameChat('${chat.id}', event)" title="Rename">✏️</button>
-                <button onclick="ChatStorage.deleteChat('${chat.id}')" title="Delete">🗑</button>
+                <button onclick="ChatStorage.togglePin('${chat.id}', event)" title="Pin">
+                    ${chat.isPinned ? '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C9.24 2 7 4.24 7 7c0 1.94 1.13 3.61 2.76 4.45L9 15h2v7l1 1 1-1v-7h2l-.76-3.55C15.87 10.61 17 8.94 17 7c0-2.76-2.24-5-5-5z"></path></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.67V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.67a2 2 0 0 1-1.11 1.88l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>'}
+                </button>
+                <button onclick="ChatStorage.renameChat('${chat.id}', event)" title="Rename">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
+                <button onclick="ChatStorage.deleteChat('${chat.id}')" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
             </div>
         </div>`;
     },
@@ -1858,6 +1907,11 @@ function saveSettings() {
 function openSettings() {
     loadSettingsUI();
     document.getElementById('settingsModal').style.display = 'flex';
+    history.pushState({ modal: 'settings' }, "", location.href);
+}
+
+function closeSettings() {
+    history.back(); // This will trigger onpopstate which closes the modal
 }
 
 function showToast(text) {
@@ -2372,9 +2426,15 @@ window.onpopstate = () => {
   const viewer = document.getElementById("imgViewer");
 
   // 🖼️ If image viewer is open → CLOSE ONLY
-  if (viewer.style.display === "flex") {
+  if (viewer && viewer.style.display === "flex") {
     viewer.style.display = "none";
     return; // ❗ DO NOT revoke blob here
+  }
+
+  const settingsModal = document.getElementById("settingsModal");
+  if (settingsModal && settingsModal.style.display === "flex") {
+    settingsModal.style.display = "none";
+    return;
   }
 
   // 🚪 App exit protection
