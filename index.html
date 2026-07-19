@@ -896,27 +896,64 @@ function add(text, cls, isImage = false) {
   return d;
 }
 
+
+let autoScroll = true;
+
+
 function typeMatrix(el, text) {
     const contentEl = el.querySelector(".ai-content");
 
-    // Glow whole AI card
+    // Every new AI answer enables auto-scroll again
+    autoScroll = true;
+
     el.classList.add("writing");
 
     let i = 0;
     contentEl.textContent = "";
 
     const timer = setInterval(() => {
+
         if (i < text.length) {
+
             contentEl.textContent += text[i++];
-            chat.scrollTop = chat.scrollHeight;
+
+            // Follow latest generated text
+            if (autoScroll) {
+                window.scrollTo({
+                    top: document.documentElement.scrollHeight,
+                    behavior: "instant" // or "smooth"
+                });
+            }
+
         } else {
+
             clearInterval(timer);
 
-            // Stop glow
             el.classList.remove("writing");
+
+            if (autoScroll) {
+                window.scrollTo({
+                    top: document.documentElement.scrollHeight,
+                    behavior: "smooth"
+                });
+            }
+
         }
+
     }, 14);
 }
+
+window.addEventListener("scroll", () => {
+    const threshold = 120;
+
+    const atBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - threshold;
+
+    autoScroll = atBottom;
+});
+
+
 
 async function ask() {
   const text = q.value.trim();
