@@ -485,11 +485,12 @@ def ask():
         data = request.get_json(force=True)
         question = data.get("question", "").strip()
         mode = data.get("mode", "smart").lower()
+        history = data.get("history")
 
         if not question:
             return jsonify({"answer": "❗ Please ask a question."}), 400
 
-        ctx = get_context()
+        ctx = history if history is not None else get_context()
         ctx.append(f"User: {question}")
         session["context"] = trim_context(ctx)
 
