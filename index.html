@@ -152,11 +152,14 @@
 </script>  
 
 
-<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 /* Sidebar Styles */
 .sidebar {
   width: 260px;
-  height: 100%;
+  height: 100vh;
+  position: sticky;
+  top: 0;
   background: var(--panel);
   border-right: 1px solid var(--border);
   display: flex;
@@ -207,7 +210,7 @@
 }
 .chat-item-actions button:hover { color: var(--gold); }
 
-.sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+.sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; background: rgba(12, 12, 12, 0.6); backdrop-filter: blur(10px); }
 
 @media(max-width: 768px) {
   .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); }
@@ -260,9 +263,9 @@ body {
  background: linear-gradient(120deg, var(--bg), #0a0a0a, #070707);
  background-size: 200% 200%;
  animation: bgGradient 20s ease infinite;
- font-family:Inter,Segoe UI,sans-serif;
+ font-family: 'Inter', system-ui, -apple-system, sans-serif;
  color:var(--text);
- overflow: hidden;
+ overflow-x: hidden;
 }
 @keyframes bgGradient {
   0% { background-position: 0% 50%; }
@@ -286,16 +289,13 @@ header h1{ margin:0; font-size:1.8rem; letter-spacing:2px; color:var(--gold); }
 header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 /* ===== CHAT AREA ===== */
-#chat{
+#chat {
   flex: 1;
-  overflow-y: auto;
   padding: 14px;
   background: var(--panel);
-  border:1px solid var(--border);
-  border-radius:16px;
-
-  /* 👇 Reserve space for fixed footer */
-  margin-bottom: 50px; 
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 24px;
 }
 
 
@@ -333,38 +333,45 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 /* ===== MESSAGE BUBBLES ===== */
 .msg{
  max-width:85%;
- margin:12px 0;
- padding:12px 14px;
- border-radius:14px;
+ margin:16px 0;
+ padding: 12px 16px;
  line-height:1.6;
  white-space:pre-wrap;
  word-break:break-word;
+ overflow-wrap: anywhere;
  font-size: 15px;
+ font-family: 'Inter', system-ui, sans-serif;
 }
 
 .user{
  margin-left:auto;
- background:#121212;
- border:1px solid #2a2a2a;
+ background: #2f2f2f;
+ color: #fff;
+ border: none;
+ border-radius: 20px;
+ border-bottom-right-radius: 4px;
+ padding: 12px 18px;
 }
 
 .ai{
- background:#050505; 
- border:1px solid rgba(0,255,213,.15);
- color:#dffff8;
- font-family:Consolas,monospace;
+ max-width: 100%;
+ margin-right:auto;
+ background: transparent; 
+ border: none;
+ color: var(--text);
  display: flex;
  flex-direction: column;
  gap: 8px;
+ padding: 12px 0;
 }
 
 .ai-header {
  display: flex;
  align-items: center;
- gap: 10px;
- margin-bottom: 4px;
- border-bottom: 1px solid rgba(201,164,74,.15);
- padding-bottom: 8px;
+ gap: 12px;
+ margin-bottom: 8px;
+ padding-bottom: 0;
+ border-bottom: none;
 }
 
 .ai-logo {
@@ -567,11 +574,25 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 
 
-/* ===== INPUT BAR ===== */
-/* ===== INPUT BAR ===== */
+/* ===== INPUT BAR ===== */* ===== INPUT BAR ===== */
 .input-bar {
   position: relative;
   margin-top: 8px;
+  display: flex;
+  align-items: center;
+  background: rgba(18, 18, 18, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 4px;
+  transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
+  box-shadow: var(--shadow-soft);
+}
+
+.input-bar:focus-within {
+  border-color: rgba(201, 164, 74, 0.5);
+  box-shadow: 0 0 0 2px rgba(201, 164, 74, 0.2), var(--shadow-deep);
 }
 
 /* Textarea */
@@ -581,40 +602,34 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   max-height: 160px;
   resize: none;
 
-  padding: 14px 56px;
-  padding-left: 56px;
-  padding-right: 56px;
-
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: #020202;
+  padding: 14px 12px;
+  background: transparent;
+  border: none;
   color: var(--text);
   font-size: 15px;
   outline: none;
+  font-family: inherit;
 
   overflow-y: auto;
-  transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
 }
 
-.input-bar textarea:focus {
-  border-color: var(--gold);
-  box-shadow: 0 0 0 1px var(--gold), var(--shadow-soft);
+.input-bar textarea::placeholder {
+  color: #666;
+  transition: opacity var(--duration-normal) var(--ease-standard);
 }
 
 .input-bar textarea:focus::placeholder {
   opacity: 0.5;
-  transition: opacity var(--duration-normal) var(--ease-standard);
 }
 
 /* Common icon button */
 .icon-btn {
-  position: absolute;
-  bottom: 8px;
   width: 40px;
   height: 40px;
   border-radius: 50%;
   border: none;
   cursor: pointer;
+  flex-shrink: 0;
 
   display: flex;
   align-items: center;
@@ -631,18 +646,23 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 /* LEFT (+) */
 .icon-btn.attach {
-  left: 8px;
-  background: #111;
-  color: var(--gold);
+  background: transparent;
+  color: var(--muted);
+  margin-right: 4px;
+}
+.icon-btn.attach:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
 }
 
 /* RIGHT (send arrow) */
 .icon-btn.send {
-  right: 8px;
-  background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+  background: var(--gold);
   color: #000;
-  font-size: 20px;
-  font-weight: bold;
+  margin-left: 4px;
+}
+.icon-btn.send:hover {
+  background: var(--gold-soft);
 }
 
 .icon-btn:active {
@@ -653,31 +673,39 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 
 .attach-menu {
   position: absolute;
-  bottom: 56px;
+  bottom: 64px;
   left: 8px;
-  background: #0b0b0b;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 6px;
+  background: rgba(18, 18, 18, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 8px;
   display: none;
   flex-direction: column;
   gap: 4px;
   z-index: 20;
+  box-shadow: var(--shadow-float);
 }
 
 .attach-menu button {
   background: transparent;
   border: none;
   color: var(--text);
-  padding: 8px 12px;
+  padding: 10px 14px;
   text-align: left;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all var(--duration-fast) var(--ease-standard);
 }
 
 .attach-menu button:hover {
-  background: rgba(201,164,74,0.12);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--gold);
 }
 
@@ -940,36 +968,61 @@ body.no-animations * {
 }
 
 /* Premium Markdown */
-.ai-content table { width: 100%; border-collapse: collapse; margin: 16px 0; display: block; overflow-x: auto; border-radius: 8px; background: #111; }
+.ai-content table { width: 100%; border-collapse: collapse; margin: 16px 0; display: block; overflow-x: auto; border-radius: 8px; box-shadow: 0 0 0 1px var(--border); }
 .ai-content th, .ai-content td { padding: 12px 16px; border: 1px solid var(--border); text-align: left; }
-.ai-content th { background: #222; font-weight: bold; color: var(--gold); }
-.ai-content tr:nth-child(even) { background: #1a1a1a; }
-.ai-content blockquote { border-left: 4px solid var(--gold); margin: 16px 0; padding: 10px 16px; background: #1a1a1a; color: var(--muted); border-radius: 0 8px 8px 0; }
+.ai-content th { background: rgba(255, 255, 255, 0.05); font-weight: 600; position: sticky; top: 0; color: var(--gold); }
+.ai-content tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+.ai-content tr:hover { background: rgba(255, 255, 255, 0.04); }
+.ai-content blockquote { border-left: 4px solid var(--gold); margin: 16px 0; padding: 12px 16px; background: rgba(201, 164, 74, 0.05); color: #bbb; border-radius: 0 8px 8px 0; }
+.ai-content blockquote p { margin: 0; }
 .ai-content ul, .ai-content ol { padding-left: 20px; margin: 12px 0; }
 .ai-content li { margin-bottom: 6px; }
 .ai-content li::marker { color: var(--gold); }
 .ai-content hr { border: 0; height: 1px; background: var(--border); margin: 24px 0; }
-.ai-content a { color: var(--gold); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.ai-content a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 2px; }
+.ai-content a:hover { border-bottom-color: var(--accent); }
 .ai-content p { line-height: 1.6; }
+.ai-content code:not([class^="language-"]) { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; color: #ffb86c; }
+
+/* GitHub Alerts */
+.markdown-alert { margin: 16px 0; padding: 12px 16px; border-left: 4px solid; border-radius: 0 8px 8px 0; background: rgba(255, 255, 255, 0.03); }
+.markdown-alert-note { border-left-color: #3b82f6; }
+.markdown-alert-note .alert-title { color: #3b82f6; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.markdown-alert-warning { border-left-color: #f59e0b; }
+.markdown-alert-warning .alert-title { color: #f59e0b; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.markdown-alert-tip { border-left-color: #10b981; }
+.markdown-alert-tip .alert-title { color: #10b981; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.markdown-alert-important { border-left-color: #8b5cf6; }
+.markdown-alert-important .alert-title { color: #8b5cf6; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.markdown-alert-caution { border-left-color: #ef4444; }
+.markdown-alert-caution .alert-title { color: #ef4444; font-weight: 600; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 
 /* Code Blocks */
-.ai-content pre { position: relative; border-radius: 12px; overflow: hidden; margin: 16px 0; background: #0d1117; border: 1px solid var(--border); }
-.code-header { background: #161b22; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 12px; color: #8b949e; font-family: sans-serif; }
-.code-copy-btn { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+.ai-content pre { position: relative; border-radius: 12px; overflow: hidden; margin: 16px 0; background: #0d1117 !important; border: 1px solid var(--border); }
+.code-header { background: #161b22; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-size: 12px; color: #8b949e; font-family: 'Inter', sans-serif; }
+.code-lang-wrapper { display: flex; align-items: center; gap: 8px; }
+.code-lang { font-weight: 600; color: #ccc; }
+.code-file { font-family: 'JetBrains Mono', monospace; color: #888; }
+.code-copy-btn { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
 .code-copy-btn:hover { background: #30363d; color: var(--gold); border-color: var(--gold); }
-.ai-content pre code { display: block; padding: 16px; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace; font-size: 13.5px; line-height: 1.5; }
+.ai-content pre code { display: block; padding: 16px; overflow-x: auto; font-family: 'JetBrains Mono', monospace; font-size: 13.5px; line-height: 1.5; color: #e6e6e6; }
+.mermaid { background: #111; padding: 16px; border-radius: 12px; margin: 16px 0; border: 1px solid var(--border); display: flex; justify-content: center; overflow-x: auto; }
 </style>
 <link rel="stylesheet" href="highlight-github-dark.min.css">
 <script src="marked.min.js"></script>
 <script src="highlight.min.js"></script>
+<script src="mermaid.min.js"></script>
+<script src="katex.min.js"></script>
+<script src="auto-render.min.js"></script>
+<link rel="stylesheet" href="katex.min.css">
 </head>
 
 <body>
-<div id="layout-container" style="display: flex; height: 100vh; width: 100vw; overflow: hidden; position: relative;">
+<div id="layout-container" style="display: flex; min-height: 100vh; width: 100vw; position: relative;">
   <aside id="sidebar" class="sidebar">
     <div class="sidebar-header">
       <button class="new-chat-btn" onclick="ChatStorage.startNewChat()">+ New Chat</button>
-      <button class="close-sidebar-btn" onclick="toggleSidebar()">✕</button>
+      <button class="close-sidebar-btn" onclick="toggleSidebar()" aria-label="Close Sidebar">✕</button>
     </div>
     <div class="sidebar-search">
       <input type="text" id="chatSearch" placeholder="Search chats..." oninput="ChatStorage.renderList()">
@@ -978,10 +1031,11 @@ body.no-animations * {
       <!-- dynamically populated -->
     </div>
     <div class="sidebar-footer">
-      <a href="index.html" class="menu-item active">💬 Chat</a>
-      <a href="images.html" class="menu-item">🖼️ Image Gen</a>
-      <a href="explore.html" class="menu-item">🌍 Explore APIs</a>
-      <a href="#" onclick="openSettings()" class="menu-item">⚙️ Settings</a>
+      <a href="index.html" class="menu-item active"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Chat</a>
+      <a href="images.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Image Gen</a>
+      <a href="explore.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> Explore APIs</a>
+      <a href="#" onclick="openSettings()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</a>
+      <div id="menuDropdown" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;"></div>
       <div style="display: flex; gap: 8px; margin-top: 8px;">
           <button class="m-btn" style="flex:1;" onclick="ChatStorage.exportAll()">Export</button>
           <button class="m-btn" style="flex:1;" onclick="ChatStorage.importData()">Import</button>
@@ -989,12 +1043,15 @@ body.no-animations * {
     </div>
   </aside>
 
-  <main id="main-content" style="flex: 1; height: 100%; overflow-y: auto; display: flex; flex-direction: column; position: relative;">
+  <main id="main-content" style="flex: 1; display: flex; flex-direction: column; position: relative; min-width: 0;">
     <div class="menu-container" style="position: absolute; top: 20px; left: 20px; z-index: 1000;">
-      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle Sidebar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
     </div>
 
     <div class="app">
+    <div class="chat-wrapper" style="flex: 1; display: flex; flex-direction: column;">
 
 <div class="seo-hidden" aria-hidden="true">
   <h1>VirginAI – Advanced Intelligent AI Chat Assistant</h1>
@@ -1092,21 +1149,22 @@ body.no-animations * {
   </div>
 
   <div class="input-bar">
-    <button class="icon-btn attach" onclick="openPicker(event)">＋</button>
-    <textarea id="q" placeholder="Ask anything..."></textarea>
-    <button class="icon-btn send" onclick="ask()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <path d="M12 4L19 11H14V20H10V11H5L12 4Z" fill="#000"/>
-      </svg>
+    <button class="icon-btn attach" onclick="openPicker(event)" aria-label="Attach File">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    </button>
+    <textarea id="q" placeholder="Message VirginAI..."></textarea>
+    <button class="icon-btn send" onclick="ask()" aria-label="Send Message">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
     </button>
     <input type="file" id="fileInput" accept="image/*,.pdf,.txt,.py,.html,.css" hidden>
   </div>
   <div class="attach-menu" id="attachMenu">
-  <button onclick="pickCamera()">📷 Camera</button>
-  <button onclick="pickGallery()">🖼️ Photos</button>
-  <button onclick="pickFile()">📄 Files</button>
+  <button onclick="pickCamera()" aria-label="Open Camera"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Camera</button>
+  <button onclick="pickGallery()" aria-label="Open Photos"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Photos</button>
+  <button onclick="pickFile()" aria-label="Open Files"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Files</button>
 </div>
 </div>
+</div> <!-- .chat-wrapper -->
 
 <footer>
  <a href="/about.html">About</a> · <a href="/developer.html">Developer</a> · <a href="/help.html">Help</a> · <a href="/faq.html">FAQ</a> · <a href="/contact.html">Contact</a> · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a>
@@ -1178,6 +1236,10 @@ body.no-animations * {
 </div>
 
 <script>
+window.handleError = function(error, context) {
+    console.error(`[VirginAI] Error in ${context}:`, error);
+};
+
 let currentMode = "smart";
 
 // Toggle between Intelligence Classes
@@ -1294,12 +1356,7 @@ const ChatStorage = {
                         const d = add("", 'ai', false, msg.content, true);
                         const contentEl = d.querySelector('.ai-content');
                         contentEl.setAttribute('data-raw', msg.content);
-                        if (typeof marked !== 'undefined') {
-                            contentEl.innerHTML = marked.parse(msg.content);
-                            if (typeof hljs !== 'undefined') hljs.highlightAll();
-                        } else {
-                            contentEl.textContent = msg.content;
-                        }
+                        renderMarkdown(contentEl, msg.content);
                     }
                 }
             });
@@ -1761,30 +1818,115 @@ function showToast(text) {
 
 function renderMarkdown(contentEl, text) {
     if (userSettings.renderMarkdown && typeof marked !== 'undefined') {
-        contentEl.innerHTML = marked.parse(text);
+        // Pre-process GitHub Alerts
+        let processedText = text;
+        const alerts = {
+            'NOTE': 'info', 'WARNING': 'alert-triangle', 'TIP': 'lightbulb', 'IMPORTANT': 'zap', 'CAUTION': 'octagon'
+        };
+        for (const [key, icon] of Object.entries(alerts)) {
+            const regex = new RegExp(`^>\\s*\\[!${key}\\]`, 'gm');
+            processedText = processedText.replace(regex, `> **__ALERT_${key}__**`);
+        }
+
+        contentEl.innerHTML = marked.parse(processedText);
+
+        // Post-process GitHub Alerts
+        contentEl.querySelectorAll('blockquote').forEach(bq => {
+            const firstP = bq.querySelector('p');
+            if (firstP) {
+                for (const key of Object.keys(alerts)) {
+                    if (firstP.innerHTML.includes(`<strong>__ALERT_${key}__</strong>`)) {
+                        bq.className = `markdown-alert markdown-alert-${key.toLowerCase()}`;
+                        let svgIcon = '';
+                        if (key === 'NOTE') svgIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+                        if (key === 'WARNING') svgIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+                        if (key === 'TIP') svgIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg>';
+                        if (key === 'IMPORTANT') svgIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>';
+                        if (key === 'CAUTION') svgIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+                        
+                        firstP.innerHTML = firstP.innerHTML.replace(`<strong>__ALERT_${key}__</strong>`, `<div class="alert-title">${svgIcon} ${key.charAt(0) + key.slice(1).toLowerCase()}</div>`);
+                    }
+                }
+            }
+        });
+
+        // Mermaid
+        if (typeof mermaid !== 'undefined') {
+            contentEl.querySelectorAll('pre code.language-mermaid').forEach(block => {
+                const div = document.createElement('div');
+                div.className = 'mermaid';
+                div.textContent = block.textContent;
+                block.parentElement.replaceWith(div);
+            });
+            try { mermaid.run({ nodes: contentEl.querySelectorAll('.mermaid') }); } catch(e) { window.handleError(e, 'Mermaid renderer'); }
+        }
+
+        // External links
+        contentEl.querySelectorAll('a').forEach(a => {
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            if (!a.querySelector('svg')) {
+                a.innerHTML += ' <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>';
+            }
+        });
+
+        // KaTeX
+        if (typeof renderMathInElement !== 'undefined') {
+            renderMathInElement(contentEl, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '\\[', right: '\\]', display: true},
+                    {left: '$', right: '$', display: false},
+                    {left: '\\(', right: '\\)', display: false}
+                ],
+                throwOnError: false
+            });
+        }
+
         if (userSettings.codeHighlighting && typeof hljs !== 'undefined') {
             contentEl.querySelectorAll('pre code').forEach((block) => {
+                if (block.parentElement.classList.contains('mermaid')) return;
+                
                 hljs.highlightElement(block);
                 
-                let lang = "Code";
+                let lang = "Text";
+                let filename = "";
                 block.classList.forEach(cls => {
-                    if (cls.startsWith("language-")) lang = cls.replace("language-", "");
+                    if (cls.startsWith("language-")) {
+                        const rawLang = cls.replace("language-", "");
+                        if (rawLang.includes(':')) {
+                            const parts = rawLang.split(':');
+                            lang = parts[0];
+                            filename = parts.slice(1).join(':');
+                        } else {
+                            lang = rawLang;
+                        }
+                    }
                 });
                 
                 const pre = block.parentElement;
                 const header = document.createElement("div");
                 header.className = "code-header";
                 
-                const langBadge = document.createElement("span");
-                langBadge.textContent = lang.toUpperCase();
+                const langBadge = document.createElement("div");
+                langBadge.className = "code-lang-wrapper";
+                if (filename) {
+                    langBadge.innerHTML = `<span class="code-lang">${lang.toUpperCase()}</span> <span class="code-file">${filename}</span>`;
+                } else {
+                    langBadge.innerHTML = `<span class="code-lang">${lang.toUpperCase()}</span>`;
+                }
                 
                 const copyBtn = document.createElement("button");
-                copyBtn.innerHTML = "📋 Copy";
+                copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy';
                 copyBtn.className = "code-copy-btn";
                 copyBtn.title = "Copy code";
                 copyBtn.onclick = () => {
                     navigator.clipboard.writeText(block.textContent);
                     showToast("Code Copied ✓");
+                    copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy';
+                    }, 2000);
                 };
                 
                 header.appendChild(langBadge);
@@ -1798,7 +1940,7 @@ function renderMarkdown(contentEl, text) {
     
     // AI Response collapse logic
     requestAnimationFrame(() => {
-        const lines = text.split('\\n').length;
+        const lines = text.split('\n').length;
         if (lines > 25) {
             contentEl.style.maxHeight = "400px";
             contentEl.style.overflow = "hidden";
@@ -2144,14 +2286,6 @@ q.addEventListener("keydown", e => {
   }
 });
 
-window.addEventListener("keydown", e => {
-    if (e.key === "Escape" && isGenerating) {
-        stopGenerating();
-    }
-});
-
-
-
 q.addEventListener("input", function() {
   this.style.height = "auto";
   this.style.height = (this.scrollHeight) + "px";
@@ -2351,6 +2485,9 @@ document.addEventListener('touchend', e => {
 
 // Phase 7: Global Shortcuts
 document.addEventListener('keydown', e => {
+    if (e.key === "Escape" && isGenerating) {
+        stopGenerating();
+    }
     if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         ChatStorage.startNewChat();
@@ -2421,8 +2558,7 @@ onAuthStateChanged(auth, (user) => {
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/firebase-messaging-sw.js")
-    .then(() => console.log("🔥 Service Worker registered"))
-    .catch(err => console.error("SW error", err));
+    .catch(err => window.handleError(err, "Service Worker Registration"));
 }
 </script>
 
