@@ -215,9 +215,9 @@
 }
 
 .chat-item {
-  padding: 12px 14px; border-radius: 14px; cursor: pointer; color: var(--text);
-  font-size: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease; margin-bottom: 10px; min-height: 58px;
+  padding: 16px 18px; border-radius: 16px; cursor: pointer; color: var(--text);
+  font-size: 15px; display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease; margin-bottom: 12px; min-height: 64px;
   background: rgba(0, 0, 0, 0.2); position: relative; overflow: hidden;
 }
 .chat-item:hover { background: rgba(255, 255, 255, 0.08); }
@@ -228,24 +228,24 @@
   box-shadow: 0 0 12px rgba(201, 164, 74, 0.1); 
 }
 .chat-item.active::before {
-  content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 4px;
+  content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px;
   background: var(--gold); border-radius: 0 4px 4px 0;
 }
 
 .chat-item-title { 
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
-  font-size: 15px; font-weight: 600; line-height: 1.4;
+  font-size: 16px; font-weight: 600; line-height: 1.4;
 }
 
 .chat-item-actions { display: none; gap: 8px; align-items: center; }
 .chat-item:hover .chat-item-actions { display: flex; }
 .chat-item-actions button {
   background: rgba(0, 0, 0, 0.3); border: none; color: var(--muted); cursor: pointer; 
-  width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   transition: transform 180ms ease, background 180ms ease, color 180ms ease;
 }
 .chat-item-actions button svg {
-  width: 18px; height: 18px;
+  width: 20px; height: 20px;
 }
 .chat-item-actions button:hover { color: #000; background: var(--gold); transform: scale(1.05); }
 
@@ -368,27 +368,35 @@ header p{ margin: var(--space-xs) 0 0; font-size:13px; color:var(--muted); }
 }
 
 /* Active while streaming */
-.msg.ai.writing{
-    border-color:#00ff88;
-    box-shadow:
-        0 0 10px rgba(0,255,136,.35),
-        0 0 22px rgba(0,255,136,.25),
-        0 0 40px rgba(0,255,136,.18);
-    animation: aiGlow 1.6s ease-in-out infinite;
+.msg.ai.writing {
+    position: relative;
+    overflow: hidden;
+    animation: aiGlowPulse 2s ease-in-out infinite;
 }
 
-@keyframes aiGlow{
-    0%,100%{
-        box-shadow:
-            0 0 8px rgba(0,255,136,.25),
-            0 0 18px rgba(0,255,136,.18);
-    }
-    50%{
-        box-shadow:
-            0 0 18px rgba(0,255,136,.75),
-            0 0 36px rgba(0,255,136,.45),
-            0 0 60px rgba(0,255,136,.25);
-    }
+.msg.ai.writing::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
+    animation: lightSweep 1.4s infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes aiGlowPulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(201,164,74,.20), 0 0 24px rgba(201,164,74,.10); }
+    50% { box-shadow: 0 0 16px rgba(201,164,74,.30), 0 0 32px rgba(201,164,74,.20); }
+}
+
+@keyframes lightSweep {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .msg.ai.writing::before { display: none; }
+    .msg.ai.writing { animation: none !important; box-shadow: none !important; }
 }
 
 /* ===== MESSAGE BUBBLES ===== */
@@ -428,6 +436,13 @@ header p{ margin: var(--space-xs) 0 0; font-size:13px; color:var(--muted); }
  flex-direction: column;
  gap: var(--space-sm);
  padding: var(--space-md) 0;
+ animation: msgFadeIn 250ms ease-out forwards;
+ will-change: transform, opacity;
+}
+
+@keyframes msgFadeIn {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
 .ai-header {
@@ -877,12 +892,13 @@ pre {
 }
 
 .msg.ai.writing .ai-content::after {
-    content: "▌";
+    content: "|";
     display: inline-block;
-    animation: blinkCursor 1s step-end infinite;
+    animation: blinkCursor 700ms step-end infinite;
     color: var(--gold);
-    margin-left: 4px;
-    vertical-align: bottom;
+    font-weight: bold;
+    margin-left: 2px;
+    vertical-align: baseline;
 }
 @keyframes blinkCursor {
     0%, 100% { opacity: 1; }
