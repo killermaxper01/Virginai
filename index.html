@@ -192,21 +192,24 @@
 }
 .sidebar-search input:focus { border-color: var(--gold); }
 
+.sidebar-scroll-area {
+  flex: 1; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column;
+}
 .sidebar-chat-list {
-  flex: 1; overflow-y: auto; overflow-x: hidden; padding: 16px;
+  flex: 1; padding: 16px; min-height: min-content;
 }
 /* Sidebar Scrollbar */
-.sidebar-chat-list::-webkit-scrollbar {
+.sidebar-scroll-area::-webkit-scrollbar {
   width: 6px;
 }
-.sidebar-chat-list::-webkit-scrollbar-track {
+.sidebar-scroll-area::-webkit-scrollbar-track {
   background: transparent;
 }
-.sidebar-chat-list::-webkit-scrollbar-thumb {
+.sidebar-scroll-area::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
 }
-.sidebar-chat-list::-webkit-scrollbar-thumb:hover {
+.sidebar-scroll-area::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
@@ -249,7 +252,7 @@
 }
 .chat-item-actions button:hover { color: #000; background: var(--gold); transform: scale(1.05); }
 
-.sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; background: rgba(12, 12, 12, 0.6); backdrop-filter: blur(10px); flex-shrink: 0; }
+.sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; background: rgba(12, 12, 12, 0.6); backdrop-filter: blur(10px); flex-shrink: 0; margin-top: auto; }
 
 @media(max-width: 1024px) {
   .sidebar { width: 280px; min-width: 280px; max-width: 280px; }
@@ -260,6 +263,9 @@
   .chat-item { padding: 12px; }
   .chat-item-title { font-size: 14px; }
   .chat-item-actions button { width: 30px; height: 30px; }
+  #chat { padding-bottom: calc(140px + env(safe-area-inset-bottom, 20px)) !important; }
+  .chat-footer { padding-bottom: calc(var(--space-md) + env(safe-area-inset-bottom, 20px)); }
+  .menu-toggle, .new-chat-btn, .close-sidebar-btn, .menu-item, input, select, button { min-height: 44px; }
 }
 @media(min-width: 769px) {
   .sidebar.closed { margin-left: -340px; }
@@ -364,7 +370,8 @@ header p{ margin: var(--space-xs) 0 0; font-size:13px; color:var(--muted); }
     background: transparent;
     border: none;
     border-radius: var(--radius-md);
-    transition: var(--duration-normal);
+    box-shadow: 0 0 0 rgba(201,164,74,0);
+    transition: box-shadow 400ms ease, border-color 400ms ease, var(--duration-normal);
 }
 
 /* Active while streaming */
@@ -379,19 +386,28 @@ header p{ margin: var(--space-xs) 0 0; font-size:13px; color:var(--muted); }
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
     background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
-    animation: lightSweep 1.4s infinite;
+    animation: lightSweep 2.2s infinite;
     pointer-events: none;
     z-index: 0;
 }
 
+.msg.ai.writing .ai-logo {
+    animation: avatarPulse 2s ease-in-out infinite;
+}
+
 @keyframes aiGlowPulse {
-    0%, 100% { box-shadow: 0 0 12px rgba(201,164,74,.20), 0 0 24px rgba(201,164,74,.10); }
-    50% { box-shadow: 0 0 16px rgba(201,164,74,.30), 0 0 32px rgba(201,164,74,.20); }
+    0%, 100% { box-shadow: 0 0 0 1px rgba(201,164,74,.20), 0 0 12px rgba(201,164,74,.20), 0 0 24px rgba(201,164,74,.10); }
+    50% { box-shadow: 0 0 0 1px rgba(201,164,74,.45), 0 0 16px rgba(201,164,74,.30), 0 0 32px rgba(201,164,74,.20); }
 }
 
 @keyframes lightSweep {
     0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+    65%, 100% { transform: translateX(100%); }
+}
+
+@keyframes avatarPulse {
+    0%, 100% { transform: scale(1); opacity: 0.85; }
+    50% { transform: scale(1.04); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -460,13 +476,39 @@ header p{ margin: var(--space-xs) 0 0; font-size:13px; color:var(--muted); }
  object-fit: cover;
  background: #000;
 }
+.ai-badge {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+    border: 1px solid rgba(201,164,74,0.4); border-radius: 20px; font-size: 11px;
+    color: var(--gold); background: rgba(201,164,74,0.05); animation: msgFadeIn 0.3s ease-out;
+}
+.msg-footer {
+    display: flex; margin-top: 10px; border-top: 1px solid var(--border); 
+    padding-top: 8px; justify-content: space-between; align-items: center; min-height: 32px;
+}
+.msg-meta { font-size: 11px; color: var(--muted); }
+.msg-actions { display: flex; gap: 6px; opacity: 0; transition: opacity 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.msg.ai:hover .msg-actions { opacity: 1; }
+.msg-action-btn { transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: transparent; border: none; color: var(--muted); cursor: pointer; }
+.msg-action-btn:hover { transform: scale(1.1); background: var(--gold); color: #000; }
+.msg-action-btn.copied { color: #10b981; border: 1px solid #10b981; background: rgba(16,185,129,0.1); width: auto; padding: 0 8px; font-size:12px; }
 
 .ai-name {
  font-size: 12px;
+ font-weight: bold;
  color: var(--gold);
- font-weight: 600;
- text-transform: uppercase;
- letter-spacing: 1px;
+ letter-spacing: 0.5px;
+}
+
+/* Micro Interactions (Spring animations) */
+button, input, select, .chat-item, .menu-item, .m-btn {
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                background-color 0.2s ease, 
+                box-shadow 0.2s ease,
+                border-color 0.2s ease,
+                color 0.2s ease;
+}
+button:active, .chat-item:active, .menu-item:active, .m-btn:active {
+    transform: scale(0.97);
 }
 
 .ai-thinking {
@@ -500,12 +542,22 @@ header p{ margin: var(--space-xs) 0 0; font-size:13px; color:var(--muted); }
   
   
  
-.ai-content { min-height: 20px; line-height: 1.7; overflow-x: auto; width: 100%; }
+.ai-content { min-height: 20px; line-height: 1.7; overflow-x: auto; width: 100%; position: relative; z-index: 1; }
 .ai-content img {
   max-width: 100%;
-  border-radius: var(--radius-md);
-  margin-top: var(--space-sm);
+  border-radius: 16px;
+  margin-top: var(--space-md);
   cursor: zoom-in;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  transition: transform 0.2s ease, opacity 0.5s ease;
+  animation: fadeInImg 0.5s ease forwards;
+}
+.ai-content img:hover {
+  transform: scale(1.02);
+}
+@keyframes fadeInImg {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 
@@ -871,24 +923,28 @@ pre {
 
 #jumpToLatest {
     position: fixed;
-    bottom: 80px;
-    right: 20px;
-    background: #111;
-    color: var(--gold);
-    border: none;
-    padding: var(--space-sm) var(--space-md);
-    border-radius: var(--radius-lg);
+    bottom: 30px;
+    right: 30px;
+    width: 46px;
+    height: 46px;
+    background: rgba(18, 18, 18, 0.9);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    border: 1px solid var(--gold);
+    border-radius: 50%;
     cursor: pointer;
     opacity: 0;
     pointer-events: none;
-    transition: all var(--duration-normal);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
     z-index: 100;
-    font-size: 12px;
-    box-shadow: var(--shadow-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 #jumpToLatest:hover {
-    background: var(--gold);
-    color: #000;
+    transform: scale(1.08);
+    box-shadow: 0 4px 16px rgba(201,164,74,0.35);
 }
 
 .msg.ai.writing .ai-content::after {
@@ -961,6 +1017,18 @@ pre {
     display: flex;
     flex-direction: column;
 }
+.skeleton-loader {
+    display: flex; flex-direction: column; gap: 12px; width: 100%; animation: msgFadeIn 0.3s ease-out;
+}
+.skeleton-line {
+    height: 14px; border-radius: 4px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(201,164,74,0.15) 50%, rgba(255,255,255,0.03) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+.skeleton-line.short { width: 60%; }
+.skeleton-line.medium { width: 85%; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 .msg.user:hover .edit-msg-btn { display: inline-flex; }
 
 /* Menu Item Styling */
@@ -1100,22 +1168,40 @@ body.no-animations * {
     outline-offset: 2px;
 }
 
-/* Premium Markdown */
-.ai-content table { width: 100%; border-collapse: collapse; margin: 16px 0; display: block; overflow-x: auto; border-radius: 8px; box-shadow: 0 0 0 1px var(--border); word-break: normal; white-space: nowrap; }
-.ai-content th, .ai-content td { padding: 12px 16px; border: 1px solid var(--border); text-align: left; }
+/* Selection */
+::selection { background: rgba(201,164,74,.35); color: #fff; }
+
+/* Premium Markdown Spacing & Typography */
+.ai-content p, .ai-content ul, .ai-content ol, .ai-content table, .ai-content pre, .ai-content blockquote { margin: 1.5em 0; }
+.ai-content p { line-height: 1.7; }
+
+/* Tables */
+.ai-content table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); word-break: normal; white-space: nowrap; }
+.ai-content th, .ai-content td { padding: 14px 18px; border: 1px solid var(--border); text-align: left; }
 .ai-content th { background: rgba(255, 255, 255, 0.05); font-weight: 600; position: sticky; top: 0; color: var(--gold); }
 .ai-content tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
-.ai-content tr:hover { background: rgba(255, 255, 255, 0.04); }
-.ai-content blockquote { border-left: 4px solid var(--gold); margin: 16px 0; padding: 12px 16px; background: rgba(201, 164, 74, 0.05); color: #bbb; border-radius: 0 8px 8px 0; }
+.ai-content tr:hover { background: rgba(255, 255, 255, 0.06); }
+
+/* Quotes */
+.ai-content blockquote { border-left: 4px solid var(--gold); padding: 16px 20px; background: rgba(201, 164, 74, 0.05); color: #ccc; border-radius: 0 12px 12px 0; font-style: italic; }
 .ai-content blockquote p { margin: 0; }
-.ai-content ul, .ai-content ol { padding-left: 20px; margin: 12px 0; }
-.ai-content li { margin-bottom: 6px; }
-.ai-content li::marker { color: var(--gold); }
-.ai-content hr { border: 0; height: 1px; background: var(--border); margin: 24px 0; }
-.ai-content a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color var(--duration-fast); display: inline-flex; align-items: center; gap: 2px; }
-.ai-content a:hover { border-bottom-color: var(--accent); }
-.ai-content p { line-height: 1.6; }
-.ai-content code:not([class^="language-"]) { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; color: #ffb86c; }
+
+/* Lists */
+.ai-content ul, .ai-content ol { padding-left: 24px; }
+.ai-content li { margin-bottom: 8px; line-height: 1.7; }
+.ai-content li::marker { color: var(--gold); font-weight: bold; }
+.ai-content ul ul, .ai-content ol ol, .ai-content ul ol, .ai-content ol ul { margin: 8px 0 0 0; padding-left: 24px; opacity: 0.9; }
+
+/* HR */
+.ai-content hr { border: 0; height: 1px; background: var(--border); margin: 32px 0; }
+
+/* Links */
+.ai-content a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; transition: color var(--duration-fast), border-bottom-color var(--duration-fast); display: inline-flex; align-items: center; gap: 4px; font-weight: 500; }
+.ai-content a:hover { color: var(--gold); border-bottom-color: var(--gold); }
+.ai-content a[href^="http"]::after { content: "↗"; font-size: 0.8em; margin-left: 2px; }
+
+/* Inline Code */
+.ai-content code:not([class^="language-"]) { font-family: 'JetBrains Mono', monospace; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 6px; font-size: 0.9em; color: #ffb86c; }
 
 /* GitHub Alerts */
 .markdown-alert { margin: 16px 0; padding: 12px 16px; border-left: 4px solid; border-radius: 0 8px 8px 0; background: rgba(255, 255, 255, 0.03); }
@@ -1158,23 +1244,26 @@ body.no-animations * {
     <div class="sidebar-search">
       <input type="text" id="chatSearch" placeholder="Search chats..." oninput="ChatStorage.renderList()">
     </div>
-    <div id="sidebar-chat-list" class="sidebar-chat-list">
-      <!-- dynamically populated -->
-    </div>
-    <div class="sidebar-footer">
-      <a href="index.html" class="menu-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Chat</a>
-      <a href="javascript:void(0)" onclick="switchToImageMode()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Image Gen</a>
-      <a href="explore.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> Explore APIs</a>
-      <a href="javascript:void(0)" onclick="alert('History coming soon')" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> History</a>
-      <a href="javascript:void(0)" onclick="openProfile()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Profile</a>
-      <a href="javascript:void(0)" onclick="openSettings()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</a>
-      <a href="developer.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg> Developer</a>
-      <a href="offers.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg> Offers</a>
-      <div id="menuDropdown" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;"></div>
-      <div style="display: flex; gap: 8px; margin-top: 8px;">
-          <button class="m-btn" style="flex:1;" onclick="ChatStorage.exportAll()">Export</button>
-          <button class="m-btn" style="flex:1;" onclick="ChatStorage.importData()">Import</button>
-      </div>
+    <div class="sidebar-scroll-area">
+        <div id="sidebar-bookmarks-list" class="sidebar-chat-list" style="margin-bottom: 12px; display:none;"></div>
+        <div id="sidebar-chat-list" class="sidebar-chat-list">
+          <!-- dynamically populated -->
+        </div>
+        <div class="sidebar-footer">
+          <a href="index.html" class="menu-item active"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Chat</a>
+          <a href="javascript:void(0)" onclick="switchToImageMode()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> Image Gen</a>
+          <a href="explore.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg> Explore APIs</a>
+          <a href="javascript:void(0)" onclick="alert('History coming soon')" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> History</a>
+          <a href="javascript:void(0)" onclick="openProfile()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Profile</a>
+          <a href="javascript:void(0)" onclick="openSettings()" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</a>
+          <a href="developer.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg> Developer</a>
+          <a href="offers.html" class="menu-item"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg> Offers</a>
+          <div id="menuDropdown" style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;"></div>
+          <div style="display: flex; gap: 8px; margin-top: 8px;">
+              <button class="m-btn" style="flex:1;" onclick="ChatStorage.exportAll()">Export</button>
+              <button class="m-btn" style="flex:1;" onclick="ChatStorage.importData()">Import</button>
+          </div>
+        </div>
     </div>
   </aside>
 
@@ -1335,7 +1424,9 @@ body.no-animations * {
 
 <div id="chat"></div>
 
-<button id="jumpToLatest" onclick="jumpToBottom()">⬇ Jump to latest</button>
+    <button id="jumpToLatest" onclick="jumpToBottom()">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+    </button>
 
 <div class="chat-footer">
   <div id="stopGenBtn" onclick="stopGenerating()" style="display:none;">■ Stop generating</div>
@@ -1444,6 +1535,20 @@ body.no-animations * {
     ✕ Close
   </button>
   <img id="viewerImg" src="" style="max-width:90%; max-height:90%; border-radius:12px; box-shadow:var(--shadow-float); transform-origin: top left; animation: modalAppear 0.3s ease-out forwards;">
+</div>
+
+<div id="shortcutsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:10000; justify-content:center; align-items:center;" onclick="if(event.target===this) document.getElementById('shortcutsModal').style.display='none'">
+    <div style="background:rgba(17,17,17,0.9); border: 1px solid var(--border); border-radius:12px; width: 90%; max-width: 400px; padding: 24px; box-shadow: var(--shadow-deep); animation: modalAppear var(--duration-normal) var(--ease-emphasized) forwards;">
+        <h2 style="margin-top:0; color:var(--gold); margin-bottom: 24px;">Keyboard Shortcuts</h2>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--text);"><span>Open Shortcuts</span> <kbd style="background: #222; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);">Ctrl + /</kbd></div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--text);"><span>Focus Prompt</span> <kbd style="background: #222; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);">Ctrl + K</kbd></div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--text);"><span>Close Modals / Stop</span> <kbd style="background: #222; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);">Esc</kbd></div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--text);"><span>New Chat</span> <kbd style="background: #222; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);">Ctrl + N</kbd></div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 16px; color: var(--text);"><span>Search History</span> <kbd style="background: #222; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border);">Ctrl + F</kbd></div>
+        <div style="margin-top: 24px; text-align: right;">
+            <button onclick="document.getElementById('shortcutsModal').style.display='none'" style="background:var(--gold); color:#000; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">Close</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -1578,7 +1683,15 @@ const ChatStorage = {
         const chatEl = document.getElementById('chat');
         if (chatEl) {
             chatEl.innerHTML = '';
+            window.lastDateLabel = "";
             chat.messages.forEach(msg => {
+                if (window.getDateLabel) {
+                    const label = window.getDateLabel(msg.timestamp || Date.now());
+                    if (label !== window.lastDateLabel) {
+                        window.insertDateDivider(label, chatEl);
+                        window.lastDateLabel = label;
+                    }
+                }
                 if (msg.role === 'user') {
                     let text = msg.content;
                     if (msg.attachments && msg.attachments.length > 0) {
@@ -1920,7 +2033,14 @@ function copyMessage(btn) {
     const contentEl = msg.querySelector('.ai-content');
     const rawText = contentEl.getAttribute('data-raw') || contentEl.textContent;
     navigator.clipboard.writeText(rawText);
-    showToast("Message Copied ✓");
+    
+    const originalHTML = btn.innerHTML;
+    btn.innerHTML = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.classList.remove('copied');
+    }, 1500);
 }
 
 function expandMessage(btn) {
@@ -1938,6 +2058,14 @@ function editMessage(btn) {
 function add(text, cls, isImage = false, rawText = null, isRestoring = false) {
   const d = document.createElement("div");
   d.className = "msg " + cls;
+
+  if (window.getDateLabel && !isRestoring) {
+      const nowLabel = window.getDateLabel(Date.now());
+      if (nowLabel !== window.lastDateLabel) {
+          window.insertDateDivider(nowLabel, chat);
+          window.lastDateLabel = nowLabel;
+      }
+  }
 
   if (cls === "ai") {
     if (isImage) {
@@ -1960,15 +2088,22 @@ function add(text, cls, isImage = false, rawText = null, isRestoring = false) {
       `;
     } else {
       d.innerHTML = `
-        <div class="ai-header">
-          <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
-          <span class="ai-name">VirginAI • ${currentMode.toUpperCase()}</span>
-          <button class="msg-action-btn top-right" onclick="copyMessage(this)" title="Copy text"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy</button>
+        <div class="ai-header" style="margin-bottom: 12px;">
+          <div class="ai-badge">
+             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+             VirginAI ${currentMode.charAt(0).toUpperCase() + currentMode.slice(1)}
+          </div>
         </div>
         <div class="ai-content">${text}</div>
-        <div class="msg-footer" style="display:none; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; justify-content: space-between; align-items: center;">
-           <span class="msg-meta" style="font-size:11px; color:var(--muted);"></span>
-           <button class="msg-action-btn" onclick="ask(this.closest('.msg').regenData)"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg> Regenerate</button>
+        <div class="msg-footer">
+           <span class="msg-meta">⚡ Ready</span>
+           <div class="msg-actions">
+               <button class="msg-action-btn" onclick="copyMessage(this)" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+               <button class="msg-action-btn" onclick="ask(this.closest('.msg').regenData)" title="Regenerate"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
+               <button class="msg-action-btn" onclick="alert('Share feature coming in Batch 2')" title="Share"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
+               <button class="msg-action-btn" onclick="alert('Speech feature coming in Batch 2')" title="Speak"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button>
+               <button class="msg-action-btn" onclick="alert('Bookmark coming in Batch 2')" title="Bookmark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
+           </div>
         </div>
       `;
     }
@@ -1984,8 +2119,12 @@ function add(text, cls, isImage = false, rawText = null, isRestoring = false) {
   }
 
   chat.appendChild(d);
-  if (autoScroll) {
-      d.scrollIntoView({ behavior: "instant", block: "end" });
+  const threshold = 120;
+  const st = document.documentElement.scrollTop || window.scrollY;
+  const atBottom = document.documentElement.clientHeight + st >= document.documentElement.scrollHeight - threshold;
+  
+  if (atBottom || autoScroll) {
+      d.scrollIntoView({ behavior: "smooth", block: "end" });
   }
   return d;
 }
@@ -2242,7 +2381,7 @@ function typeMatrix(el, text) {
         if (autoScroll && userSettings.autoScrollEnabled) {
             const rect = el.getBoundingClientRect();
             const bottomThreshold = window.innerHeight - 100;
-            if (rect.bottom > bottomThreshold) window.scrollBy({top: rect.bottom - bottomThreshold, behavior: "instant"});
+            if (rect.bottom > bottomThreshold) window.scrollBy({top: rect.bottom - bottomThreshold, behavior: "smooth"});
         }
         return;
     }
@@ -2386,6 +2525,16 @@ async function ask(regenData = null) {
           add(text, "user", false, text);
           if(!regenData) ChatStorage.addMessage('user', text);
       }
+      
+      if (text) {
+          if (window.promptHistory[window.promptHistory.length - 1] !== text) {
+              window.promptHistory.push(text);
+              if (window.promptHistory.length > 100) window.promptHistory.shift();
+              localStorage.setItem('virginAIPromptHistory', JSON.stringify(window.promptHistory));
+          }
+          window.promptIndex = window.promptHistory.length;
+      }
+      
       q.value = "";
       if (typeof removeFile === "function") removeFile();
   }
@@ -2424,14 +2573,12 @@ async function ask(regenData = null) {
 
   // 💬 NORMAL CHAT + FILE LOGIC
   const aiBubble = add(
-  `<div class="ai-thinking">
-     <span class="thinking-text">Thinking...</span>
-     <span class="dot"></span>
-     <span class="dot"></span>
-     <span class="dot"></span>
+  `<div class="ai-thinking" style="display:flex; align-items:center; gap:12px; margin: 12px 0;">
+     <img src="/favicon-32x32.png" style="width:24px; height:24px; animation: avatarPulse 1.5s infinite; filter: drop-shadow(0 0 8px rgba(201,164,74,0.4));">
+     <span style="color: var(--gold); font-style: italic; font-size: 14px; animation: msgFadeIn 0.5s ease-out infinite alternate;">VirginAI is thinking...</span>
    </div>`,
   "ai"
-);
+  );
   aiBubble.regenData = { text, file, mode: targetMode };
   
   const tText = aiBubble.querySelector('.thinking-text');
@@ -2500,8 +2647,7 @@ async function ask(regenData = null) {
     
     const footer = aiBubble.querySelector('.msg-footer');
     if (footer) {
-        footer.style.display = 'flex';
-        footer.querySelector('.msg-meta').innerHTML = `${targetMode.toUpperCase()} • ${timeTaken}s`;
+        footer.querySelector('.msg-meta').innerHTML = `⚡ Generated in ${timeTaken}s`;
     }
 
     typeMatrix(aiBubble, d.answer || "No response.");
@@ -2538,6 +2684,28 @@ q.addEventListener("keydown", e => {
         ask();
       }
     }
+  }
+  
+  if (e.key === "ArrowUp") {
+      if (q.selectionStart === 0 && window.promptIndex > 0) {
+          e.preventDefault();
+          window.promptIndex--;
+          q.value = window.promptHistory[window.promptIndex];
+          q.dispatchEvent(new Event('input'));
+      }
+  }
+  if (e.key === "ArrowDown") {
+      if (q.selectionEnd === q.value.length) {
+          e.preventDefault();
+          if (window.promptIndex < window.promptHistory.length - 1) {
+              window.promptIndex++;
+              q.value = window.promptHistory[window.promptIndex];
+          } else {
+              window.promptIndex = window.promptHistory.length;
+              q.value = '';
+          }
+          q.dispatchEvent(new Event('input'));
+      }
   }
   
   if (e.ctrlKey && e.key === "l") {
@@ -2751,8 +2919,23 @@ document.addEventListener('touchend', e => {
 
 // Phase 7: Global Shortcuts
 document.addEventListener('keydown', e => {
-    if (e.key === "Escape" && isGenerating) {
-        stopGenerating();
+    if (e.key === "Escape") {
+        if (isGenerating) stopGenerating();
+        const sm = document.getElementById("settingsModal");
+        if (sm && sm.style.display === "flex") { sm.style.display = "none"; history.back(); }
+        const iv = document.getElementById("imgViewer");
+        if (iv && iv.style.display === "flex") closeViewer();
+        const sh = document.getElementById("shortcutsModal");
+        if (sh && sh.style.display === "flex") sh.style.display = "none";
+    }
+    if (e.ctrlKey && !e.shiftKey && e.key === '/') {
+        e.preventDefault();
+        document.getElementById('shortcutsModal').style.display = 'flex';
+    }
+    if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const q = document.getElementById('q');
+        if (q) q.focus();
     }
     if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'n') {
         e.preventDefault();
@@ -2769,6 +2952,191 @@ document.addEventListener('keydown', e => {
         ChatStorage.exportAll();
     }
 });
+
+// --- BATCH 2 PREMIUM UPGRADES ---
+window.lastDateLabel = "";
+window.getDateLabel = function(ts) {
+    const d = new Date(ts);
+    const now = new Date();
+    const diff = now - d;
+    if (d.toDateString() === now.toDateString()) return "Today";
+    now.setDate(now.getDate() - 1);
+    if (d.toDateString() === now.toDateString()) return "Yesterday";
+    if (diff < 7 * 24 * 60 * 60 * 1000) return "Last Week";
+    return "Earlier";
+};
+window.insertDateDivider = function(label, parent) {
+    const div = document.createElement('div');
+    div.style.cssText = "display:flex; align-items:center; gap:16px; margin:24px 0; color:var(--muted); font-size:12px; font-weight:bold; letter-spacing:1px; text-transform:uppercase; animation:msgFadeIn 0.5s ease-out;";
+    div.innerHTML = `<hr style="flex:1; border:none; border-top:1px solid var(--border);"><span style="white-space:nowrap;">${label}</span><hr style="flex:1; border:none; border-top:1px solid var(--border);">`;
+    parent.appendChild(div);
+};
+
+window.promptHistory = JSON.parse(localStorage.getItem('virginAIPromptHistory') || '[]');
+window.promptIndex = window.promptHistory.length;
+window.bookmarks = JSON.parse(localStorage.getItem('virginAIBookmarks') || '[]');
+
+let currentUtterance = null;
+let currentSpeakingBtn = null;
+window.speakMessage = function(btn) {
+    const msg = btn.closest('.msg');
+    const contentEl = msg.querySelector('.ai-content');
+    const text = contentEl.getAttribute('data-raw') || contentEl.textContent;
+    
+    if (currentSpeakingBtn === btn) {
+        if (window.speechSynthesis.paused) {
+            window.speechSynthesis.resume();
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+        } else if (window.speechSynthesis.speaking) {
+            window.speechSynthesis.pause();
+            btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>`;
+        }
+        return;
+    }
+    
+    if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
+        if (currentSpeakingBtn) {
+            currentSpeakingBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
+        }
+    }
+    
+    currentUtterance = new SpeechSynthesisUtterance(text);
+    currentSpeakingBtn = btn;
+    
+    currentUtterance.onend = () => {
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`;
+        currentSpeakingBtn = null;
+    };
+    
+    window.speechSynthesis.speak(currentUtterance);
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>`;
+};
+
+window.shareTargetText = "";
+window.shareTargetHTML = "";
+window.shareMessage = function(btn) {
+    const msg = btn.closest('.msg');
+    const contentEl = msg.querySelector('.ai-content');
+    window.shareTargetText = contentEl.getAttribute('data-raw') || contentEl.textContent;
+    window.shareTargetHTML = contentEl.innerHTML;
+    let sm = document.getElementById('shareModal');
+    if (!sm) {
+        sm = document.createElement('div');
+        sm.id = 'shareModal';
+        sm.style.cssText = 'display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); z-index:10000; justify-content:center; align-items:center;';
+        sm.onclick = (e) => { if (e.target === sm) sm.style.display='none'; };
+        sm.innerHTML = `
+            <div style="background:rgba(17,17,17,0.9); border: 1px solid var(--border); border-radius:12px; width: 90%; max-width: 320px; padding: 24px; box-shadow: var(--shadow-deep); animation: modalAppear 0.2s cubic-bezier(0.175,0.885,0.32,1.275) forwards;">
+                <h2 style="margin-top:0; color:var(--gold); margin-bottom: 24px;">Share Response</h2>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button onclick="navigator.clipboard.writeText(window.shareTargetText); showToast('Copied Plain Text ✓'); document.getElementById('shareModal').style.display='none';" class="menu-item" style="border:1px solid var(--border); background:transparent; padding:12px; border-radius:8px; cursor:pointer;">Copy Plain Text</button>
+                    <button onclick="navigator.clipboard.writeText(window.shareTargetText); showToast('Copied Markdown ✓'); document.getElementById('shareModal').style.display='none';" class="menu-item" style="border:1px solid var(--border); background:transparent; padding:12px; border-radius:8px; cursor:pointer;">Copy Markdown</button>
+                    <button onclick="navigator.clipboard.writeText(window.shareTargetHTML); showToast('Copied HTML ✓'); document.getElementById('shareModal').style.display='none';" class="menu-item" style="border:1px solid var(--border); background:transparent; padding:12px; border-radius:8px; cursor:pointer;">Copy HTML</button>
+                    <button onclick="if(navigator.share) { navigator.share({title:'VirginAI Response', text:window.shareTargetText}).catch(e=>{}); } else { navigator.clipboard.writeText(window.shareTargetText); showToast('Copied Plain Text ✓'); } document.getElementById('shareModal').style.display='none';" class="menu-item" style="border:1px solid var(--border); background:var(--gold); color:#000; padding:12px; border-radius:8px; cursor:pointer; font-weight:bold;">Share via OS</button>
+                </div>
+            </div>`;
+        document.body.appendChild(sm);
+    }
+    sm.style.display = 'flex';
+};
+
+window.renderBookmarksSidebar = function() {
+    const bl = document.getElementById('sidebar-bookmarks-list');
+    if(!bl) return;
+    if (window.bookmarks.length === 0) {
+        bl.style.display = 'none';
+        return;
+    }
+    bl.style.display = 'block';
+    let html = `<div class="sidebar-group-label" style="display:flex; justify-content:space-between; align-items:center;">Bookmarks <span style="background:var(--gold); color:#000; padding:2px 6px; border-radius:10px; font-size:10px;">${window.bookmarks.length}</span></div>`;
+    window.bookmarks.forEach((b, i) => {
+        let snippet = b.text.substring(0, 30).replace(/<[^>]*>?/gm, '');
+        html += `<div class="chat-item" onclick="window.jumpToBookmark(${i})" style="cursor:pointer; margin: 4px 12px; padding: 8px; border-radius: 8px; background: rgba(201,164,74,0.05); border: 1px solid rgba(201,164,74,0.1);">
+                    <div class="chat-item-title" style="color:var(--gold); font-size:12px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="margin-right:4px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> ${snippet}...</div>
+                 </div>`;
+    });
+    bl.innerHTML = html;
+};
+
+window.jumpToBookmark = function(index) {
+    const b = window.bookmarks[index];
+    if (ChatStorage.activeChatId !== b.chatId) {
+        ChatStorage.switchChat(b.chatId);
+    }
+    setTimeout(() => {
+        const msgs = document.querySelectorAll('.msg.ai .ai-content');
+        for (let m of msgs) {
+            if ((m.getAttribute('data-raw') || m.textContent) === b.text) {
+                m.closest('.msg').scrollIntoView({behavior: 'smooth', block: 'center'});
+                m.closest('.msg').style.animation = 'msgFadeIn 0.5s ease-out, avatarPulse 1s 2';
+                if(window.innerWidth <= 768) toggleSidebar(false);
+                break;
+            }
+        }
+    }, 100);
+};
+
+window.bookmarkMessage = function(btn) {
+    const msg = btn.closest('.msg');
+    const contentEl = msg.querySelector('.ai-content');
+    const text = contentEl.getAttribute('data-raw') || contentEl.textContent;
+    const chatId = ChatStorage.activeChatId;
+    
+    const existingIndex = window.bookmarks.findIndex(b => b.text === text && b.chatId === chatId);
+    
+    if (existingIndex === -1) {
+        window.bookmarks.push({chatId, text});
+        btn.style.color = 'var(--gold)';
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="var(--gold)" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`;
+    } else {
+        window.bookmarks.splice(existingIndex, 1);
+        btn.style.color = '';
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`;
+    }
+    localStorage.setItem('virginAIBookmarks', JSON.stringify(window.bookmarks));
+    window.renderBookmarksSidebar();
+};
+
+document.addEventListener('contextmenu', e => {
+    const msg = e.target.closest('.msg');
+    if (msg) {
+        e.preventDefault();
+        let cm = document.getElementById('contextMenu');
+        if (!cm) {
+            cm = document.createElement('div');
+            cm.id = 'contextMenu';
+            cm.style.cssText = 'position:absolute; background:rgba(20,20,20,0.95); backdrop-filter:blur(10px); border:1px solid var(--border); border-radius:12px; padding:8px; box-shadow:var(--shadow-deep); z-index:10000; min-width:160px; display:flex; flex-direction:column; gap:4px; animation:modalAppear 0.2s cubic-bezier(0.175,0.885,0.32,1.275);';
+            document.body.appendChild(cm);
+        }
+        window.contextMsgTarget = msg;
+        const isAi = msg.classList.contains('ai');
+        cm.innerHTML = `
+            <button class="menu-item" style="height:32px; border:none; background:transparent; border-radius:6px; cursor:pointer;" onclick="copyMessage(window.contextMsgTarget.querySelector('.msg-action-btn') || window.contextMsgTarget); document.getElementById('contextMenu').style.display='none';"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy</button>
+            ${isAi ? `<button class="menu-item" style="height:32px; border:none; background:transparent; border-radius:6px; cursor:pointer;" onclick="bookmarkMessage(window.contextMsgTarget.querySelector('.msg-action-btn:nth-child(5)')); document.getElementById('contextMenu').style.display='none';"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg> Bookmark</button>` : ''}
+            ${isAi ? `<button class="menu-item" style="height:32px; border:none; background:transparent; border-radius:6px; cursor:pointer;" onclick="shareMessage(window.contextMsgTarget.querySelector('.msg-action-btn:nth-child(3)')); document.getElementById('contextMenu').style.display='none';"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg> Share</button>` : ''}
+            ${isAi ? `<button class="menu-item" style="height:32px; border:none; background:transparent; border-radius:6px; cursor:pointer;" onclick="speakMessage(window.contextMsgTarget.querySelector('.msg-action-btn:nth-child(4)')); document.getElementById('contextMenu').style.display='none';"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg> Speak</button>` : ''}
+            ${!isAi ? `<button class="menu-item" style="height:32px; border:none; background:transparent; border-radius:6px; cursor:pointer;" onclick="editMessage(window.contextMsgTarget.querySelector('.edit-msg-btn')); document.getElementById('contextMenu').style.display='none';"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Edit</button>` : ''}
+            <button class="menu-item" style="height:32px; border:none; background:transparent; border-radius:6px; cursor:pointer; color:#ef4444;" onclick="window.contextMsgTarget.remove(); document.getElementById('contextMenu').style.display='none';"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Delete</button>
+        `;
+        cm.style.display = 'flex';
+        let pX = e.pageX; let pY = e.pageY;
+        if (pX + 160 > window.innerWidth) pX = window.innerWidth - 170;
+        if (pY + cm.offsetHeight > window.innerHeight) pY = window.innerHeight - cm.offsetHeight - 10;
+        cm.style.left = pX + 'px'; cm.style.top = pY + 'px';
+    } else {
+        const cm = document.getElementById('contextMenu');
+        if (cm) cm.style.display = 'none';
+    }
+});
+document.addEventListener('click', e => {
+    if (!e.target.closest('#contextMenu')) {
+        const cm = document.getElementById('contextMenu');
+        if (cm) cm.style.display = 'none';
+    }
+});
+setTimeout(() => window.renderBookmarksSidebar(), 500);
+
 
 </script>
 
