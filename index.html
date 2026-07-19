@@ -252,7 +252,7 @@
 }
 .chat-item-actions button:hover { color: #000; background: var(--gold); transform: scale(1.05); }
 
-.sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; background: rgba(12, 12, 12, 0.6); backdrop-filter: blur(10px); flex-shrink: 0; margin-top: auto; }
+.sidebar-footer { padding: 0 16px 16px 16px; display: flex; flex-direction: column; flex-shrink: 0; margin-top: 16px; }
 
 @media(max-width: 1024px) {
   .sidebar { width: 280px; min-width: 280px; max-width: 280px; }
@@ -1033,54 +1033,25 @@ pre {
 
 /* Menu Item Styling */
 .menu-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 14px;
-  height: 38px;
-  color: var(--text);
-  text-decoration: none;
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-weight: 500;
-  transition: background var(--duration-fast), color var(--duration-fast), transform var(--duration-fast);
-  position: relative;
-  overflow: hidden;
-  box-sizing: border-box;
+  padding: 16px 18px; border-radius: 16px; cursor: pointer; color: var(--text);
+  font-size: 15px; display: flex; align-items: center; gap: 14px;
+  transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease; margin-bottom: 12px; min-height: 64px;
+  background: rgba(0, 0, 0, 0.2); position: relative; overflow: hidden; font-weight: 600; text-decoration: none;
 }
-.menu-item svg { 
-  width: 18px; 
-  height: 18px; 
-  color: var(--muted); 
-  transition: color var(--duration-fast), transform var(--duration-fast);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-.menu-item:hover { 
-  background: rgba(255, 255, 255, 0.04); 
-}
-.menu-item:active {
-  transform: scale(0.98);
-}
-.menu-item:hover svg { 
+.menu-item svg { width: 20px; height: 20px; color: var(--muted); transition: color var(--duration-fast), transform var(--duration-fast); }
+.menu-item:hover { background: rgba(255, 255, 255, 0.08); }
+.menu-item:active { transform: scale(0.98); }
+.menu-item:hover svg { color: var(--gold); transform: scale(1.05); }
+.menu-item.active { 
+  background: rgba(201, 164, 74, 0.15); 
   color: var(--gold); 
-  transform: scale(1.05);
-}
-
-.menu-item.active {
-  background: rgba(201, 164, 74, 0.1);
-  color: var(--gold);
+  transform: scale(1.01);
+  box-shadow: 0 0 12px rgba(201, 164, 74, 0.1); 
 }
 .menu-item.active svg { color: var(--gold); }
 .menu-item.active::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 8px; bottom: 8px;
-  width: 3px;
-  background: var(--gold);
-  border-radius: 0 4px 4px 0;
-  box-shadow: 0 0 10px rgba(201, 164, 74, 0.5);
+  content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px;
+  background: var(--gold); border-radius: 0 4px 4px 0;
 }
 
 .collapse-fade {
@@ -2088,21 +2059,19 @@ function add(text, cls, isImage = false, rawText = null, isRestoring = false) {
       `;
     } else {
       d.innerHTML = `
-        <div class="ai-header" style="margin-bottom: 12px;">
-          <div class="ai-badge">
-             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-             VirginAI ${currentMode.charAt(0).toUpperCase() + currentMode.slice(1)}
-          </div>
+        <div class="ai-header">
+          <img src="/favicon-32x32.png" class="ai-logo" alt="VirginAI">
+          <span class="ai-name">VirginAI • ${currentMode.toUpperCase()}</span>
         </div>
         <div class="ai-content">${text}</div>
         <div class="msg-footer">
-           <span class="msg-meta">⚡ Ready</span>
+           <span class="msg-meta"></span>
            <div class="msg-actions">
                <button class="msg-action-btn" onclick="copyMessage(this)" title="Copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                <button class="msg-action-btn" onclick="ask(this.closest('.msg').regenData)" title="Regenerate"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg></button>
-               <button class="msg-action-btn" onclick="alert('Share feature coming in Batch 2')" title="Share"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
-               <button class="msg-action-btn" onclick="alert('Speech feature coming in Batch 2')" title="Speak"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button>
-               <button class="msg-action-btn" onclick="alert('Bookmark coming in Batch 2')" title="Bookmark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
+               <button class="msg-action-btn" onclick="window.shareMessage(this)" title="Share"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
+               <button class="msg-action-btn" onclick="window.speakMessage(this)" title="Speak"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button>
+               <button class="msg-action-btn" onclick="window.bookmarkMessage(this)" title="Bookmark"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
            </div>
         </div>
       `;
@@ -2572,34 +2541,8 @@ async function ask(regenData = null) {
   }
 
   // 💬 NORMAL CHAT + FILE LOGIC
-  const aiBubble = add(
-  `<div class="ai-thinking" style="display:flex; align-items:center; gap:12px; margin: 12px 0;">
-     <img src="/favicon-32x32.png" style="width:24px; height:24px; animation: avatarPulse 1.5s infinite; filter: drop-shadow(0 0 8px rgba(201,164,74,0.4));">
-     <span style="color: var(--gold); font-style: italic; font-size: 14px; animation: msgFadeIn 0.5s ease-out infinite alternate;">VirginAI is thinking...</span>
-   </div>`,
-  "ai"
-  );
+  const aiBubble = add("", "ai");
   aiBubble.regenData = { text, file, mode: targetMode };
-  
-  const tText = aiBubble.querySelector('.thinking-text');
-  let tInterval;
-  if (file) {
-      tText.textContent = "Uploading...";
-      let step = 0;
-      tInterval = setInterval(() => {
-          step++;
-          if(step === 1) tText.textContent = "Analyzing...";
-          if(step === 2) tText.textContent = "Generating...";
-      }, 1500);
-  } else {
-      tText.textContent = "Thinking...";
-      let step = 0;
-      tInterval = setInterval(() => {
-          step++;
-          if(step === 1) tText.textContent = "Reasoning...";
-          if(step === 2) tText.textContent = "Generating...";
-      }, 1500);
-  }
 
   const startTime = Date.now();
   try {
