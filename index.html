@@ -267,6 +267,37 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
 }
 
 
+.msg.ai{
+    background:#050505;
+    border:1px solid rgba(0,255,140,.18);
+    border-radius:14px;
+    transition:.3s;
+}
+
+/* Active while streaming */
+.msg.ai.writing{
+    border-color:#00ff88;
+    box-shadow:
+        0 0 10px rgba(0,255,136,.35),
+        0 0 22px rgba(0,255,136,.25),
+        0 0 40px rgba(0,255,136,.18);
+    animation: aiGlow 1.6s ease-in-out infinite;
+}
+
+@keyframes aiGlow{
+    0%,100%{
+        box-shadow:
+            0 0 8px rgba(0,255,136,.25),
+            0 0 18px rgba(0,255,136,.18);
+    }
+    50%{
+        box-shadow:
+            0 0 18px rgba(0,255,136,.75),
+            0 0 36px rgba(0,255,136,.45),
+            0 0 60px rgba(0,255,136,.25);
+    }
+}
+
 /* ===== MESSAGE BUBBLES ===== */
 .msg{
  max-width:85%;
@@ -866,20 +897,26 @@ function add(text, cls, isImage = false) {
 }
 
 function typeMatrix(el, text) {
-  const contentEl = el.querySelector(".ai-content");
-  let i = 0;
-  contentEl.textContent = "";
-  const speed = 14;
-  const timer = setInterval(() => {
-    contentEl.textContent += text[i++] || "";
-    chat.scrollTop = chat.scrollHeight;
-    if (i >= text.length) {
-      clearInterval(timer);
-      chat.scrollTop = chat.scrollHeight;
-    }
-  }, speed);
-}
+    const contentEl = el.querySelector(".ai-content");
 
+    // Glow whole AI card
+    el.classList.add("writing");
+
+    let i = 0;
+    contentEl.textContent = "";
+
+    const timer = setInterval(() => {
+        if (i < text.length) {
+            contentEl.textContent += text[i++];
+            chat.scrollTop = chat.scrollHeight;
+        } else {
+            clearInterval(timer);
+
+            // Stop glow
+            el.classList.remove("writing");
+        }
+    }, 14);
+}
 
 async function ask() {
   const text = q.value.trim();
