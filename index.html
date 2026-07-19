@@ -392,7 +392,7 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   color: #c9a44a;
 }
 
-.ai-thinking span {
+.ai-thinking .dot {
   width: 6px;
   height: 6px;
   background: #c9a44a;
@@ -400,8 +400,12 @@ header p{ margin:4px 0 0; font-size:13px; color:var(--muted); }
   animation: blink 1.4s infinite both;
 }
 
-.ai-thinking span:nth-child(2) { animation-delay: 0.2s; }
-.ai-thinking span:nth-child(3) { animation-delay: 0.4s; }
+.ai-thinking .dot:nth-child(2) { animation-delay: 0.2s; }
+.ai-thinking .dot:nth-child(3) { animation-delay: 0.4s; }
+
+.thinking-text {
+  white-space: nowrap;
+}
 
 @keyframes blink {
   0% { opacity: .2; }
@@ -2033,9 +2037,9 @@ async function ask(regenData = null) {
   const aiBubble = add(
   `<div class="ai-thinking">
      <span class="thinking-text">Thinking...</span>
-     <span></span>
-     <span></span>
-     <span></span>
+     <span class="dot"></span>
+     <span class="dot"></span>
+     <span class="dot"></span>
    </div>`,
   "ai"
 );
@@ -2077,12 +2081,21 @@ async function ask(regenData = null) {
 
       if (!regenData) fileInput.value = "";
     } else {
+      let history = [];
+      const chat = ChatStorage.getActiveChat();
+      if (chat) {
+          const msgs = chat.messages;
+          const pastMsgs = msgs.slice(0, -1); // exclude current prompt
+          history = pastMsgs.map(m => (m.role === 'user' ? "User: " : "AI: ") + m.content);
+      }
+
       r = await fetch("/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           question: text,
-          mode: currentMode
+          mode: currentMode,
+          history: history
         })
       });
     }
