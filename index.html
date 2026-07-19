@@ -249,7 +249,7 @@
 }
 .chat-item-actions button:hover { color: #000; background: var(--gold); transform: scale(1.05); }
 
-.sidebar-footer { padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; background: rgba(12, 12, 12, 0.6); backdrop-filter: blur(10px); }
+.sidebar-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; background: rgba(12, 12, 12, 0.6); backdrop-filter: blur(10px); flex-shrink: 0; }
 
 @media(max-width: 1024px) {
   .sidebar { width: 280px; min-width: 280px; max-width: 280px; }
@@ -951,9 +951,9 @@ pre {
 .menu-item {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  gap: 10px;
   padding: 0 14px;
-  height: 44px;
+  height: 38px;
   color: var(--text);
   text-decoration: none;
   border-radius: var(--radius-sm);
@@ -1394,7 +1394,9 @@ const ChatStorage = {
         if (stored) {
             try { this.chats = JSON.parse(stored); } catch(e) { this.chats = []; }
         }
-        if (this.chats.length === 0) {
+        
+        // Fresh start: if the newest chat isn't already empty, create a new one
+        if (this.chats.length === 0 || this.chats[0].messages.length > 0) {
             this.startNewChat();
         } else {
             this.activeChatId = this.chats[0].id;
