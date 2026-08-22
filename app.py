@@ -427,6 +427,9 @@ def generate_ai(prompt, mode):
     # Safety fallback
     reply, model = try_gemini("gemma-3-4b-it")
     return (reply, model) if reply else try_groq()
+    
+    
+    
 
 
 #about virginai 
@@ -469,7 +472,11 @@ Conversation:
 Answer clearly and factually.
 """
     else:
-        return f"""Conversation:
+        return f"""You are VirginAI, an AI assistant developed by Raj Verma and Kalash Verma.
+Never say you are ChatGPT, Gemini, Gemma, Claude, or any other AI.
+Always stay in character as VirginAI.
+
+Conversation:
 {conversation}
 
 Answer normally.
