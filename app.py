@@ -353,80 +353,178 @@ def extract_text_from_file(file):
 
 # -------------------- AI ROUTER --------------------
 def generate_ai(prompt, mode):
-    """
-    MODE BEHAVIOR SUMMARY:
+# -------------------- MODELS (Tera Preferred Order) --------------------
+MODELS = {
+    "smart": [
+        "gemini-2.5-flash-lite",
+        "gemini-3.5-flash-lite",
+        "gemma-4-26b-a4b-it",
+        "gemma-4-31b-it",
+    ],
+    "internet": [
+        "gemini-2.5-flash",
+        "gemini-3.7-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-3.6-flash",
+        "gemini-2.5-flash-lite",
+    ],
+    "think": [
+        "gemini-3.7-flash",
+        "gemini-3.6-flash",
+        "gemini-2.5-flash",
+        "gemini-3.5-flash-lite",
+        "gemini-2.5-flash-lite",
+    ],
+    "flash": [
+        "openai/gpt-oss-20b",
+        "openai/gpt-oss-120b",
+        "qwen/qwen3.6-27b",
+    ]
+}
 
-    smart:
-        → Gemini: gemma-3-27b-it
-        → if fails → Groq: openai/gpt-oss-20b
 
-    internet:
-        → Gemini with Google Search tool:
-            - gemini-3-flash-preview
-            - gemini-2.5-flash-lite
-        → if all fail → smart model
-        → if still fail → Groq
+# -------------------- AI ROUTER --------------------
+def generate_ai(prompt, mode):
 
-    think:
-        → Gemini reasoning model:
-            - gemini-3-flash-think
-        → if fails → smart model
-        → if still fail → Groq
+    def call_gemini(model, internet=False):
+        """Returns (reply, error_type)"""
+        for key in random.sample(GEMINI_KEYS, len(GEMINI_KEYS)):
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+                payload = {
+                    "contents": [{"role": "user", "parts": [{"text": prompt}]}]
+                }
+                if internet:
+                    payload["tools"] = [{"google_search": {}}]
 
-    flash:
-        → Groq (fastest & cheapest):
-            - openai/gpt-oss-20b
-        → if Groq fails → smart model
-    """
+                r = requests.post(url, params={"key": key}, json=payload, timeout=16)
 
-    # ---------- helper: try Gemini ----------
-    def try_gemini(model, internet=False):
-        reply = call_gemini(prompt, model, internet)
-        return (reply, model) if reply else (None, None)
+                if r.status_code == 200:
+                    text = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+                    return text, None
 
-    # ---------- helper: try Groq ----------
-    def try_groq():
-        reply = call_groq(prompt)
-        return (reply, "openai/gpt-oss-20b") if reply else (None, None)
+                err_text = r.text.lower()
+                if r.status_code == 404 or "not found" in err_text:
+                    return None, "model_not_found"
+                if r.status_code == 429:
+                    return None, "rate_limit"
+                if r.status_code in (401, 403):
+                    continue  # next key
+                return None, "provider_error"
 
-    # ---------------- SMART MODE ----------------
-    # Default mode for normal chat
-    if mode == "smart":
-        reply, model = try_gemini("gemma-3-4b-it")
-        return (reply, model) if reply else try_groq()
+            except requests.exceptions.Timeout:
+                return None, "provider_error"
+            except Exception:
+                continue
+        return None, "provider_error"
 
-    # ---------------- INTERNET MODE ----------------
-    # Enables Google search tool inside Gemini
-    if mode == "internet":
-        for m in MODELS["internet"]:
-            reply, model = try_gemini(m, internet=True)
+
+    def call_groq(model="openai/gpt-oss-20b"):
+        """Returns (reply, error_type)"""
+        for key in random.sample(GROQ_KEYS, len(GROQ_KEYS)):
+            try:
+                r = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": model,
+                        "messages": [{"role": "user", "content": prompt}]
+                    },
+                    timeout=14
+                )
+
+                if r.status_code == 200:
+                    text = r.json()["choices"][0]["message"]["content"]
+                    return text, None
+
+                if r.status_code == 404 or "does not exist" in r.text.lower():
+                    return None, "model_not_found"
+                if r.status_code == 429:
+                    return None, "rate_limit"
+                return None, "provider_error"
+
+            except Exception:
+                continue
+        return None, "provider_error"
+
+
+    def try_gemini_models(model_list, internet=False):
+        for model in model_list:
+            reply, err = call_gemini(model, internet=internet)
             if reply:
                 return reply, model
+            if err in ("model_not_found", "rate_limit"):
+                continue          # next model (quota bachao)
+            else:
+                break             # provider level issue
+        return None, None
 
-        # fallback chain: smart → groq
-        reply, model = try_gemini("gemma-3-4b-it")
-        return (reply, model) if reply else try_groq()
 
-    # ---------------- THINK MODE ----------------
-    # Pure reasoning, no tools
-    if mode == "think":
-        reply, model = try_gemini("gemini-3-flash-think")
+    def try_groq_models(model_list):
+        for model in model_list:
+            reply, err = call_groq(model)
+            if reply:
+                return reply, model
+            if err in ("model_not_found", "rate_limit"):
+                continue
+            else:
+                break
+        return None, None
+
+
+    # ---------------- MODE LOGIC ----------------
+
+    # SMART
+    if mode == "smart":
+        reply, model = try_gemini_models(MODELS["smart"])
         if reply:
             return reply, model
+        # Provider shift → Groq
+        reply, model = try_groq_models(MODELS["flash"])
+        return (reply, model) if reply else (None, None)
 
-        reply, model = try_gemini("gemma-3-27b-it")
-        return (reply, model) if reply else try_groq()
+    # INTERNET
+    if mode == "internet":
+        reply, model = try_gemini_models(MODELS["internet"], internet=True)
+        if reply:
+            return reply, model
+        # fallback without search
+        reply, model = try_gemini_models(MODELS["smart"])
+        if reply:
+            return reply, model
+        # Provider shift → Groq
+        reply, model = try_groq_models(MODELS["flash"])
+        return (reply, model) if reply else (None, None)
 
-    # ---------------- FLASH MODE ----------------
-    # Fastest responses (Groq)
+    # THINK
+    if mode == "think":
+        reply, model = try_gemini_models(MODELS["think"])
+        if reply:
+            return reply, model
+        # Provider shift → Groq
+        reply, model = try_groq_models(MODELS["flash"])
+        return (reply, model) if reply else (None, None)
+
+    # FLASH
     if mode == "flash":
-        reply, model = try_groq()
-        return (reply, model) if reply else try_gemini("gemma-3-1b-it")
+        reply, model = try_groq_models(MODELS["flash"])
+        if reply:
+            return reply, model
+        # Provider shift → Gemini
+        reply, model = try_gemini_models(MODELS["smart"])
+        return (reply, model) if reply else (None, None)
 
-    # ---------------- UNKNOWN MODE ----------------
-    # Safety fallback
-    reply, model = try_gemini("gemma-3-4b-it")
-    return (reply, model) if reply else try_groq()
+    # DEFAULT
+    reply, model = try_gemini_models(MODELS["smart"])
+    if reply:
+        return reply, model
+    reply, model = try_groq_models(MODELS["flash"])
+    return (reply, model) if reply else (None, None)
+    
+    
     
     
     
@@ -472,7 +570,11 @@ Conversation:
 Answer clearly and factually.
 """
     else:
-        return f"""Conversation:
+        return f"""You are VirginAI, an AI assistant developed by Raj Verma and Kalash Verma.
+Never say you are ChatGPT, Gemini, Gemma, Claude, or any other AI.
+Always stay in character as VirginAI.
+
+Conversation:
 {conversation}
 
 Answer normally.
