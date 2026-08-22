@@ -352,7 +352,6 @@ def extract_text_from_file(file):
 
 
 # -------------------- AI ROUTER --------------------
-def generate_ai(prompt, mode):
 # -------------------- MODELS (Tera Preferred Order) --------------------
 MODELS = {
     "smart": [
