@@ -558,23 +558,6 @@ def is_about_virginai(text: str) -> bool:
     return any(k in text.lower() for k in keywords)
 
 
-""" this is old prompt builder but best because optimise token usage 
-def build_prompt(conversation: str) -> str:
-    if is_about_virginai(conversation):
-        return f"""{VIRGINAI_SYSTEM_CONTEXT}
-
-Conversation:
-{conversation}
-
-Answer clearly and factually.
-"""
-    else:
-        return f"""Conversation:
-{conversation}
-
-Answer normally.
-"""
-"""
 
 def build_prompt(conversation: str) -> str:
     if is_about_virginai(conversation):
