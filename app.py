@@ -223,7 +223,7 @@ MODELS = {
     "smart": ["gemma-3-1b-it"],
     "internet": ["gemini-3-flash-preview", "gemini-2.5-flash-lite"],
     "think": ["gemini-3-flash-think"],
-    "flash": ["llama-3.1-8b-instant"],
+    "flash": ["openai/gpt-oss-20b"],
 }
 
 MAX_CONTEXT = 4
@@ -275,7 +275,7 @@ def call_groq(prompt):
                     "Content-Type": "application/json"
                 },
                 json={
-                    "model": "llama-3.1-8b-instant",
+                    "model": "openai/gpt-oss-20b",
                     "messages": [{"role": "user", "content": prompt}]
                 },
                 timeout=15
@@ -358,7 +358,7 @@ def generate_ai(prompt, mode):
 
     smart:
         → Gemini: gemma-3-27b-it
-        → if fails → Groq: llama-3.1-8b-instant
+        → if fails → Groq: openai/gpt-oss-20b
 
     internet:
         → Gemini with Google Search tool:
@@ -375,7 +375,7 @@ def generate_ai(prompt, mode):
 
     flash:
         → Groq (fastest & cheapest):
-            - llama-3.1-8b-instant
+            - openai/gpt-oss-20b
         → if Groq fails → smart model
     """
 
@@ -387,7 +387,7 @@ def generate_ai(prompt, mode):
     # ---------- helper: try Groq ----------
     def try_groq():
         reply = call_groq(prompt)
-        return (reply, "llama-3.1-8b-instant") if reply else (None, None)
+        return (reply, "openai/gpt-oss-20b") if reply else (None, None)
 
     # ---------------- SMART MODE ----------------
     # Default mode for normal chat
@@ -511,8 +511,8 @@ def ask():
         session["context"].append(f"AI: {reply}")
         session["context"] = trim_context(session["context"])
         session.modified = True
-        
-        
+
+
 
         #
         response = {
@@ -527,9 +527,9 @@ def ask():
 
         return jsonify(response)
         #
-        
 
-            
+
+
 
     except requests.exceptions.Timeout:
         return jsonify({"answer": "⏳ AI timeout. Try again."}), 504
