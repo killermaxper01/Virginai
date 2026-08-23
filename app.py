@@ -302,7 +302,7 @@ def extract_text_from_file(file):
 
 
 # -------------------- AI ROUTER --------------------
-    
+
 # -------------------- MODELS (Tera Preferred Order) --------------------
 MODELS = {
     "smart": [
@@ -346,33 +346,43 @@ def generate_ai(prompt, mode):
                 }
                 if internet:
                     payload["tools"] = [{"google_search": {}}]
-
+    
+                print(f"[GEMINI] Trying → {model}")
                 r = requests.post(url, params={"key": key}, json=payload, timeout=16)
-
+    
                 if r.status_code == 200:
                     text = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+                    print(f"[GEMINI] ✅ SUCCESS → {model}")
                     return text, None
-
+    
                 err_text = r.text.lower()
                 if r.status_code == 404 or "not found" in err_text:
+                    print(f"[GEMINI] ❌ MODEL NOT FOUND → {model}")
                     return None, "model_not_found"
                 if r.status_code == 429:
+                    print(f"[GEMINI] ⚠️ RATE LIMIT → {model}")
                     return None, "rate_limit"
                 if r.status_code in (401, 403):
-                    continue  # next key
+                    print(f"[GEMINI] 🔑 KEY FAIL → {model} | status={r.status_code}")
+                    continue
+    
+                print(f"[GEMINI] ❌ ERROR {r.status_code} → {model} | {r.text[:120]}")
                 return None, "provider_error"
-
+    
             except requests.exceptions.Timeout:
+                print(f"[GEMINI] ⏰ TIMEOUT → {model}")
                 return None, "provider_error"
-            except Exception:
+            except Exception as e:
+                print(f"[GEMINI] 💥 EXCEPTION → {model} | {e}")
                 continue
         return None, "provider_error"
-
-
+    
+    
     def call_groq(model="openai/gpt-oss-20b"):
         """Returns (reply, error_type)"""
         for key in random.sample(GROQ_KEYS, len(GROQ_KEYS)):
             try:
+                print(f"[GROQ] Trying → {model}")
                 r = requests.post(
                     "https://api.groq.com/openai/v1/chat/completions",
                     headers={
@@ -385,18 +395,24 @@ def generate_ai(prompt, mode):
                     },
                     timeout=14
                 )
-
+    
                 if r.status_code == 200:
                     text = r.json()["choices"][0]["message"]["content"]
+                    print(f"[GROQ] ✅ SUCCESS → {model}")
                     return text, None
-
+    
                 if r.status_code == 404 or "does not exist" in r.text.lower():
+                    print(f"[GROQ] ❌ MODEL NOT FOUND → {model}")
                     return None, "model_not_found"
                 if r.status_code == 429:
+                    print(f"[GROQ] ⚠️ RATE LIMIT → {model}")
                     return None, "rate_limit"
+    
+                print(f"[GROQ] ❌ ERROR {r.status_code} → {model} | {r.text[:120]}")
                 return None, "provider_error"
-
-            except Exception:
+    
+            except Exception as e:
+                print(f"[GROQ] 💥 EXCEPTION → {model} | {e}")
                 continue
         return None, "provider_error"
 
@@ -472,6 +488,18 @@ def generate_ai(prompt, mode):
     if reply:
         return reply, model
     reply, model = try_groq_models(MODELS["flash"])
+    return (reply, model) if reply else (None, None)
+    #model checker 
+    if mode == "smart":
+    print(f"\n===== MODE: SMART =====")
+    reply, model = try_gemini_models(MODELS["smart"])
+    if reply:
+        print(f"🎯 FINAL MODEL → {model}")
+        return reply, model
+    print("↪️ Gemini fail → switching to Groq")
+    reply, model = try_groq_models(MODELS["flash"])
+    if reply:
+        print(f"🎯 FINAL MODEL → {model}")
     return (reply, model) if reply else (None, None)
 
 
@@ -603,7 +631,13 @@ Answer:"""
 
     # ---------- 3. Final fallback → bypass intent ----------
     return "text"
-    
+    print(f"[INTENT] Checking: {question[:50]}...")
+    # har success/fail pe
+    print(f"[INTENT] ✅ {model} → {reply}")
+    # ya
+    print(f"[INTENT] ❌ {model} failed")
+    print(f"[INTENT] Final → {result}")
+
 
 
 def generate_image_bytes(prompt: str):
@@ -624,9 +658,9 @@ def generate_image_bytes(prompt: str):
     except Exception as e:
         print("IMAGE GEN ERROR:", e)
         return None
-                
-                
-                                
+
+
+
 
 def build_prompt(conversation: str) -> str:
     if is_about_virginai(conversation):
@@ -762,8 +796,8 @@ def ask():
     except Exception as e:
         print("SERVER ERROR:", e)
         return jsonify({"answer": "❌ Server error. Please retry."}), 500
-        
-        
+
+
 
 @app.route("/upload", methods=["POST"])
 @limiter.limit("5 per minute")
