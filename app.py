@@ -235,56 +235,6 @@ def get_context():
 def trim_context(ctx):
     return ctx[-MAX_CONTEXT * 2:]
 
-# -------------------- GEMINI CALL --------------------
-def call_gemini(prompt, model, internet=False):
-    for key in random.sample(GEMINI_KEYS, len(GEMINI_KEYS)):
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-
-            payload = {
-                "contents": [{
-                    "role": "user",
-                    "parts": [{"text": prompt}]
-                }]
-            }
-
-            if internet:
-                payload["tools"] = [{"google_search": {}}]
-
-            r = requests.post(
-                url,
-                params={"key": key},
-                json=payload,
-                timeout=20
-            )
-            r.raise_for_status()
-            return r.json()["candidates"][0]["content"]["parts"][0]["text"]
-
-        except Exception:
-            continue
-    return None
-
-# -------------------- GROQ CALL --------------------
-def call_groq(prompt):
-    for key in random.sample(GROQ_KEYS, len(GROQ_KEYS)):
-        try:
-            r = requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "openai/gpt-oss-20b",
-                    "messages": [{"role": "user", "content": prompt}]
-                },
-                timeout=15
-            )
-            r.raise_for_status()
-            return r.json()["choices"][0]["message"]["content"]
-        except Exception:
-            continue
-    return None
 
 #vision model 
 GEMINI_VISION_MODEL = "gemini-2.5-flash"
@@ -352,6 +302,7 @@ def extract_text_from_file(file):
 
 
 # -------------------- AI ROUTER --------------------
+    
 # -------------------- MODELS (Tera Preferred Order) --------------------
 MODELS = {
     "smart": [
@@ -522,11 +473,11 @@ def generate_ai(prompt, mode):
         return reply, model
     reply, model = try_groq_models(MODELS["flash"])
     return (reply, model) if reply else (None, None)
-    
-    
-    
-    
-    
+
+
+
+
+
 
 
 #about virginai 
@@ -559,6 +510,124 @@ def is_about_virginai(text: str) -> bool:
 
 
 
+
+
+# -------------------- INTENT DETECTOR (Light + Fast) --------------------
+def detect_intent(question: str) -> str:
+    """
+    Returns: "text" | "image" | "both"
+    Order:
+      Groq  → gpt-oss-20b → gpt-oss-120b → qwen3.6-27b
+      Gemini → gemma-4-26b → gemma-4-31b → 2.5-flash-lite → 3.5-flash-lite
+      Fail  → "text" (bypass)
+    """
+
+    prompt = f"""Classify into one word only: text, image, or both.
+image = only picture
+both = picture + explanation
+text = normal question
+
+User: {question[:200]}
+
+Answer:"""
+
+    # ---------- 1. GROQ (fast first) ----------
+    groq_models = [
+        "openai/gpt-oss-20b",
+        "openai/gpt-oss-120b",
+        "qwen/qwen3.6-27b",
+    ]
+
+    for model in groq_models:
+        for key in random.sample(GROQ_KEYS, len(GROQ_KEYS)):
+            try:
+                r = requests.post(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {key}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "model": model,
+                        "messages": [{"role": "user", "content": prompt}],
+                        "max_tokens": 5,
+                        "temperature": 0
+                    },
+                    timeout=8
+                )
+                if r.status_code == 200:
+                    reply = r.json()["choices"][0]["message"]["content"].strip().lower()
+                    if "both" in reply:
+                        return "both"
+                    if "image" in reply:
+                        return "image"
+                    if "text" in reply:
+                        return "text"
+            except Exception:
+                continue
+
+    # ---------- 2. GEMINI (Gemma first = high quota) ----------
+    gemini_models = [
+        "gemma-4-26b-a4b-it",      # sabse zyada free quota
+        "gemma-4-31b-it",
+        "gemini-2.5-flash-lite",
+        "gemini-3.5-flash-lite",
+    ]
+
+    for model in gemini_models:
+        for key in random.sample(GEMINI_KEYS, len(GEMINI_KEYS)):
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+                r = requests.post(
+                    url,
+                    params={"key": key},
+                    json={
+                        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                        "generationConfig": {
+                            "maxOutputTokens": 5,
+                            "temperature": 0
+                        }
+                    },
+                    timeout=8
+                )
+                if r.status_code == 200:
+                    reply = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip().lower()
+                    if "both" in reply:
+                        return "both"
+                    if "image" in reply:
+                        return "image"
+                    if "text" in reply:
+                        return "text"
+            except Exception:
+                continue
+
+    # ---------- 3. Final fallback → bypass intent ----------
+    return "text"
+    
+
+
+def generate_image_bytes(prompt: str):
+    """Returns image bytes or None"""
+    try:
+        r = requests.post(
+            os.getenv("CF_IMAGE_WORKER_URL"),
+            headers={
+                "Content-Type": "application/json",
+                "X-Internal-Token": os.getenv("INTERNAL_TOKEN")
+            },
+            json={"prompt": prompt},
+            timeout=60
+        )
+        if r.status_code == 200:
+            return r.content
+        return None
+    except Exception as e:
+        print("IMAGE GEN ERROR:", e)
+        return None
+                
+                
+                                
+
 def build_prompt(conversation: str) -> str:
     if is_about_virginai(conversation):
         return f"""{VIRGINAI_SYSTEM_CONTEXT}
@@ -582,9 +651,9 @@ Answer normally.
 
 
 # -------------------- ASK API --------------------
+
 @app.route("/ask", methods=["POST"])
 @limiter.limit("30 per minute")
-
 def ask():
     try:
         data = request.get_json(force=True)
@@ -595,15 +664,78 @@ def ask():
         if not question:
             return jsonify({"answer": "❗ Please ask a question."}), 400
 
+        # Context
         ctx = history if history is not None else get_context()
         ctx.append(f"User: {question}")
         session["context"] = trim_context(ctx)
-
-        #prompt = "\n".join(session["context"]) + "\nAI:"
-        #prompt = build_prompt( "\n".join(session["context"]) + "\n" + question)
         prompt = build_prompt("\n".join(session["context"]))
 
+        # ---------- SMART MODE → Intent use ----------
+        if mode == "smart":
+            intent = detect_intent(question)   # ← YAHAN LINK HUA
 
+            # TEXT only
+            if intent == "text":
+                reply, model_used = generate_ai(prompt, mode="smart")
+                if not reply:
+                    return jsonify({"answer": "⚠️ AI services are busy."}), 503
+
+                session["context"].append(f"AI: {reply}")
+                session["context"] = trim_context(session["context"])
+                session.modified = True
+
+                response = {
+                    "type": "text",
+                    "answer": reply,
+                    "model_used": model_used,
+                    "image": None
+                }
+
+            # IMAGE only
+            elif intent == "image":
+                img_bytes = generate_image_bytes(question)
+                if not img_bytes:
+                    return jsonify({"answer": "⚠️ Image generation failed."}), 503
+
+                import base64
+                img_b64 = base64.b64encode(img_bytes).decode()
+
+                response = {
+                    "type": "image",
+                    "answer": "Here's the image you requested:",
+                    "model_used": "image-model",
+                    "image": img_b64
+                }
+
+            # BOTH (text + image)
+            else:  # both
+                reply, model_used = generate_ai(prompt, mode="smart")
+                img_bytes = generate_image_bytes(question)
+
+                img_b64 = None
+                if img_bytes:
+                    import base64
+                    img_b64 = base64.b64encode(img_bytes).decode()
+
+                if reply:
+                    session["context"].append(f"AI: {reply}")
+                    session["context"] = trim_context(session["context"])
+                    session.modified = True
+
+                response = {
+                    "type": "both",
+                    "answer": reply or "Here's the image:",
+                    "model_used": model_used,
+                    "image": img_b64
+                }
+
+            # External user → model hide
+            if hasattr(request, "external_user"):
+                response.pop("model_used", None)
+
+            return jsonify(response)
+
+        # ---------- OTHER MODES (internet / think / flash) ----------
         reply, model_used = generate_ai(prompt, mode)
 
         if not reply:
@@ -617,32 +749,25 @@ def ask():
         session["context"] = trim_context(session["context"])
         session.modified = True
 
-
-
-        #
         response = {
+            "type": "text",
             "answer": reply,
             "model_used": model_used,
-            "source": "file"
+            "image": None
         }
 
-        # 🔒 Hide internal info for external API users
         if hasattr(request, "external_user"):
             response.pop("model_used", None)
 
         return jsonify(response)
-        #
-
-
-
 
     except requests.exceptions.Timeout:
         return jsonify({"answer": "⏳ AI timeout. Try again."}), 504
-
     except Exception as e:
         print("SERVER ERROR:", e)
         return jsonify({"answer": "❌ Server error. Please retry."}), 500
-
+        
+        
 
 @app.route("/upload", methods=["POST"])
 @limiter.limit("5 per minute")
