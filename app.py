@@ -573,8 +573,8 @@ def detect_intent(question: str) -> str:
 
     # ---------- 1. GEMINI / GEMMA first ----------
     gemini_models = [
-        "gemma-4-26b-a4b-it",
         "gemini-2.5-flash-lite",
+        "gemma-4-26b-a4b-it"
     ]
 
     for model in gemini_models:
