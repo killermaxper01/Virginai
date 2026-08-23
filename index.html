@@ -587,9 +587,9 @@ button:active, .chat-item:active, .menu-item:active, .m-btn:active {
   20% { opacity: 1; }
   100% { opacity: .2; }
 }  
-  
-  
- 
+
+
+
 .ai-content { min-height: 20px; line-height: 1.7; overflow-x: auto; width: 100%; position: relative; z-index: 1; }
 .ai-content img {
   max-width: 100%;
@@ -1612,13 +1612,13 @@ function openProfile() {
 const ChatStorage = {
     chats: [],
     activeChatId: null,
-    
+
     init() {
         const stored = localStorage.getItem('virginai_chats');
         if (stored) {
             try { this.chats = JSON.parse(stored); } catch(e) { this.chats = []; }
         }
-        
+
         // Fresh start: if the newest chat isn't already empty, create a new one
         if (this.chats.length === 0 || this.chats[0].messages.length > 0) {
             this.startNewChat();
@@ -1628,15 +1628,15 @@ const ChatStorage = {
             this.loadActiveChat();
         }
     },
-    
+
     save() {
         localStorage.setItem('virginai_chats', JSON.stringify(this.chats));
     },
-    
+
     generateId() {
         return 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     },
-    
+
     startNewChat() {
         this.activeChatId = this.generateId();
         const newChat = {
@@ -1657,26 +1657,26 @@ const ChatStorage = {
         this.chats.unshift(newChat);
         this.save();
         this.renderList();
-        
+
         const chatEl = document.getElementById('chat');
         if (chatEl) chatEl.innerHTML = '';
         if(window.innerWidth <= 768) toggleSidebar(false);
     },
-    
+
     getActiveChat() {
         return this.chats.find(c => c.id === this.activeChatId);
     },
-    
+
     addMessage(role, content, attachments = []) {
         const chat = this.getActiveChat();
         if (!chat) return;
-        
+
         if (chat.messages.length === 0 && role === 'user') {
             let title = content.substring(0, 40).trim();
             if (content.length > 40) title += '...';
             chat.title = title;
         }
-        
+
         chat.messages.push({
             id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
             role: role,
@@ -1684,18 +1684,18 @@ const ChatStorage = {
             attachments: attachments,
             timestamp: Date.now()
         });
-        
+
         chat.updatedAt = Date.now();
         chat.stats.messageCount++;
         chat.stats.charCount += content.length;
         chat.stats.fileCount += attachments.length;
-        
+
         chat.searchIndex = (chat.title + " " + chat.messages.map(m => m.content).join(" ")).toLowerCase();
-        
+
         this.save();
         this.renderList();
     },
-    
+
     loadActiveChat() {
         const chat = this.getActiveChat();
         if (!chat) return;
@@ -1730,21 +1730,21 @@ const ChatStorage = {
             });
         }
     },
-    
+
     switchChat(id) {
         this.activeChatId = id;
         this.renderList();
         this.loadActiveChat();
         if(window.innerWidth <= 768) toggleSidebar(false);
     },
-    
+
     deleteChat(id) {
         const index = this.chats.findIndex(c => c.id === id);
         if (index === -1) return;
-        
+
         const chatToRestore = this.chats[index];
         this.chats.splice(index, 1);
-        
+
         if (this.activeChatId === id) {
             if (this.chats.length > 0) {
                 this.switchChat(this.chats[0].id);
@@ -1754,7 +1754,7 @@ const ChatStorage = {
         }
         this.save();
         this.renderList();
-        
+
         const toast = document.getElementById('toast');
         if(toast) {
             toast.innerHTML = `Chat deleted <button onclick="ChatStorage.undoDelete('${id}', ${index})" style="background:transparent; border:none; color:var(--gold); font-weight:bold; cursor:pointer; margin-left:10px;">Undo</button>`;
@@ -1767,7 +1767,7 @@ const ChatStorage = {
             }, 5000);
         }
     },
-    
+
     undoDelete(id, index) {
         if(window.undoMap && window.undoMap[id]) {
             this.chats.splice(index, 0, window.undoMap[id]);
@@ -1779,7 +1779,7 @@ const ChatStorage = {
             if(toast) toast.className = toast.className.replace("show", "");
         }
     },
-    
+
     togglePin(id, e) {
         if(e) e.stopPropagation();
         const chat = this.chats.find(c => c.id === id);
@@ -1789,7 +1789,7 @@ const ChatStorage = {
             this.renderList();
         }
     },
-    
+
     renameChat(id, e) {
         if(e) e.stopPropagation();
         const chat = this.chats.find(c => c.id === id);
@@ -1802,13 +1802,13 @@ const ChatStorage = {
             }
         }
     },
-    
+
     renderList(filter = 'all') {
         const listEl = document.getElementById('sidebar-chat-list');
         if (!listEl) return;
-        
+
         const searchQ = (document.getElementById('chatSearch')?.value || "").toLowerCase();
-        
+
         let filteredChats = this.chats.filter(c => {
             if (filter === 'favorites' && !c.isFavorite) return false;
             if (filter === 'archived' && !c.isArchived) return false;
@@ -1816,23 +1816,23 @@ const ChatStorage = {
             if (searchQ && !(c.searchIndex || "").includes(searchQ)) return false;
             return true;
         });
-        
+
         let html = '';
-        
+
         const pinned = filteredChats.filter(c => c.isPinned);
         const unpinned = filteredChats.filter(c => !c.isPinned);
-        
+
         const now = Date.now();
         const day = 24 * 60 * 60 * 1000;
-        
+
         if (pinned.length > 0) {
             html += `<div class="sidebar-group-label">Pinned</div>`;
             html += pinned.map(c => this.chatHTML(c)).join('');
         }
-        
+
         const today = unpinned.filter(c => now - c.updatedAt < day);
         const older = unpinned.filter(c => now - c.updatedAt >= day);
-        
+
         if (today.length > 0) {
             html += `<div class="sidebar-group-label">Today</div>`;
             html += today.map(c => this.chatHTML(c)).join('');
@@ -1841,10 +1841,10 @@ const ChatStorage = {
             html += `<div class="sidebar-group-label">Older</div>`;
             html += older.map(c => this.chatHTML(c)).join('');
         }
-        
+
         listEl.innerHTML = html;
     },
-    
+
     chatHTML(chat) {
         const isActive = chat.id === this.activeChatId ? 'active' : '';
         return `
@@ -1863,7 +1863,7 @@ const ChatStorage = {
             </div>
         </div>`;
     },
-    
+
     exportAll() {
         const data = JSON.stringify(this.chats, null, 2);
         const blob = new Blob([data], {type: "application/json"});
@@ -1874,7 +1874,7 @@ const ChatStorage = {
         a.click();
         URL.revokeObjectURL(url);
     },
-    
+
     importData() {
         const input = document.createElement('input');
         input.type = 'file';
@@ -1983,7 +1983,7 @@ viewer.addEventListener("mousemove", e => {
     pointX = e.clientX - startX;
     pointY = e.clientY - startY;
     viewerImg.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
-    
+
     const now = performance.now();
     const dt = now - lastTime;
     if (dt > 0) {
@@ -2052,7 +2052,7 @@ function copyMessage(btn) {
     const contentEl = msg.querySelector('.ai-content');
     const rawText = contentEl.getAttribute('data-raw') || contentEl.textContent;
     navigator.clipboard.writeText(rawText);
-    
+
     const originalHTML = btn.innerHTML;
     btn.innerHTML = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
     btn.classList.add('copied');
@@ -2141,7 +2141,7 @@ function add(text, cls, isImage = false, rawText = null, isRestoring = false) {
   const threshold = 120;
   const st = document.documentElement.scrollTop || window.scrollY;
   const atBottom = document.documentElement.clientHeight + st >= document.documentElement.scrollHeight - threshold;
-  
+
   if (atBottom || autoScroll) {
       d.scrollIntoView({ behavior: "smooth", block: "end" });
   }
@@ -2248,7 +2248,7 @@ function renderMarkdown(contentEl, text) {
                         if (key === 'TIP') svgIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg>';
                         if (key === 'IMPORTANT') svgIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>';
                         if (key === 'CAUTION') svgIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
-                        
+
                         firstP.innerHTML = firstP.innerHTML.replace(`<strong>__ALERT_${key}__</strong>`, `<div class="alert-title">${svgIcon} ${key.charAt(0) + key.slice(1).toLowerCase()}</div>`);
                     }
                 }
@@ -2291,9 +2291,9 @@ function renderMarkdown(contentEl, text) {
         if (userSettings.codeHighlighting && typeof hljs !== 'undefined') {
             contentEl.querySelectorAll('pre code').forEach((block) => {
                 if (block.parentElement.classList.contains('mermaid')) return;
-                
+
                 hljs.highlightElement(block);
-                
+
                 let lang = "Text";
                 let filename = "";
                 block.classList.forEach(cls => {
@@ -2308,11 +2308,11 @@ function renderMarkdown(contentEl, text) {
                         }
                     }
                 });
-                
+
                 const pre = block.parentElement;
                 const header = document.createElement("div");
                 header.className = "code-header";
-                
+
                 const langBadge = document.createElement("div");
                 langBadge.className = "code-lang-wrapper";
                 if (filename) {
@@ -2320,7 +2320,7 @@ function renderMarkdown(contentEl, text) {
                 } else {
                     langBadge.innerHTML = `<span class="code-lang">${lang.toUpperCase()}</span>`;
                 }
-                
+
                 const copyBtn = document.createElement("button");
                 copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy';
                 copyBtn.className = "code-copy-btn";
@@ -2333,7 +2333,7 @@ function renderMarkdown(contentEl, text) {
                         copyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy';
                     }, 2000);
                 };
-                
+
                 header.appendChild(langBadge);
                 header.appendChild(copyBtn);
                 pre.insertBefore(header, block);
@@ -2342,7 +2342,7 @@ function renderMarkdown(contentEl, text) {
     } else {
         contentEl.textContent = text;
     }
-    
+
     // AI Response collapse logic
     requestAnimationFrame(() => {
         const lines = text.split('\n').length;
@@ -2378,20 +2378,20 @@ function stopGenerating() {
 function typeMatrix(el, text) {
     const contentEl = el.querySelector(".ai-content");
     const thinking = contentEl.querySelector('.ai-thinking');
-    
+
     const startStreaming = () => {
         autoScroll = true;
         el.classList.add("writing");
         let i = 0;
         let currentText = "";
         contentEl.textContent = "";
-        
+
         isGenerating = true;
         const stopBtn = document.getElementById("stopGenBtn");
         if (stopBtn) stopBtn.style.display = "flex";
 
         if (currentTypingInterval) clearInterval(currentTypingInterval);
-        
+
         if (userSettings.streamingSpeed === "instant") {
             contentEl.textContent = text;
             contentEl.setAttribute("data-current", text);
@@ -2469,18 +2469,18 @@ function typeMatrix(el, text) {
 function checkScroll(e) {
     const target = e.target === document ? document.documentElement : e.target;
     const st = target.scrollTop || window.scrollY;
-    
+
     if (st < lastScrollTop - 5) {
         autoScroll = false;
     }
-    
+
     const threshold = 120;
     const atBottom = target.clientHeight + st >= target.scrollHeight - threshold;
-    
+
     if (atBottom) {
         autoScroll = true;
     }
-    
+
     const btn = document.getElementById("jumpToLatest");
     if (btn) {
         if (autoScroll) {
@@ -2491,7 +2491,7 @@ function checkScroll(e) {
             btn.style.pointerEvents = "auto";
         }
     }
-    
+
     lastScrollTop = st <= 0 ? 0 : st;
 }
 window.addEventListener("scroll", checkScroll, true);
@@ -2546,7 +2546,7 @@ async function ask(regenData = null) {
       text = regenData.text;
       file = regenData.file;
       targetMode = regenData.mode;
-      
+
       document.querySelectorAll('.m-btn').forEach(b => b.classList.remove('active'));
       const activeBtn = document.querySelector(`.m-btn[data-mode="${targetMode}"]`);
       if (activeBtn) activeBtn.classList.add('active');
@@ -2572,7 +2572,7 @@ async function ask(regenData = null) {
           add(text, "user", false, text);
           if(!regenData) ChatStorage.addMessage('user', text);
       }
-      
+
       if (text) {
           if (window.promptHistory[window.promptHistory.length - 1] !== text) {
               window.promptHistory.push(text);
@@ -2581,7 +2581,7 @@ async function ask(regenData = null) {
           }
           window.promptIndex = window.promptHistory.length;
       }
-      
+
       q.value = "";
       if (typeof removeFile === "function") removeFile();
   }
@@ -2621,7 +2621,7 @@ async function ask(regenData = null) {
   // 💬 NORMAL CHAT + FILE LOGIC
   const aiBubble = add("", "ai");
   aiBubble.regenData = { text, file, mode: targetMode };
-  
+
   if (isComplexPrompt(text)) {
       const aiContent = aiBubble.querySelector('.ai-content');
       aiContent.innerHTML = `<div class="ai-thinking"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
@@ -2661,7 +2661,7 @@ async function ask(regenData = null) {
         })
       });
     }
-    
+
     if (!r.ok) throw new Error("Service failed");
 
     console.log(r.status);
@@ -2673,12 +2673,43 @@ async function ask(regenData = null) {
     
     const footer = aiBubble.querySelector('.msg-footer');
     if (footer) {
-        footer.querySelector('.msg-meta').innerHTML = `⚡ Generated in ${timeTaken}s`;
+      footer.querySelector('.msg-meta').innerHTML = `⚡ Generated in ${timeTaken}s`;
     }
-
-    typeMatrix(aiBubble, d.answer || "No response.");
-    ChatStorage.addMessage('assistant', d.answer || "No response.");
-
+    
+    // ---------- IMAGE / BOTH support ----------
+    const hasImage = d.image && (d.type === "image" || d.type === "both");
+    const answerText = d.answer || "";
+    
+    if (hasImage) {
+      // Base64 → displayable image
+      const imgSrc = d.image.startsWith("data:")
+        ? d.image
+        : `data:image/png;base64,${d.image}`;
+    
+      // Pehle text (agar hai)
+      if (answerText && d.type === "both") {
+        typeMatrix(aiBubble, answerText);
+        ChatStorage.addMessage("assistant", answerText);
+      } else {
+        // Sirf image → bubble hatao, image bubble banao
+        aiBubble.remove();
+      }
+    
+      // Image dikhao (existing add() image support use)
+      add(imgSrc, "ai", true);
+      ChatStorage.addMessage("assistant", "", [{
+        type: "image",
+        name: "generation",
+        data: imgSrc
+      }]);
+    
+    } else {
+      // Normal text
+      typeMatrix(aiBubble, answerText || "No response.");
+      ChatStorage.addMessage("assistant", answerText || "No response.");
+    }
+        
+      
   } catch(err) {
     console.error(err);
 
@@ -2711,7 +2742,7 @@ q.addEventListener("keydown", e => {
       }
     }
   }
-  
+
   if (e.key === "ArrowUp") {
       if (q.selectionStart === 0 && window.promptIndex > 0) {
           e.preventDefault();
@@ -2733,7 +2764,7 @@ q.addEventListener("keydown", e => {
           q.dispatchEvent(new Event('input'));
       }
   }
-  
+
   if (e.ctrlKey && e.key === "l") {
       e.preventDefault();
       document.getElementById("chat").innerHTML = "";
@@ -2800,7 +2831,7 @@ document.getElementById("fileInput").addEventListener("change", function () {
   const pName = document.getElementById("previewName");
   const pSize = document.getElementById("previewSize");
   const pSnippet = document.getElementById("previewSnippet");
-  
+
   pName.textContent = file.name;
   pSize.textContent = (file.size / 1024).toFixed(1) + " KB • " + (file.type || "FILE");
   pSnippet.style.display = "none";
@@ -2875,9 +2906,9 @@ function exportChat(format) {
             if (raw) content += `**VirginAI:**\\n${raw}\\n\\n`;
         }
     });
-    
+
     if (format === 'txt') content = content.replace(/\\*\\*/g, ""); 
-    
+
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -2920,7 +2951,7 @@ function updateParallax() {
     if (appContainer) {
         appContainer.style.transform = `translate(${currentParallaxX}px, ${currentParallaxY}px)`;
     }
-    
+
     if (Math.abs(parallaxX - currentParallaxX) > 0.01 || Math.abs(parallaxY - currentParallaxY) > 0.01) {
         parallaxFrame = requestAnimationFrame(updateParallax);
     } else {
@@ -3008,7 +3039,7 @@ window.speakMessage = function(btn) {
     const msg = btn.closest('.msg');
     const contentEl = msg.querySelector('.ai-content');
     const text = contentEl.getAttribute('data-raw') || contentEl.textContent;
-    
+
     const speakerSvg = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" /></svg>';
     const pauseSvg = '<svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" /></svg>';
     const waveSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="7" y="9" width="2" height="6" rx="1" class="wave-1"></rect><rect x="11" y="6" width="2" height="12" rx="1" class="wave-2"></rect><rect x="15" y="9" width="2" height="6" rx="1" class="wave-3"></rect></svg>';
@@ -3023,23 +3054,23 @@ window.speakMessage = function(btn) {
         }
         return;
     }
-    
+
     if (window.speechSynthesis.speaking) {
         window.speechSynthesis.cancel();
         if (currentSpeakingBtn) {
             currentSpeakingBtn.innerHTML = speakerSvg;
         }
     }
-    
+
     currentUtterance = new SpeechSynthesisUtterance(text);
     currentSpeakingBtn = btn;
     btn.innerHTML = waveSvg;
-    
+
     currentUtterance.onend = () => {
         btn.innerHTML = speakerSvg;
         currentSpeakingBtn = null;
     };
-    
+
     window.speechSynthesis.speak(currentUtterance);
 };
 
@@ -3112,9 +3143,9 @@ window.bookmarkMessage = function(btn) {
     const contentEl = msg.querySelector('.ai-content');
     const text = contentEl.getAttribute('data-raw') || contentEl.textContent;
     const chatId = ChatStorage.activeChatId;
-    
+
     const existingIndex = window.bookmarks.findIndex(b => b.text === text && b.chatId === chatId);
-    
+
     if (existingIndex === -1) {
         window.bookmarks.push({chatId, text});
         btn.style.color = 'var(--gold)';
@@ -3195,9 +3226,9 @@ function typePlaceholder() {
         qPlaceholder.setAttribute('placeholder', currentString.substring(0, charIndex + 1));
         charIndex++;
     }
-    
+
     let typeSpeed = isDeleting ? 30 : 60 + Math.random() * 50;
-    
+
     if(!isDeleting && charIndex === currentString.length) {
         typeSpeed = 2000;
         isDeleting = true;
@@ -3236,7 +3267,7 @@ const menuDropdown = document.getElementById("menuDropdown");
 /* AUTH STATE */
 onAuthStateChanged(auth, (user) => {
   window.currentUser = user;
-  
+
   // Clear auth items only (avoid duplicates)
   menuDropdown.querySelectorAll(".auth-item").forEach(e => e.remove());
 
@@ -3264,7 +3295,7 @@ onAuthStateChanged(auth, (user) => {
       </a>
     `);
   }
-  
+
   menuDropdown.insertAdjacentHTML("beforeend", `
     <hr style="border-color:#333; margin:8px 0;" class="auth-item">
     <a href="#" onclick="exportChat('md')" class="menu-item auth-item">📄 Export (Markdown)</a>
@@ -3297,4 +3328,3 @@ onAuthStateChanged(auth, (user) => {
 <script type="module" src="/auth.js"></script>
 </body>
 </html>
-
