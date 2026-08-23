@@ -337,7 +337,6 @@ MODELS = {
 def generate_ai(prompt, mode):
 
     def call_gemini(model, internet=False):
-        """Returns (reply, error_type)"""
         for key in random.sample(GEMINI_KEYS, len(GEMINI_KEYS)):
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
@@ -346,15 +345,15 @@ def generate_ai(prompt, mode):
                 }
                 if internet:
                     payload["tools"] = [{"google_search": {}}]
-    
+
                 print(f"[GEMINI] Trying → {model}")
                 r = requests.post(url, params={"key": key}, json=payload, timeout=16)
-    
+
                 if r.status_code == 200:
                     text = r.json()["candidates"][0]["content"]["parts"][0]["text"]
                     print(f"[GEMINI] ✅ SUCCESS → {model}")
                     return text, None
-    
+
                 err_text = r.text.lower()
                 if r.status_code == 404 or "not found" in err_text:
                     print(f"[GEMINI] ❌ MODEL NOT FOUND → {model}")
@@ -363,23 +362,21 @@ def generate_ai(prompt, mode):
                     print(f"[GEMINI] ⚠️ RATE LIMIT → {model}")
                     return None, "rate_limit"
                 if r.status_code in (401, 403):
-                    print(f"[GEMINI] 🔑 KEY FAIL → {model} | status={r.status_code}")
+                    print(f"[GEMINI] 🔑 KEY FAIL → {model}")
                     continue
-    
-                print(f"[GEMINI] ❌ ERROR {r.status_code} → {model} | {r.text[:120]}")
+
+                print(f"[GEMINI] ❌ ERROR {r.status_code} → {model}")
                 return None, "provider_error"
-    
+
             except requests.exceptions.Timeout:
                 print(f"[GEMINI] ⏰ TIMEOUT → {model}")
                 return None, "provider_error"
             except Exception as e:
-                print(f"[GEMINI] 💥 EXCEPTION → {model} | {e}")
+                print(f"[GEMINI] 💥 {model} | {e}")
                 continue
         return None, "provider_error"
-    
-    
+
     def call_groq(model="openai/gpt-oss-20b"):
-        """Returns (reply, error_type)"""
         for key in random.sample(GROQ_KEYS, len(GROQ_KEYS)):
             try:
                 print(f"[GROQ] Trying → {model}")
@@ -395,27 +392,26 @@ def generate_ai(prompt, mode):
                     },
                     timeout=14
                 )
-    
+
                 if r.status_code == 200:
                     text = r.json()["choices"][0]["message"]["content"]
                     print(f"[GROQ] ✅ SUCCESS → {model}")
                     return text, None
-    
+
                 if r.status_code == 404 or "does not exist" in r.text.lower():
                     print(f"[GROQ] ❌ MODEL NOT FOUND → {model}")
                     return None, "model_not_found"
                 if r.status_code == 429:
                     print(f"[GROQ] ⚠️ RATE LIMIT → {model}")
                     return None, "rate_limit"
-    
-                print(f"[GROQ] ❌ ERROR {r.status_code} → {model} | {r.text[:120]}")
+
+                print(f"[GROQ] ❌ ERROR {r.status_code} → {model}")
                 return None, "provider_error"
-    
+
             except Exception as e:
-                print(f"[GROQ] 💥 EXCEPTION → {model} | {e}")
+                print(f"[GROQ] 💥 {model} | {e}")
                 continue
         return None, "provider_error"
-
 
     def try_gemini_models(model_list, internet=False):
         for model in model_list:
@@ -423,11 +419,10 @@ def generate_ai(prompt, mode):
             if reply:
                 return reply, model
             if err in ("model_not_found", "rate_limit"):
-                continue          # next model (quota bachao)
+                continue
             else:
-                break             # provider level issue
+                break
         return None, None
-
 
     def try_groq_models(model_list):
         for model in model_list:
@@ -440,68 +435,68 @@ def generate_ai(prompt, mode):
                 break
         return None, None
 
-
     # ---------------- MODE LOGIC ----------------
+    print(f"\n===== MODE: {mode.upper()} =====")
 
-    # SMART
     if mode == "smart":
         reply, model = try_gemini_models(MODELS["smart"])
         if reply:
+            print(f"🎯 FINAL → {model}")
             return reply, model
-        # Provider shift → Groq
+        print("↪️ Gemini fail → Groq")
         reply, model = try_groq_models(MODELS["flash"])
+        if reply:
+            print(f"🎯 FINAL → {model}")
         return (reply, model) if reply else (None, None)
 
-    # INTERNET
     if mode == "internet":
         reply, model = try_gemini_models(MODELS["internet"], internet=True)
         if reply:
+            print(f"🎯 FINAL → {model}")
             return reply, model
-        # fallback without search
         reply, model = try_gemini_models(MODELS["smart"])
         if reply:
+            print(f"🎯 FINAL → {model}")
             return reply, model
-        # Provider shift → Groq
+        print("↪️ Gemini fail → Groq")
         reply, model = try_groq_models(MODELS["flash"])
+        if reply:
+            print(f"🎯 FINAL → {model}")
         return (reply, model) if reply else (None, None)
 
-    # THINK
     if mode == "think":
         reply, model = try_gemini_models(MODELS["think"])
         if reply:
+            print(f"🎯 FINAL → {model}")
             return reply, model
-        # Provider shift → Groq
+        print("↪️ Gemini fail → Groq")
         reply, model = try_groq_models(MODELS["flash"])
+        if reply:
+            print(f"🎯 FINAL → {model}")
         return (reply, model) if reply else (None, None)
 
-    # FLASH
     if mode == "flash":
         reply, model = try_groq_models(MODELS["flash"])
         if reply:
+            print(f"🎯 FINAL → {model}")
             return reply, model
-        # Provider shift → Gemini
+        print("↪️ Groq fail → Gemini")
         reply, model = try_gemini_models(MODELS["smart"])
+        if reply:
+            print(f"🎯 FINAL → {model}")
         return (reply, model) if reply else (None, None)
 
-    # DEFAULT
+    # default
     reply, model = try_gemini_models(MODELS["smart"])
     if reply:
+        print(f"🎯 FINAL → {model}")
         return reply, model
     reply, model = try_groq_models(MODELS["flash"])
-    return (reply, model) if reply else (None, None)
-    #model checker 
-    if mode == "smart":
-    print(f"\n===== MODE: SMART =====")
-    reply, model = try_gemini_models(MODELS["smart"])
     if reply:
-        print(f"🎯 FINAL MODEL → {model}")
-        return reply, model
-    print("↪️ Gemini fail → switching to Groq")
-    reply, model = try_groq_models(MODELS["flash"])
-    if reply:
-        print(f"🎯 FINAL MODEL → {model}")
+        print(f"🎯 FINAL → {model}")
     return (reply, model) if reply else (None, None)
-
+    
+    
 
 
 
@@ -542,13 +537,7 @@ def is_about_virginai(text: str) -> bool:
 
 # -------------------- INTENT DETECTOR (Light + Fast) --------------------
 def detect_intent(question: str) -> str:
-    """
-    Returns: "text" | "image" | "both"
-    Order:
-      Groq  → gpt-oss-20b → gpt-oss-120b → qwen3.6-27b
-      Gemini → gemma-4-26b → gemma-4-31b → 2.5-flash-lite → 3.5-flash-lite
-      Fail  → "text" (bypass)
-    """
+    print(f"[INTENT] Checking → {question[:60]}")
 
     prompt = f"""Classify into one word only: text, image, or both.
 image = only picture
@@ -559,7 +548,6 @@ User: {question[:200]}
 
 Answer:"""
 
-    # ---------- 1. GROQ (fast first) ----------
     groq_models = [
         "openai/gpt-oss-20b",
         "openai/gpt-oss-120b",
@@ -569,6 +557,7 @@ Answer:"""
     for model in groq_models:
         for key in random.sample(GROQ_KEYS, len(GROQ_KEYS)):
             try:
+                print(f"[INTENT][GROQ] Trying → {model}")
                 r = requests.post(
                     "https://api.groq.com/openai/v1/chat/completions",
                     headers={
@@ -585,18 +574,21 @@ Answer:"""
                 )
                 if r.status_code == 200:
                     reply = r.json()["choices"][0]["message"]["content"].strip().lower()
+                    print(f"[INTENT][GROQ] ✅ {model} → {reply}")
                     if "both" in reply:
                         return "both"
                     if "image" in reply:
                         return "image"
                     if "text" in reply:
                         return "text"
-            except Exception:
+                else:
+                    print(f"[INTENT][GROQ] ❌ {model} status={r.status_code}")
+            except Exception as e:
+                print(f"[INTENT][GROQ] 💥 {model} | {e}")
                 continue
 
-    # ---------- 2. GEMINI (Gemma first = high quota) ----------
     gemini_models = [
-        "gemma-4-26b-a4b-it",      # sabse zyada free quota
+        "gemma-4-26b-a4b-it",
         "gemma-4-31b-it",
         "gemini-2.5-flash-lite",
         "gemini-3.5-flash-lite",
@@ -605,39 +597,34 @@ Answer:"""
     for model in gemini_models:
         for key in random.sample(GEMINI_KEYS, len(GEMINI_KEYS)):
             try:
+                print(f"[INTENT][GEMINI] Trying → {model}")
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
                 r = requests.post(
                     url,
                     params={"key": key},
                     json={
                         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                        "generationConfig": {
-                            "maxOutputTokens": 5,
-                            "temperature": 0
-                        }
+                        "generationConfig": {"maxOutputTokens": 5, "temperature": 0}
                     },
                     timeout=8
                 )
                 if r.status_code == 200:
                     reply = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip().lower()
+                    print(f"[INTENT][GEMINI] ✅ {model} → {reply}")
                     if "both" in reply:
                         return "both"
                     if "image" in reply:
                         return "image"
                     if "text" in reply:
                         return "text"
-            except Exception:
+                else:
+                    print(f"[INTENT][GEMINI] ❌ {model} status={r.status_code}")
+            except Exception as e:
+                print(f"[INTENT][GEMINI] 💥 {model} | {e}")
                 continue
 
-    # ---------- 3. Final fallback → bypass intent ----------
+    print("[INTENT] Final fallback → text")
     return "text"
-    print(f"[INTENT] Checking: {question[:50]}...")
-    # har success/fail pe
-    print(f"[INTENT] ✅ {model} → {reply}")
-    # ya
-    print(f"[INTENT] ❌ {model} failed")
-    print(f"[INTENT] Final → {result}")
-
 
 
 def generate_image_bytes(prompt: str):
