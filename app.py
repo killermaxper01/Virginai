@@ -537,93 +537,108 @@ def is_about_virginai(text: str) -> bool:
 
 # -------------------- INTENT DETECTOR (Light + Fast) --------------------
 def detect_intent(question: str) -> str:
-    print(f"[INTENT] Checking → {question[:60]}")
+    """
+    AI-only intent.
+    Returns: text | image | both
+    Order: Gemma → Groq → text
+    """
+    q = (question or "").strip()
+    print(f"[INTENT] Checking → {q[:60]}")
 
-    prompt = f"""Classify into one word only: text, image, or both.
-image = only picture
-both = picture + explanation
-text = normal question
+    if not q:
+        return "text"
 
-User: {question[:200]}
+    prompt = (
+        "Reply with ONLY one word: text OR image OR both.\n"
+        "image = user wants you to create/draw/generate a picture\n"
+        "both = create picture AND explain it\n"
+        "text = normal question (including questions ABOUT art/painting)\n\n"
+        f"User: {q[:160]}"
+    )
 
-Answer:"""
+    def parse_intent(raw: str):
+        if not raw:
+            return None
+        t = raw.lower().replace("<think>", " ").replace("</think>", " ")
+        for token in t.replace("*", " ").replace(":", " ").split():
+            if token in ("both", "image", "text"):
+                return token
+        if "both" in t:
+            return "both"
+        if "image" in t:
+            return "image"
+        if "text" in t:
+            return "text"
+        return None
 
-    groq_models = [
-        "openai/gpt-oss-20b",
-        "openai/gpt-oss-120b",
-        "qwen/qwen3.6-27b",
-    ]
-
-    for model in groq_models:
-        for key in random.sample(GROQ_KEYS, len(GROQ_KEYS)):
-            try:
-                print(f"[INTENT][GROQ] Trying → {model}")
-                r = requests.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {key}",
-                        "Content-Type": "application/json"
-                    },
-                    json={
-                        "model": model,
-                        "messages": [{"role": "user", "content": prompt}],
-                        "max_tokens": 5,
-                        "temperature": 0
-                    },
-                    timeout=8
-                )
-                if r.status_code == 200:
-                    reply = r.json()["choices"][0]["message"]["content"].strip().lower()
-                    print(f"[INTENT][GROQ] ✅ {model} → {reply}")
-                    if "both" in reply:
-                        return "both"
-                    if "image" in reply:
-                        return "image"
-                    if "text" in reply:
-                        return "text"
-                else:
-                    print(f"[INTENT][GROQ] ❌ {model} status={r.status_code}")
-            except Exception as e:
-                print(f"[INTENT][GROQ] 💥 {model} | {e}")
-                continue
-
+    # ---------- 1. GEMINI / GEMMA first ----------
     gemini_models = [
         "gemma-4-26b-a4b-it",
-        "gemma-4-31b-it",
         "gemini-2.5-flash-lite",
-        "gemini-3.5-flash-lite",
     ]
 
     for model in gemini_models:
-        for key in random.sample(GEMINI_KEYS, len(GEMINI_KEYS)):
-            try:
-                print(f"[INTENT][GEMINI] Trying → {model}")
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-                r = requests.post(
-                    url,
-                    params={"key": key},
-                    json={
-                        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                        "generationConfig": {"maxOutputTokens": 5, "temperature": 0}
-                    },
-                    timeout=8
-                )
-                if r.status_code == 200:
-                    reply = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip().lower()
-                    print(f"[INTENT][GEMINI] ✅ {model} → {reply}")
-                    if "both" in reply:
-                        return "both"
-                    if "image" in reply:
-                        return "image"
-                    if "text" in reply:
-                        return "text"
-                else:
-                    print(f"[INTENT][GEMINI] ❌ {model} status={r.status_code}")
-            except Exception as e:
-                print(f"[INTENT][GEMINI] 💥 {model} | {e}")
-                continue
+        if not GEMINI_KEYS:
+            break
+        key = random.choice(GEMINI_KEYS)
+        try:
+            print(f"[INTENT][GEMINI] Trying → {model}")
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+            r = requests.post(
+                url,
+                params={"key": key},
+                json={
+                    "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "maxOutputTokens": 10,
+                        "temperature": 0
+                    }
+                },
+                timeout=6
+            )
+            if r.status_code == 200:
+                raw = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+                got = parse_intent(raw)
+                print(f"[INTENT][GEMINI] {model} raw={raw!r} → {got}")
+                if got:
+                    return got
+            else:
+                print(f"[INTENT][GEMINI] {model} status={r.status_code}")
+        except Exception as e:
+            print(f"[INTENT][GEMINI] {model} fail → {e}")
+            continue
 
-    print("[INTENT] Final fallback → text")
+    # ---------- 2. GROQ fallback ----------
+    if GROQ_KEYS:
+        key = random.choice(GROQ_KEYS)
+        try:
+            print("[INTENT][GROQ] Trying → openai/gpt-oss-20b")
+            r = requests.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "openai/gpt-oss-20b",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": 10,
+                    "temperature": 0
+                },
+                timeout=6
+            )
+            if r.status_code == 200:
+                raw = r.json()["choices"][0]["message"]["content"]
+                got = parse_intent(raw)
+                print(f"[INTENT][GROQ] raw={raw!r} → {got}")
+                if got:
+                    return got
+            else:
+                print(f"[INTENT][GROQ] status={r.status_code}")
+        except Exception as e:
+            print(f"[INTENT][GROQ] fail → {e}")
+
+    print("[INTENT] fallback → text")
     return "text"
 
 
